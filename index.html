@@ -25,11 +25,18 @@
     <link rel="stylesheet" href="/css/variables.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/pages.css">
+    <style>
+        #app { background-color: var(--dx-bg); min-height: 100vh; }
+    </style>
 </head>
 <body>
     <div id="app">
         <!-- SPA Shell -->
-        <main id="main-content"></main>
+        <main id="main-content">
+            <div style="display: flex; align-items: center; justify-content: center; height: 80vh; color: var(--dx-muted);">
+                <p>Carregando Diamond X...</p>
+            </div>
+        </main>
         
         <nav id="bottom-nav" class="hidden">
             <!-- Dynamic navigation based on user role -->
@@ -39,6 +46,21 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Global Error:', e.message, 'at', e.filename, ':', e.lineno);
+            if (e.message.includes('SyntaxError')) {
+                document.getElementById('main-content').innerHTML = `
+                    <div style="padding: 20px; color: white; text-align: center;">
+                        <h2 style="color: var(--dx-danger);">Erro de Carregamento</h2>
+                        <p>Houve um problema ao carregar os componentes do sistema.</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 10px;">${e.message}</p>
+                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px; width: auto; padding: 10px 20px;">Tentar Novamente</button>
+                    </div>
+                `;
+            }
+        }, true);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
