@@ -28,69 +28,88 @@ export const responsibleDashboard = {
 
     async loadStudentsSummary() {
         const container = document.getElementById('students-summary');
-        const userId = (await supabase.auth.getUser()).data.user.id;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const userId = user.id;
 
-        // Fetch students and their latest plan
-        const { data: students, error } = await supabase
-            .from('responsible_students')
-            .select(`
-                student_id,
-                student:users!student_id (
-                    full_name,
-                    plans:student_plans (
-                        status,
-                        plan:plans (name)
+            console.log('Buscando resumo para o responsável:', userId);
+
+            // Fetch students linked to this responsible
+            const { data: links, error: linkError } = await supabase
+                .from('responsible_students')
+                .select(`
+                    student_id,
+                    student:users!student_id (
+                        full_name,
+                        email
                     )
-                )
-            `)
-            .eq('responsible_id', userId);
+                `)
+                .eq('responsible_id', userId);
 
-        if (error || !students || students.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px 20px;">
-                    <p style="color: var(--dx-muted);">Nenhum aluno vinculado.</p>
-                    <a href="#students" class="btn btn-primary" style="margin-top: 16px; width: auto;">VINCULAR AGORA</a>
-                </div>
-            `;
-            return;
-        }
+            if (linkError) {
+                console.error('Erro ao buscar links:', linkError);
+                throw linkError;
+            }
 
-        container.innerHTML = students.map(item => {
-            const student = item.student;
-            const latestPlan = student.plans && student.plans.length > 0 
-                ? student.plans.sort((a,b) => b.created_at - a.created_at)[0] 
-                : null;
-            
-            const statusLabel = latestPlan ? this.getPlanStatusLabel(latestPlan.status) : 'SEM PLANO';
-            const statusClass = latestPlan ? this.getPlanStatusClass(latestPlan.status) : 'badge-cancelled';
+            if (!links || links.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <p style="color: var(--dx-muted);">Nenhum aluno vinculado.</p>
+                        <a href="#students" class="btn btn-primary" style="margin-top: 16px; width: auto;">VINCULAR AGORA</a>
+                    </div>
+                `;
+                return;
+            }
 
-            return `
-                <div class="card" style="padding: 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                        <div>
-                            <p style="font-weight: 800; font-size: 18px;">${student.full_name}</p>
-                            <p style="font-size: 12px; color: var(--dx-muted);">${latestPlan ? latestPlan.plan.name : 'Nenhuma contratação ativa'}</p>
+            // For each student, let's try to get their latest plan
+            const studentIds = links.map(l => l.student_id);
+            const { data: allPlans, error: planError } = await supabase
+                .from('student_plans')
+                .select('student_id, status, plan:plans(name)')
+                .in('student_id', studentIds)
+                .order('created_at', { ascending: false });
+
+            if (planError) console.warn('Erro ao buscar planos (pode estar vazio):', planError);
+
+            container.innerHTML = links.map(link => {
+                const student = link.student;
+                const latestPlan = (allPlans || []).find(p => p.student_id === link.student_id);
+                
+                const statusLabel = latestPlan ? this.getPlanStatusLabel(latestPlan.status) : 'SEM PLANO';
+                const statusClass = latestPlan ? this.getPlanStatusClass(latestPlan.status) : 'badge-cancelled';
+
+                return `
+                    <div class="card" style="padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div>
+                                <p style="font-weight: 800; font-size: 18px;">${student.full_name}</p>
+                                <p style="font-size: 12px; color: var(--dx-muted);">${latestPlan ? latestPlan.plan.name : 'Nenhuma contratação ativa'}</p>
+                            </div>
+                            <span class="badge ${statusClass}">${statusLabel}</span>
                         </div>
-                        <span class="badge ${statusClass}">${statusLabel}</span>
-                    </div>
-                    
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
-                            VER FREQUÊNCIA
-                        </button>
-                        ${!latestPlan || latestPlan.status !== 'active' ? `
-                            <a href="#plans" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 12px;">
-                                RENOVAR
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <a href="#attendance?id=${link.student_id}" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
+                                VER FREQUÊNCIA
                             </a>
-                        ` : `
-                            <button class="btn" style="flex: 1; padding: 10px; font-size: 12px; border: 1px solid var(--dx-teal-border); color: var(--dx-teal);">
-                                DETALHES
-                            </button>
-                        `}
+                            ${!latestPlan || latestPlan.status !== 'active' ? `
+                                <a href="#plans" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 12px;">
+                                    PLANOS
+                                </a>
+                            ` : `
+                                <button class="btn" style="flex: 1; padding: 10px; font-size: 12px; border: 1px solid var(--dx-teal-border); color: var(--dx-teal);">
+                                    DETALHES
+                                </button>
+                            `}
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error('Erro geral no Dashboard:', err);
+            container.innerHTML = `<p style="color: var(--dx-danger); text-align: center;">Erro ao carregar dados do dashboard.</p>`;
+        }
     },
 
     getPlanStatusLabel(status) {
