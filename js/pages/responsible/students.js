@@ -97,16 +97,28 @@ export const responsibleStudents = {
         `;
 
         ui.bottomSheet.show('Vincular Aluno', formHtml, async (data) => {
+            console.log('Tentando vincular aluno com email:', data.email);
+            
             const { data: student, error: fError } = await supabase
                 .from('users')
-                .select('id, role')
+                .select('id, role, full_name')
                 .eq('email', data.email)
                 .single();
 
-            if (fError || !student) throw new Error('Aluno não encontrado.');
-            if (student.role !== 'student') throw new Error('O e-mail informado não é de um aluno.');
+            if (fError || !student) {
+                console.error('Erro ao buscar aluno:', fError);
+                throw new Error('Aluno não encontrado com este e-mail.');
+            }
+            
+            if (student.role !== 'student') {
+                throw new Error('O e-mail informado pertence a um ' + student.role + ', não a um aluno.');
+            }
 
-            const userId = (await supabase.auth.getUser()).data.user.id;
+            const { data: { user } } = await supabase.auth.getUser();
+            const userId = user.id;
+            
+            console.log('Vinculando aluno', student.id, 'ao responsável', userId);
+
             const { error: lError } = await supabase
                 .from('responsible_students')
                 .insert([{
@@ -114,8 +126,13 @@ export const responsibleStudents = {
                     student_id: student.id
                 }]);
 
-            if (lError) throw lError;
-            toast.show('Aluno vinculado!');
+            if (lError) {
+                console.error('Erro ao inserir vínculo:', lError);
+                if (lError.code === '23505') throw new Error('Este aluno já está vinculado a você.');
+                throw lError;
+            }
+
+            toast.show('Aluno ' + student.full_name + ' vinculado!');
             this.loadLinkedStudents();
         });
     }
