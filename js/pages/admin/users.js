@@ -1,0 +1,188 @@
+import { supabase } from '../../supabase.js';
+import { toast } from '../../auth.js';
+import { ui } from '../../ui.js';
+
+export const adminUsers = {
+    async render() {
+        const mainContent = document.getElementById('main-content');
+        mainContent.innerHTML = `
+            <div style="padding: 24px 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">USUÁRIOS</h1>
+                    <button id="add-user-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
+                        <i class="ph ph-user-plus" style="font-size: 20px;"></i>
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px;">
+                    <button class="filter-btn active" data-role="all">Todos</button>
+                    <button class="filter-btn" data-role="admin">Admins</button>
+                    <button class="filter-btn" data-role="responsible">Responsáveis</button>
+                    <button class="filter-btn" data-role="student">Alunos</button>
+                </div>
+
+                <div id="users-list" style="display: flex; flex-direction: column; gap: 12px;">
+                    <p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Carregando usuários...</p>
+                </div>
+            </div>
+        `;
+
+        this.loadUsers();
+        this.setupFilters();
+        
+        document.getElementById('add-user-btn').addEventListener('click', () => {
+            toast.show('Criação manual via convite em breve!', 'success');
+        });
+    },
+
+    async loadUsers(roleFilter = 'all') {
+        const listContainer = document.getElementById('users-list');
+        
+        let query = supabase.from('users').select('*').order('full_name');
+        
+        if (roleFilter !== 'all') {
+            query = query.eq('role', roleFilter);
+        }
+
+        const { data: users, error } = await query;
+
+        if (error) {
+            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar usuários: ${error.message}</p>`;
+            return;
+        }
+
+        if (users.length === 0) {
+            listContainer.innerHTML = `<p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Nenhum usuário encontrado.</p>`;
+            return;
+        }
+
+        listContainer.innerHTML = users.map(user => `
+            <div class="card user-item-card" data-id="${user.id}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: var(--dx-surface2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-border);">
+                        <i class="ph ph-user" style="color: var(--dx-teal);"></i>
+                    </div>
+                    <div>
+                        <p style="font-weight: 600; font-size: 15px;">${user.full_name}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted);">${user.email}</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge ${this.getRoleBadgeClass(user.role)}">${user.role.toUpperCase()}</span>
+                    <i class="ph ph-caret-right" style="color: var(--dx-muted);"></i>
+                </div>
+            </div>
+        `).join('');
+
+        this.setupEditEvents(users);
+    },
+
+    getRoleBadgeClass(role) {
+        switch (role) {
+            case 'admin': return 'badge-active';
+            case 'responsible': return 'badge-pending';
+            case 'student': return 'badge-active';
+            default: return '';
+        }
+    },
+
+    setupFilters() {
+        const filters = document.querySelectorAll('.filter-btn');
+        filters.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filters.forEach(f => f.classList.remove('active'));
+                btn.classList.add('active');
+                this.loadUsers(btn.dataset.role);
+            });
+        });
+    },
+
+    setupEditEvents(users) {
+        document.querySelectorAll('.user-item-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const userId = card.dataset.id;
+                const user = users.find(u => u.id === userId);
+                if (user) this.showEditUserForm(user);
+            });
+        });
+    },
+
+    showEditUserForm(user) {
+        const formHtml = `
+            <form id="edit-user-form">
+                <div class="input-group">
+                    <label>NOME COMPLETO</label>
+                    <input type="text" name="full_name" class="input-control" value="${user.full_name}" required>
+                </div>
+                <div class="input-group">
+                    <label>E-MAIL (APENAS LEITURA)</label>
+                    <input type="email" class="input-control" value="${user.email}" disabled style="opacity: 0.6;">
+                </div>
+                <div class="input-group">
+                    <label>PAPEL NO SISTEMA</label>
+                    <select name="role" class="input-control" required>
+                        <option value="student" ${user.role === 'student' ? 'selected' : ''}>Aluno</option>
+                        <option value="responsible" ${user.role === 'responsible' ? 'selected' : ''}>Responsável</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>CPF</label>
+                    <input type="text" name="cpf" class="input-control" value="${user.cpf || ''}" placeholder="000.000.000-00">
+                </div>
+                <div class="input-group">
+                    <label>TELEFONE</label>
+                    <input type="text" name="phone" class="input-control" value="${user.phone || ''}" placeholder="(00) 00000-0000">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>
+            </form>
+        `;
+
+        ui.bottomSheet.show('Editar Usuário', formHtml, async (data) => {
+            const { error } = await supabase
+                .from('users')
+                .update({
+                    full_name: data.full_name,
+                    role: data.role,
+                    cpf: data.cpf,
+                    phone: data.phone,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (error) {
+                toast.show('Erro ao atualizar: ' + error.message, 'error');
+                throw error;
+            }
+
+            toast.show('Usuário atualizado com sucesso!');
+            this.loadUsers();
+        });
+    }
+};
+
+// Add filter styles if not already present
+if (!document.getElementById('admin-user-styles')) {
+    const style = document.createElement('style');
+    style.id = 'admin-user-styles';
+    style.textContent = `
+        .filter-btn {
+            background: var(--dx-surface2);
+            border: 1px solid var(--dx-border);
+            color: var(--dx-muted);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background: var(--dx-teal-dim);
+            border-color: var(--dx-teal);
+            color: var(--dx-teal);
+        }
+    `;
+    document.head.appendChild(style);
+}

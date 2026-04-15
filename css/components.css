@@ -1,0 +1,108 @@
+/* Base Components */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 24px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: var(--dx-teal);
+    color: var(--dx-bg);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+    filter: brightness(0.9);
+}
+
+.card {
+    background: var(--dx-surface);
+    border: var(--border-width) solid var(--dx-border);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+}
+
+.card-highlight {
+    border-top: 2px solid var(--dx-teal);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dx-muted);
+}
+
+.input-control {
+    background: var(--dx-surface2);
+    border: var(--border-width) solid var(--dx-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    color: var(--dx-text);
+    transition: border-color 0.2s ease;
+}
+
+.input-control:focus {
+    border-color: var(--dx-teal);
+}
+
+/* Status Badges */
+.badge {
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+}
+
+.badge-active { color: var(--status-active-text); background: var(--status-active-bg); }
+.badge-pending { color: var(--status-pending-text); background: var(--status-pending-bg); }
+.badge-overdue { color: var(--status-overdue-text); background: var(--status-overdue-bg); }
+.badge-cancelled { color: var(--status-cancelled-text); background: var(--status-cancelled-bg); }
+
+/* Bottom Navigation */
+#bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--dx-surface);
+    border-top: var(--border-width) solid var(--dx-border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--dx-muted);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: var(--dx-teal);
+}
+
+.nav-item i {
+    font-size: 20px;
+}
