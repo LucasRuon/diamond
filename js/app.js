@@ -191,14 +191,34 @@ const app = {
         `;
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            
             try {
-                await auth.register(document.getElementById('reg-email').value, document.getElementById('reg-password').value, {
+                btn.disabled = true;
+                btn.innerText = 'CRIANDO CONTA...';
+                
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const metadata = {
                     full_name: document.getElementById('reg-name').value,
                     role: document.getElementById('reg-role').value
-                });
-                toast.show('Conta criada!');
+                };
+
+                console.log('Iniciando registro para:', email, metadata);
+                
+                const result = await auth.register(email, password, metadata);
+                console.log('Registro concluído:', result);
+
+                toast.show('Conta criada! Por favor, faça login.');
                 window.location.hash = '#login';
-            } catch (err) { toast.show(err.message, 'error'); }
+            } catch (err) { 
+                console.error('Erro detalhado no registro:', err);
+                toast.show(err.message || 'Erro ao salvar no banco de dados', 'error'); 
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
         });
     },
 
@@ -267,7 +287,11 @@ const app = {
         `;
 
         document.getElementById('edit-profile-btn').addEventListener('click', () => this.showEditProfileForm());
-        document.getElementById('logout-btn').addEventListener('click', () => auth.logout());
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await auth.logout();
+            window.location.hash = '#login';
+            window.location.reload(); // Garante limpeza total do estado
+        });
     },
 
     showEditProfileForm() {
