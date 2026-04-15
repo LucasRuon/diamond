@@ -73,7 +73,7 @@ export const adminReports = {
 
         listContainer.innerHTML = sortedStats.map(stat => {
             const percent = Math.round((stat.count / totalSessions) * 100);
-            const color = percent > 70 ? 'var(--dx-teal)' : (percent > 40 ? var(--dx-warn) : 'var(--dx-danger)');
+            const color = percent > 70 ? 'var(--dx-teal)' : (percent > 40 ? 'var(--dx-warn)' : 'var(--dx-danger)');
 
             return `
                 <div class="card">
