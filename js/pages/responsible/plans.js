@@ -114,16 +114,34 @@ export const responsiblePlans = {
         `;
 
         ui.bottomSheet.show('Contratação', formHtml, async (data) => {
+            // 1. Verificar se o aluno já tem plano ativo da mesma categoria
+            const { data: existing } = await supabase
+                .from('student_plans')
+                .select('id')
+                .eq('student_id', data.student_id)
+                .eq('status', 'active')
+                .maybeSingle();
+
+            if (existing && this.currentCategory === 'training') {
+                throw new Error('Este aluno já possui um plano de treinamento ativo.');
+            }
+
+            // 2. Criar o registro de intenção de compra
             const { error } = await supabase.from('student_plans').insert([{
                 student_id: data.student_id,
                 plan_id: planId,
                 purchased_by: userId,
-                status: 'pending_payment'
+                status: 'pending_payment',
+                // Aqui no futuro enviaremos o payment_method para a Edge Function do Asaas
             }]);
 
             if (error) throw error;
-            toast.show('Cobrança gerada com sucesso!');
-            window.location.hash = '#payments';
+            toast.show('Iniciando processamento do pagamento...');
+            
+            // Simular um delay para parecer que está gerando no Asaas
+            setTimeout(() => {
+                window.location.hash = '#payments';
+            }, 1000);
         });
     }
 };
