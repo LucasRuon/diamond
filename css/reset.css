@@ -7,8 +7,6 @@
 
 :root {
     --nav-height: 65px;
-    --safe-top: 20px; /* Fallback para notch */
-    --safe-bottom: 20px; /* Fallback para barra de gestos */
 }
 
 html, body {
@@ -17,33 +15,40 @@ html, body {
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
-    min-height: 100%;
+    height: 100%;
     width: 100%;
-}
-
-body {
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden; /* Impede o scroll do body inteiro */
 }
 
 #app {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh; /* Altura dinâmica da tela (respeita barras do navegador) */
     width: 100%;
-    min-height: 100vh;
 }
 
 #main-content {
-    display: block;
-    width: 100%;
-    /* Empurra o conteúdo para baixo da ilha dinâmica/relógio */
-    padding-top: calc(30px + env(safe-area-inset-top));
-    /* Espaço extra no fundo para o menu não tampar o último botão */
-    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    
+    /* ZONA DE SEGURANÇA SUPERIOR (Dynamic Island / Notch) */
+    /* Usamos padding aqui para o conteúdo rolar por baixo do padding se necessário, 
+       ou podemos usar um spacer. Vamos de padding generoso + env */
+    padding-top: calc(45px + env(safe-area-inset-top));
+    
+    /* ZONA DE SEGURANÇA INFERIOR (Menu + Barra de Gestos) */
+    padding-bottom: calc(var(--nav-height) + 40px + env(safe-area-inset-bottom));
 }
 
 .page-container {
     padding: 0 20px;
+}
+
+/* Garante que títulos e elementos importantes respirem */
+h1 {
+    margin-bottom: 24px;
+    padding-top: 10px;
 }
 
 button, input, select, textarea {
