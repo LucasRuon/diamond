@@ -38,7 +38,13 @@ export const adminTrainings = {
         }
 
         if (sessions.length === 0) {
-            listContainer.innerHTML = `<p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Nenhum treino agendado.</p>`;
+            listContainer.innerHTML = `
+                <div style="text-align: center; margin-top: 60px; padding: 20px;">
+                    <i class="ph ph-calendar-blank" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
+                    <p style="color: var(--dx-muted); font-size: 15px;">Nenhum treino agendado no momento.</p>
+                    <p style="color: var(--dx-muted); font-size: 13px; margin-top: 8px;">Clique no botão "+" para criar a agenda.</p>
+                </div>
+            `;
             return;
         }
 

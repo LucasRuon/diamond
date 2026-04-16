@@ -178,23 +178,38 @@ const app = {
     renderRegister() {
         this.bottomNav.classList.add('hidden');
         this.mainContent.innerHTML = `
-            <div style="padding: 40px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">CRIAR CONTA</h1>
                 <form id="register-form">
                     <div class="input-group"><label>NOME COMPLETO</label><input type="text" id="reg-name" class="input-control" required></div>
                     <div class="input-group"><label>E-MAIL</label><input type="email" id="reg-email" class="input-control" required></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="input-group"><label>CPF</label><input type="text" id="reg-cpf" class="input-control" placeholder="000.000.000-00" required></div>
+                        <div class="input-group"><label>TELEFONE</label><input type="text" id="reg-phone" class="input-control" placeholder="(00) 00000-0000" required></div>
+                    </div>
                     <div class="input-group"><label>VOCÊ É?</label><select id="reg-role" class="input-control"><option value="student">Aluno</option><option value="responsible">Responsável</option></select></div>
-                    <div class="input-group"><label>SENHA</label><input type="password" id="reg-password" class="input-control" required></div>
+                    <div class="input-group"><label>SENHA</label><input type="password" id="reg-password" class="input-control" required minlength="6"></div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 16px;">CADASTRAR</button>
                 </form>
+                <p style="margin-top: 24px; text-align: center; font-size: 14px; color: var(--dx-muted);">Já tem conta? <a href="#login" style="color: var(--dx-teal); font-weight: 600;">Entrar</a></p>
             </div>
         `;
+
+        // Aplicar máscaras
+        ui.mask.apply(document.getElementById('reg-cpf'), 'cpf');
+        ui.mask.apply(document.getElementById('reg-phone'), 'phone');
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
             const originalText = btn.innerText;
             
             try {
+                const cpf = document.getElementById('reg-cpf').value;
+                if (!ui.validate.cpf(cpf)) {
+                    throw new Error('CPF Inválido. Por favor, verifique.');
+                }
+
                 btn.disabled = true;
                 btn.innerText = 'CRIANDO CONTA...';
                 
@@ -202,7 +217,9 @@ const app = {
                 const password = document.getElementById('reg-password').value;
                 const metadata = {
                     full_name: document.getElementById('reg-name').value,
-                    role: document.getElementById('reg-role').value
+                    role: document.getElementById('reg-role').value,
+                    cpf: cpf,
+                    phone: document.getElementById('reg-phone').value
                 };
 
                 console.log('Iniciando registro para:', email, metadata);
@@ -303,17 +320,21 @@ const app = {
                 </div>
                 <div class="input-group">
                     <label>CPF</label>
-                    <input type="text" name="cpf" class="input-control" value="${this.profile.cpf || ''}" placeholder="000.000.000-00">
+                    <input type="text" id="edit-cpf" name="cpf" class="input-control" value="${this.profile.cpf || ''}" placeholder="000.000.000-00">
                 </div>
                 <div class="input-group">
                     <label>TELEFONE</label>
-                    <input type="text" name="phone" class="input-control" value="${this.profile.phone || ''}" placeholder="(00) 00000-0000">
+                    <input type="text" id="edit-phone" name="phone" class="input-control" value="${this.profile.phone || ''}" placeholder="(00) 00000-0000">
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>
             </form>
         `;
 
         ui.bottomSheet.show('Editar Perfil', formHtml, async (data) => {
+            if (data.cpf && !ui.validate.cpf(data.cpf)) {
+                throw new Error('CPF Inválido.');
+            }
+
             const { error } = await supabase
                 .from('users')
                 .update({
@@ -337,7 +358,13 @@ const app = {
             await this.loadProfile();
             this.render();
         });
-    },
+
+        // Aplicar máscaras após injetar no DOM (via ui.bottomSheet)
+        setTimeout(() => {
+            ui.mask.apply(document.getElementById('edit-cpf'), 'cpf');
+            ui.mask.apply(document.getElementById('edit-phone'), 'phone');
+        }, 100);
+        },
 
     updateNav(activeHash) {
         if (!this.user) return;
