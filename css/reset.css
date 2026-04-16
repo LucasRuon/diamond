@@ -5,29 +5,45 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-body {
+:root {
+    --nav-height: 65px;
+    --safe-top: 20px; /* Fallback para notch */
+    --safe-bottom: 20px; /* Fallback para barra de gestos */
+}
+
+html, body {
     background-color: var(--dx-bg);
     color: var(--dx-text);
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
+    min-height: 100%;
+    width: 100%;
+}
+
+body {
     overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#app {
+    display: block;
+    width: 100%;
     min-height: 100vh;
-    /* O scroll deve ser no corpo para ser mais fluido no mobile */
 }
 
 #main-content {
     display: block;
     width: 100%;
-    /* Padding superior para a Dynamic Island */
-    padding-top: env(safe-area-inset-top);
-    /* Padding inferior bem grande para garantir que o menu não tampe nada */
-    padding-bottom: calc(140px + env(safe-area-inset-bottom));
+    /* Empurra o conteúdo para baixo da ilha dinâmica/relógio */
+    padding-top: calc(30px + env(safe-area-inset-top));
+    /* Espaço extra no fundo para o menu não tampar o último botão */
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
 }
 
-/* Utilitário para as páginas não precisarem de padding inline */
 .page-container {
-    padding: 24px 20px;
+    padding: 0 20px;
 }
 
 button, input, select, textarea {
