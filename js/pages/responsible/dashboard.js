@@ -62,18 +62,22 @@ export const responsibleDashboard = {
             }
 
             // For each student, let's try to get their latest plan
-            const studentIds = links.map(l => l.student_id);
-            const { data: allPlans, error: planError } = await supabase
-                .from('student_plans')
-                .select('student_id, status, plan:plans(name)')
-                .in('student_id', studentIds)
-                .order('created_at', { ascending: false });
-
-            if (planError) console.warn('Erro ao buscar planos (pode estar vazio):', planError);
+            let allPlans = [];
+            try {
+                const studentIds = links.map(l => l.student_id);
+                const { data: plans, error: planError } = await supabase
+                    .from('student_plans')
+                    .select('student_id, status, plan:plans(name)')
+                    .in('student_id', studentIds);
+                
+                if (!planError) allPlans = plans || [];
+            } catch (pErr) {
+                console.warn('Erro ao buscar planos, continuando sem eles:', pErr);
+            }
 
             container.innerHTML = links.map(link => {
-                const student = link.student;
-                const latestPlan = (allPlans || []).find(p => p.student_id === link.student_id);
+                const student = link.student || { full_name: 'Aluno sem nome', email: '' };
+                const latestPlan = allPlans.find(p => p.student_id === link.student_id);
                 
                 const statusLabel = latestPlan ? this.getPlanStatusLabel(latestPlan.status) : 'SEM PLANO';
                 const statusClass = latestPlan ? this.getPlanStatusClass(latestPlan.status) : 'badge-cancelled';
@@ -89,11 +93,11 @@ export const responsibleDashboard = {
                         </div>
                         
                         <div style="display: flex; gap: 12px;">
-                            <a href="#attendance?id=${link.student_id}" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
+                            <a href="#attendance?id=${link.student_id}" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text); text-align: center; text-decoration: none;">
                                 VER FREQUÊNCIA
                             </a>
                             ${!latestPlan || latestPlan.status !== 'active' ? `
-                                <a href="#plans" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 12px;">
+                                <a href="#plans" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 12px; text-align: center; text-decoration: none;">
                                     PLANOS
                                 </a>
                             ` : `
