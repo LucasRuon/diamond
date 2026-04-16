@@ -8,39 +8,38 @@ export const adminPlans = {
         mainContent.innerHTML = `
             <div class="page-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">PLANOS</h1>
+                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">GESTÃO DE PLANOS</h1>
                     <button id="add-plan-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
                         <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
                     </button>
                 </div>
 
-                <div id="plans-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <div id="admin-plans-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Carregando planos...</p>
                 </div>
             </div>
         `;
 
         this.loadPlans();
-        
-        document.getElementById('add-plan-btn').addEventListener('click', () => this.showAddPlanForm());
+        document.getElementById('add-plan-btn').addEventListener('click', () => this.showPlanForm());
     },
 
     async loadPlans() {
-        const listContainer = document.getElementById('plans-list');
-        
-        const { data: plans, error } = await supabase
-            .from('plans')
-            .select('*')
-            .order('category', { ascending: false })
-            .order('price');
+        const listContainer = document.getElementById('admin-plans-list');
+        const { data: plans, error } = await supabase.from('plans').select('*').order('category').order('price');
 
         if (error) {
-            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar planos: ${error.message}</p>`;
+            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar planos.</p>`;
             return;
         }
 
         if (plans.length === 0) {
-            listContainer.innerHTML = `<p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Nenhum plano cadastrado.</p>`;
+            listContainer.innerHTML = `
+                <div style="text-align: center; margin-top: 60px; padding: 20px;">
+                    <i class="ph ph-clipboard-text" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
+                    <p style="color: var(--dx-muted);">Nenhum plano cadastrado.</p>
+                </div>
+            `;
             return;
         }
 
@@ -48,71 +47,90 @@ export const adminPlans = {
             <div class="card" style="border-left: 4px solid ${plan.category === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div>
-                        <p style="font-weight: 700; font-size: 16px;">${plan.name}</p>
-                        <p style="font-size: 12px; color: var(--dx-muted);">${plan.category === 'training' ? 'Treinamento' : 'Fisioterapia'}</p>
+                        <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
+                        <p style="font-weight: 800; font-size: 17px;">${plan.name}</p>
                     </div>
-                    <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
-                    <span style="font-size: 12px; color: var(--dx-muted);">${plan.duration_days} dias • ${plan.sessions_per_week || 0}x/semana</span>
-                    <span class="badge ${plan.active ? 'badge-active' : 'badge-cancelled'}">${plan.active ? 'ATIVO' : 'INATIVO'}</span>
+                <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 16px;">${plan.description || 'Sem descrição'}</p>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn edit-plan" data-id="${plan.id}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
+                        EDITAR
+                    </button>
+                    <button class="btn delete-plan" data-id="${plan.id}" style="padding: 10px; color: var(--dx-danger); background: rgba(248,113,113,0.1); border-radius: 8px;">
+                        <i class="ph ph-trash"></i>
+                    </button>
                 </div>
             </div>
         `).join('');
+
+        this.setupEvents(plans);
     },
 
-    showAddPlanForm() {
+    setupEvents(plans) {
+        document.querySelectorAll('.edit-plan').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const plan = plans.find(p => p.id === btn.dataset.id);
+                this.showPlanForm(plan);
+            });
+        });
+
+        document.querySelectorAll('.delete-plan').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (confirm('Deseja excluir este plano definitivamente?')) {
+                    const { error } = await supabase.from('plans').delete().eq('id', btn.dataset.id);
+                    if (error) toast.show('Erro ao excluir: ' + error.message, 'error');
+                    else { toast.show('Plano excluído'); this.loadPlans(); }
+                }
+            });
+        });
+    },
+
+    showPlanForm(plan = null) {
         const formHtml = `
-            <form id="new-plan-form">
+            <form id="plan-form">
                 <div class="input-group">
                     <label>NOME DO PLANO</label>
-                    <input type="text" name="name" class="input-control" placeholder="Ex: Mensal Basic" required>
+                    <input type="text" name="name" class="input-control" value="${plan?.name || ''}" placeholder="Ex: Mensal Basic" required>
                 </div>
                 <div class="input-group">
                     <label>CATEGORIA</label>
                     <select name="category" class="input-control" required>
-                        <option value="training">Treinamento (Futebol)</option>
-                        <option value="physio">Fisioterapia / Recovery</option>
+                        <option value="training" ${plan?.category === 'training' ? 'selected' : ''}>Treinamento / Aulas</option>
+                        <option value="physio" ${plan?.category === 'physio' ? 'selected' : ''}>Fisioterapia / Recovery</option>
                     </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
-                        <label>VALOR (R$)</label>
-                        <input type="number" step="0.01" name="price" class="input-control" placeholder="599.90" required>
+                        <label>PREÇO (R$)</label>
+                        <input type="number" step="0.01" name="price" class="input-control" value="${plan?.price || ''}" placeholder="0.00" required>
                     </div>
                     <div class="input-group">
-                        <label>VALIDADE (DIAS)</label>
-                        <input type="number" name="duration_days" class="input-control" placeholder="30" required>
+                        <label>DURAÇÃO (DIAS)</label>
+                        <input type="number" name="duration_days" class="input-control" value="${plan?.duration_days || '30'}" required>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>SESSÕES POR SEMANA (TREINO)</label>
-                    <input type="number" name="sessions_per_week" class="input-control" placeholder="4">
+                    <label>DESCRIÇÃO</label>
+                    <textarea name="description" class="input-control" rows="2">${plan?.description || ''}</textarea>
                 </div>
-                <div class="input-group">
-                    <label>PARCELAS MÁX. (CARTÃO)</label>
-                    <input type="number" name="max_installments" class="input-control" value="1" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">CRIAR PLANO</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">${plan ? 'ATUALIZAR' : 'CRIAR'} PLANO</button>
             </form>
         `;
 
-        ui.bottomSheet.show('Novo Plano', formHtml, async (data) => {
-            const { error } = await supabase.from('plans').insert([{
+        ui.bottomSheet.show(plan ? 'Editar Plano' : 'Novo Plano', formHtml, async (data) => {
+            const planData = {
                 ...data,
                 price: parseFloat(data.price),
-                duration_days: parseInt(data.duration_days),
-                max_installments: parseInt(data.max_installments),
-                sessions_per_week: data.sessions_per_week ? parseInt(data.sessions_per_week) : null,
-                active: true
-            }]);
+                duration_days: parseInt(data.duration_days)
+            };
 
-            if (error) {
-                toast.show('Erro ao criar plano: ' + error.message, 'error');
-                throw error;
-            }
+            const { error } = plan 
+                ? await supabase.from('plans').update(planData).eq('id', plan.id)
+                : await supabase.from('plans').insert([planData]);
 
-            toast.show('Plano criado com sucesso!');
+            if (error) throw error;
+            toast.show(plan ? 'Plano atualizado!' : 'Plano criado!');
             this.loadPlans();
         });
     }

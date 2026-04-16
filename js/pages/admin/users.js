@@ -126,19 +126,26 @@ export const adminUsers = {
                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>CPF</label>
-                    <input type="text" name="cpf" class="input-control" value="${user.cpf || ''}" placeholder="000.000.000-00">
-                </div>
-                <div class="input-group">
-                    <label>TELEFONE</label>
-                    <input type="text" name="phone" class="input-control" value="${user.phone || ''}" placeholder="(00) 00000-0000">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="input-group">
+                        <label>CPF</label>
+                        <input type="text" id="edit-user-cpf" name="cpf" class="input-control" value="${user.cpf || ''}" placeholder="000.000.000-00">
+                    </div>
+                    <div class="input-group">
+                        <label>TELEFONE</label>
+                        <input type="text" id="edit-user-phone" name="phone" class="input-control" value="${user.phone || ''}" placeholder="(00) 00000-0000">
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>
             </form>
+            <button id="reset-pass-btn" class="btn" style="margin-top: 12px; color: var(--dx-muted); font-size: 12px;">ENVIAR REDEFINIÇÃO DE SENHA</button>
         `;
 
         ui.bottomSheet.show('Editar Usuário', formHtml, async (data) => {
+            if (data.cpf && !ui.validate.cpf(data.cpf)) {
+                throw new Error('CPF Inválido.');
+            }
+
             const { error } = await supabase
                 .from('users')
                 .update({
@@ -158,6 +165,18 @@ export const adminUsers = {
             toast.show('Usuário atualizado com sucesso!');
             this.loadUsers();
         });
+
+        // Máscaras e Reset
+        setTimeout(() => {
+            ui.mask.apply(document.getElementById('edit-user-cpf'), 'cpf');
+            ui.mask.apply(document.getElementById('edit-user-phone'), 'phone');
+            
+            document.getElementById('reset-pass-btn').addEventListener('click', async () => {
+                const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+                if (error) toast.show(error.message, 'error');
+                else toast.show('E-mail de redefinição enviado!');
+            });
+        }, 100);
     }
 };
 
