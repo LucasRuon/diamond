@@ -111,38 +111,66 @@ export const studentTrainings = {
     },
 
     async handleScanSuccess(token) {
+        console.log('Token lido:', token);
         await this.stopScanner();
+        
+        // Remover o bottom sheet imediatamente para feedback visual rápido
         const overlay = document.getElementById('sheet-overlay');
         if (overlay) overlay.remove();
 
-        toast.show('Validando token...', 'success');
+        toast.show('Validando seu check-in...', 'success');
 
         try {
-            // 1. Find session by token
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            // 1. Verificar se o aluno tem plano ativo (Regra de Negócio)
+            const { data: plan, error: pError } = await supabase
+                .from('student_plans')
+                .select('status')
+                .eq('student_id', user.id)
+                .eq('status', 'active')
+                .maybeSingle();
+
+            if (!plan) {
+                throw new Error('Você precisa de um plano ativo para registrar presença.');
+            }
+
+            // 2. Buscar a sessão pelo token e validar se é de hoje
+            const startOfDay = new Date();
+            startOfDay.setHours(0,0,0,0);
+            const endOfDay = new Date();
+            endOfDay.setHours(23,59,59,999);
+
             const { data: session, error: sError } = await supabase
                 .from('training_sessions')
-                .select('id, title')
+                .select('id, title, scheduled_at')
                 .eq('qr_code_token', token)
+                .gte('scheduled_at', startOfDay.toISOString())
+                .lte('scheduled_at', endOfDay.toISOString())
                 .single();
 
-            if (sError || !session) throw new Error('Token inválido ou expirado.');
+            if (sError || !session) {
+                throw new Error('QR Code inválido ou treino não agendado para hoje.');
+            }
 
-            // 2. Register attendance
+            // 3. Registrar presença
             const { error: aError } = await supabase
                 .from('attendance')
                 .insert([{
                     session_id: session.id,
-                    student_id: (await supabase.auth.getUser()).data.user.id,
+                    student_id: user.id,
                     method: 'qrcode'
                 }]);
 
             if (aError) {
-                if (aError.code === '23505') throw new Error('Presença já registrada para este treino.');
+                if (aError.code === '23505') throw new Error('Sua presença já está confirmada neste treino!');
                 throw aError;
             }
 
-            toast.show(`Presença confirmada: ${session.title}! ✅`);
+            toast.show(`Check-in realizado: ${session.title}! ⚽✅`);
+            this.loadAvailableTrainings(); // Atualiza a lista
         } catch (err) {
+            console.error('Erro no check-in:', err);
             toast.show(err.message, 'error');
         }
     }
