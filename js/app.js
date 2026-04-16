@@ -371,6 +371,8 @@ const app = {
         this.bottomNav.classList.remove('hidden');
         const role = this.profile?.role || 'student';
         const hash = activeHash || '#dashboard';
+        
+        console.log('Menu Role:', role);
 
         const items = role === 'admin' ? [
             { h: '#dashboard', i: 'ph-chart-line-up', t: 'Dash' },
