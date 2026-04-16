@@ -375,6 +375,7 @@ const app = {
         const items = role === 'admin' ? [
             { h: '#dashboard', i: 'ph-chart-line-up', t: 'Dash' },
             { h: '#users', i: 'ph-users', t: 'Usuários' },
+            { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
             { h: '#profile', i: 'ph-gear', t: 'Config' }
