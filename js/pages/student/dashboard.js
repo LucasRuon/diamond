@@ -6,7 +6,7 @@ export const studentDashboard = {
         const user = (await supabase.auth.getUser()).data.user;
         
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${user.user_metadata.full_name.split(' ')[0]}</h1>
                 <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 24px;">Painel do Atleta</p>
                 

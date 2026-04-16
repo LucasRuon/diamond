@@ -4,7 +4,7 @@ export const adminReports = {
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">RELATÓRIO DE FREQUÊNCIA</h1>
                 
                 <div class="card card-highlight" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">

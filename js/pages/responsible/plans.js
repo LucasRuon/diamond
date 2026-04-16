@@ -8,7 +8,7 @@ export const responsiblePlans = {
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">PLANOS E SERVIÇOS</h1>
                 
                 <div style="display: flex; gap: 8px; margin-bottom: 24px;">

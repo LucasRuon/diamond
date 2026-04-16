@@ -251,7 +251,7 @@ const app = {
 
     renderProfile() {
         this.mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">PERFIL</h1>
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">

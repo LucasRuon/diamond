@@ -4,7 +4,7 @@ export const adminDashboard = {
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 24px;">PAINEL GERAL</h1>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">

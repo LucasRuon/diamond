@@ -13,11 +13,21 @@ body {
     line-height: 1.5;
     overflow-x: hidden;
     min-height: 100vh;
+    /* O scroll deve ser no corpo para ser mais fluido no mobile */
 }
 
 #main-content {
+    display: block;
+    width: 100%;
+    /* Padding superior para a Dynamic Island */
     padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    /* Padding inferior bem grande para garantir que o menu não tampe nada */
+    padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+
+/* Utilitário para as páginas não precisarem de padding inline */
+.page-container {
+    padding: 24px 20px;
 }
 
 button, input, select, textarea {

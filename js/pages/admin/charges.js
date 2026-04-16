@@ -6,7 +6,7 @@ export const adminCharges = {
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">COBRANÇAS</h1>
                     <button id="refresh-charges-btn" class="btn" style="width: auto; padding: 10px; color: var(--dx-teal);">

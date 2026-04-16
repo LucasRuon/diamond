@@ -19,7 +19,7 @@ export const studentAttendance = {
         }
 
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                     ${targetStudentId ? `<a href="#students" style="color: var(--dx-muted); font-size: 24px;"><i class="ph ph-arrow-left"></i></a>` : ''}
                     <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">${title}</h1>

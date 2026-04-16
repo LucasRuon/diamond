@@ -6,7 +6,7 @@ export const responsibleDashboard = {
         const fullName = (await supabase.auth.getUser()).data.user.user_metadata.full_name || 'Responsável';
         
         mainContent.innerHTML = `
-            <div style="padding: 24px 20px;">
+            <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${fullName.split(' ')[0]}</h1>
                 <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 24px;">Visão geral dos seus atletas</p>
                 
