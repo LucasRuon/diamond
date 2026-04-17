@@ -294,6 +294,15 @@ const app = {
                     </div>
                 ` : ''}
 
+                ${this.profile?.role === 'responsible' ? `
+                    <div class="card" style="margin-bottom: 24px; border-color: var(--dx-teal-border);">
+                        <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">DEPENDENTES</p>
+                        <a href="#students" class="btn btn-primary" style="margin-top: 12px; font-size: 13px; padding: 10px;">
+                            <i class="ph ph-users" style="margin-right: 8px;"></i> GERENCIAR MEUS ALUNOS
+                        </a>
+                    </div>
+                ` : ''}
+
                 <div class="card" style="margin-bottom: 32px; background: var(--dx-surface2);">
                     <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">TIPO DE CONTA</p>
                     <p style="font-weight: 700; color: var(--dx-teal); text-transform: uppercase; margin-top: 4px;">${this.profile?.role}</p>
