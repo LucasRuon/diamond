@@ -60,6 +60,9 @@ export const adminTrainings = {
                         <div>
                             <p style="font-size: 11px; color: ${isPast ? 'var(--dx-muted)' : 'var(--dx-teal)'}; font-weight: 700; text-transform: uppercase;">${dateStr} • ${timeStr}</p>
                             <p style="font-weight: 700; font-size: 17px;">${session.title}</p>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location)}" target="_blank" style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px;">
+                                <i class="ph ph-map-pin"></i> ${session.location}
+                            </a>
                         </div>
                         <button class="btn-qr" data-token="${session.qr_code_token}" style="color: var(--dx-teal); font-size: 20px;">
                             <i class="ph ph-qr-code"></i>

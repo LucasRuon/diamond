@@ -63,7 +63,14 @@ export const studentTrainings = {
                     <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <p style="font-weight: 600;">${session.title}</p>
-                            <p style="font-size: 12px; color: var(--dx-muted);">${dateStr} às ${timeStr} • ${session.location}</p>
+                            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                                <p style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px;">
+                                    <i class="ph ph-calendar"></i> ${dateStr} às ${timeStr}
+                                </p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location)}" target="_blank" style="font-size: 12px; color: var(--dx-teal); display: flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    <i class="ph ph-map-pin"></i> ${session.location}
+                                </a>
+                            </div>
                         </div>
                         <i class="ph ph-caret-right" style="color: var(--dx-border);"></i>
                     </div>

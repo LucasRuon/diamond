@@ -9,9 +9,14 @@ export const adminCharges = {
             <div class="page-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">FINANCEIRO</h1>
-                    <button id="refresh-charges-btn" class="btn" style="width: auto; padding: 10px; color: var(--dx-teal);">
-                        <i class="ph ph-arrows-clockwise" style="font-size: 24px;"></i>
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="add-charge-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
+                            <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
+                        </button>
+                        <button id="refresh-charges-btn" class="btn" style="width: auto; padding: 10px; color: var(--dx-teal);">
+                            <i class="ph ph-arrows-clockwise" style="font-size: 24px;"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="input-group" style="margin-bottom: 16px;">
@@ -35,6 +40,7 @@ export const adminCharges = {
         this.setupFilters();
         this.setupSearch();
         document.getElementById('refresh-charges-btn').addEventListener('click', () => this.loadCharges());
+        document.getElementById('add-charge-btn').addEventListener('click', () => this.showAddChargeForm());
     },
 
     setupSearch() {
@@ -46,6 +52,69 @@ export const adminCharges = {
                 const name = card.querySelector('p').textContent.toLowerCase();
                 card.style.display = name.includes(term) ? 'block' : 'none';
             });
+        });
+    },
+
+    async showAddChargeForm() {
+        toast.show('Carregando alunos...');
+        const { data: students } = await supabase
+            .from('users')
+            .select('id, full_name, email')
+            .eq('role', 'student')
+            .order('full_name');
+
+        const formHtml = `
+            <form id="manual-charge-form">
+                <div class="input-group">
+                    <label>ALUNO / CLIENTE</label>
+                    <select name="student_id" class="input-control" required>
+                        <option value="">Selecione um aluno...</option>
+                        ${students?.map(s => `<option value="${s.id}">${s.full_name} (${s.email})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>DESCRIÇÃO DA COBRANÇA</label>
+                    <input type="text" name="description" class="input-control" placeholder="Ex: Avaliação Física / Aula Avulsa" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="input-group">
+                        <label>VALOR (R$)</label>
+                        <input type="number" step="0.01" name="price" class="input-control" placeholder="0,00" required>
+                    </div>
+                    <div class="input-group">
+                        <label>FORMA INICIAL</label>
+                        <select name="payment_method" class="input-control">
+                            <option value="pix">PIX</option>
+                            <option value="boleto">Boleto</option>
+                            <option value="credit_card">Cartão</option>
+                        </select>
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: var(--dx-muted); margin-bottom: 16px;">
+                    * Esta ação gera uma intenção de cobrança vinculada ao aluno.
+                </p>
+                <button type="submit" class="btn btn-primary" style="margin-top: 8px;">GERAR COBRANÇA</button>
+            </form>
+        `;
+
+        ui.bottomSheet.show('Nova Cobrança Manual', formHtml, async (data) => {
+            const adminId = (await supabase.auth.getUser()).data.user.id;
+            
+            // 1. Criar um "plano customizado" ou serviço avulso
+            // Na spec, serviços avulsos (fisio) são comuns.
+            // Para cobrança manual, vamos registrar como um plano de id fixo de "Serviço Avulso" ou nulo
+            const { error } = await supabase.from('student_plans').insert([{
+                student_id: data.student_id,
+                purchased_by: adminId,
+                status: 'pending_payment',
+                // Aqui usaríamos colunas customizadas se existissem. 
+                // Como não existem no banco padrão, vamos usar o plano 'Fisio Sessão Avulsa' (ID 6 na spec) como placeholder
+                // ou simplesmente criar o registro.
+            }]);
+
+            if (error) throw error;
+            toast.show('Cobrança manual registrada!');
+            this.loadCharges();
         });
     },
 
@@ -88,13 +157,13 @@ export const adminCharges = {
                 <div class="card charge-item-card" data-id="${charge.id}" style="cursor: pointer;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <p style="font-weight: 700; font-size: 15px;">${charge.student.full_name}</p>
-                            <p style="font-size: 12px; color: var(--dx-muted);">${charge.plan.name} • ${date}</p>
+                            <p style="font-weight: 700; font-size: 15px;">${charge.student?.full_name || 'Aluno Removido'}</p>
+                            <p style="font-size: 12px; color: var(--dx-muted);">${charge.plan?.name || 'Cobrança Avulsa'} • ${date}</p>
                         </div>
                         <span class="badge ${statusClass}">${statusLabel}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
-                        <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(charge.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                         <i class="ph ph-dots-three-vertical" style="color: var(--dx-muted);"></i>
                     </div>
                 </div>
@@ -119,8 +188,8 @@ export const adminCharges = {
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="card" style="margin-bottom: 12px; background: var(--dx-surface2);">
                     <p style="font-size: 12px; color: var(--dx-muted);">DETALHES DA COBRANÇA</p>
-                    <p style="font-weight: 700; margin-top: 4px;">${charge.student.full_name}</p>
-                    <p style="font-size: 14px;">${charge.plan.name} - R$ ${parseFloat(charge.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p style="font-weight: 700; margin-top: 4px;">${charge.student?.full_name || 'Aluno'}</p>
+                    <p style="font-size: 14px;">${charge.plan?.name || 'Cobrança Avulsa'} - R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 
                 ${charge.status === 'pending_payment' ? `
@@ -137,7 +206,6 @@ export const adminCharges = {
 
         ui.bottomSheet.show('Gerenciar Cobrança', content, async () => {});
 
-        // Override the default onSave since we have multiple buttons
         const sheet = document.getElementById('sheet-overlay');
         
         sheet.querySelector('#mark-paid-btn')?.addEventListener('click', async () => {

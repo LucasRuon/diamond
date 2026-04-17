@@ -281,9 +281,23 @@ const app = {
     },
 
     renderProfile() {
+        const avatarUrl = this.profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.profile?.full_name)}&background=00C9A7&color=0a0a0a`;
+
         this.mainContent.innerHTML = `
             <div class="page-container">
-                <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">PERFIL</h1>
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                    <div id="avatar-container" style="position: relative; width: 64px; height: 64px;">
+                        <img id="profile-avatar" src="${avatarUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--dx-teal-border);">
+                        <label for="avatar-input" style="position: absolute; bottom: -2px; right: -2px; background: var(--dx-teal); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--dx-bg);">
+                            <i class="ph-bold ph-camera" style="font-size: 12px; color: #000;"></i>
+                        </label>
+                        <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                    <div>
+                        <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin: 0;">PERFIL</h1>
+                        <p style="font-size: 13px; color: var(--dx-muted);">${this.user?.email}</p>
+                    </div>
+                </div>
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">DADOS PESSOAIS</p>
@@ -334,6 +348,51 @@ const app = {
                 window.location.reload(); 
             }
         });
+
+        // Lógica de Upload de Avatar
+        const avatarInput = document.getElementById('avatar-input');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
+        }
+    },
+
+    async handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            toast.show('Enviando foto...');
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${this.user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`; // Salvando na raiz do bucket avatars
+
+            // 1. Upload para o Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Pegar URL pública
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            // 3. Atualizar tabela users
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ avatar_url: publicUrl })
+                .eq('id', this.user.id);
+
+            if (updateError) throw updateError;
+
+            toast.show('Foto atualizada!');
+            await this.loadProfile();
+            this.render();
+        } catch (err) {
+            console.error(err);
+            toast.show('Erro ao subir foto. Verifique o Bucket.', 'error');
+        }
     },
 
     showEditProfileForm() {
