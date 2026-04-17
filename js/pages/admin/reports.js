@@ -5,7 +5,13 @@ export const adminReports = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">RELATÓRIO DE FREQUÊNCIA</h1>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin: 0;">FREQUÊNCIA</h1>
+                    <select id="month-filter" class="input-control" style="width: auto; padding: 6px 12px; font-size: 13px;">
+                        <option value="all">Todo Período</option>
+                        <option value="current" selected>Este Mês</option>
+                    </select>
+                </div>
                 
                 <div class="card card-highlight" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -25,49 +31,56 @@ export const adminReports = {
             </div>
         `;
 
-        this.loadFrequencyData();
+        this.loadFrequencyData('current');
+        document.getElementById('month-filter').addEventListener('change', (e) => this.loadFrequencyData(e.target.value));
     },
 
-    async loadFrequencyData() {
+    async loadFrequencyData(period = 'current') {
         const listContainer = document.getElementById('reports-list');
 
-        // 1. Pegar total de treinos já realizados
-        const { count: totalSessions } = await supabase
-            .from('training_sessions')
-            .select('*', { count: 'exact', head: true })
-            .lte('scheduled_at', new Date().toISOString());
+        // 1. Configurar queries base
+        let sessionQuery = supabase.from('training_sessions').select('*', { count: 'exact', head: true }).lte('scheduled_at', new Date().toISOString());
+        let attendanceQuery = supabase.from('attendance').select('student_id, student:users!student_id (full_name)');
+
+        if (period === 'current') {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0,0,0,0);
+            sessionQuery = sessionQuery.gte('scheduled_at', startOfMonth.toISOString());
+            attendanceQuery = attendanceQuery.gte('checked_in_at', startOfMonth.toISOString());
+        }
+
+        const { count: totalSessions } = await sessionQuery;
 
         if (!totalSessions || totalSessions === 0) {
-            listContainer.innerHTML = `<p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Nenhum treino realizado ainda para gerar métricas.</p>`;
+            document.getElementById('school-avg').textContent = '0%';
+            listContainer.innerHTML = `<p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Nenhum treino realizado ${period === 'current' ? 'este mês' : ''}.</p>`;
             return;
         }
 
-        // 2. Pegar presenças agrupadas por aluno
-        const { data: attendanceData, error } = await supabase
-            .from('attendance')
-            .select(`
-                student_id,
-                student:users!student_id (full_name)
-            `);
+        const { data: attendanceData, error } = await attendanceQuery;
 
         if (error) {
             listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao processar dados.</p>`;
             return;
         }
 
-        // 3. Processar métricas
+        // 2. Processar métricas
         const stats = {};
         attendanceData.forEach(entry => {
             const id = entry.student_id;
-            if (!stats[id]) stats[id] = { name: entry.student.full_name, count: 0 };
-            stats[id].count++;
+            if (entry.student) {
+                if (!stats[id]) stats[id] = { name: entry.student.full_name, count: 0 };
+                stats[id].count++;
+            }
         });
 
         const sortedStats = Object.values(stats).sort((a, b) => b.count - a.count);
         
         // Média da escola
         const totalPresences = attendanceData.length;
-        const totalPossible = (await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'student')).count * totalSessions;
+        const { count: studentCount } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'student');
+        const totalPossible = (studentCount || 1) * totalSessions;
         const schoolAvg = totalPossible > 0 ? Math.round((totalPresences / totalPossible) * 100) : 0;
         document.getElementById('school-avg').textContent = `${schoolAvg}%`;
 
