@@ -8,10 +8,14 @@ export const adminCharges = {
         mainContent.innerHTML = `
             <div class="page-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">COBRANÇAS</h1>
+                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">FINANCEIRO</h1>
                     <button id="refresh-charges-btn" class="btn" style="width: auto; padding: 10px; color: var(--dx-teal);">
                         <i class="ph ph-arrows-clockwise" style="font-size: 24px;"></i>
                     </button>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <input type="text" id="search-charge-input" class="input-control" placeholder="Buscar por nome do aluno..." style="padding: 10px 14px; font-size: 14px;">
                 </div>
 
                 <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px;">
@@ -29,7 +33,20 @@ export const adminCharges = {
 
         this.loadCharges();
         this.setupFilters();
+        this.setupSearch();
         document.getElementById('refresh-charges-btn').addEventListener('click', () => this.loadCharges());
+    },
+
+    setupSearch() {
+        const input = document.getElementById('search-charge-input');
+        input.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.charge-item-card');
+            cards.forEach(card => {
+                const name = card.querySelector('p').textContent.toLowerCase();
+                card.style.display = name.includes(term) ? 'block' : 'none';
+            });
+        });
     },
 
     async loadCharges(statusFilter = 'all') {
