@@ -76,6 +76,20 @@ const app = {
             return;
         }
 
+        // Bloqueio de rotas por papel
+        const role = this.profile?.role || 'student';
+        const adminRoutes = ['#users', '#reports'];
+        const responsibleRoutes = ['#students'];
+
+        if (adminRoutes.includes(hash) && role !== 'admin') {
+            window.location.hash = '#dashboard';
+            return;
+        }
+        if (responsibleRoutes.includes(hash) && role !== 'responsible' && role !== 'admin') {
+            window.location.hash = '#dashboard';
+            return;
+        }
+
         switch (hash) {
             case '#login': this.renderLogin(); break;
             case '#register': this.renderRegister(); break;
@@ -314,9 +328,11 @@ const app = {
 
         document.getElementById('edit-profile-btn').addEventListener('click', () => this.showEditProfileForm());
         document.getElementById('logout-btn').addEventListener('click', async () => {
-            await auth.logout();
-            window.location.hash = '#login';
-            window.location.reload(); // Garante limpeza total do estado
+            if (confirm('Deseja realmente sair do Diamond X?')) {
+                await auth.logout();
+                window.location.hash = '#login';
+                window.location.reload(); 
+            }
         });
     },
 
