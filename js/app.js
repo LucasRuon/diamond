@@ -463,13 +463,13 @@ const app = {
             { h: '#users', i: 'ph-users', t: 'Usuários' },
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
-            { h: '#payments', i: 'ph-file-text', t: 'Contratos' },
+            { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
             { h: '#profile', i: 'ph-gear', t: 'Config' }
         ] : (role === 'responsible' ? [
             { h: '#dashboard', i: 'ph-house', t: 'Início' },
             { h: '#students', i: 'ph-user-list', t: 'Alunos' },
             { h: '#plans', i: 'ph-receipt', t: 'Planos' },
-            { h: '#payments', i: 'ph-file-text', t: 'Contratos' },
+            { h: '#payments', i: 'ph-receipt', t: 'Faturas' },
             { h: '#profile', i: 'ph-user', t: 'Perfil' }
         ] : [
             { h: '#dashboard', i: 'ph-house', t: 'Início' },
