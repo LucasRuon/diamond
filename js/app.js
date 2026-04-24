@@ -118,7 +118,7 @@ const app = {
                 <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.95) 100%); z-index: 1;"></div>
                 <div class="auth-container" style="position: relative; z-index: 2; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 400px;">
                     <img src="/base_icon_transparent_background.png" alt="Logo Diamond X" style="width: 100px; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-brand); font-size: 36px; font-weight: 400; margin-bottom: 8px; color: var(--dx-teal); letter-spacing: 0.08em;">DIAMOND X</h1>
+                    <h1 style="font-family: var(--font-brand); font-size: 28px; font-weight: 400; margin-bottom: 8px; color: var(--dx-teal); letter-spacing: 0.08em; white-space: nowrap;">DIAMOND X</h1>
                     <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 32px;">Performance & Training</p>
                     <form id="login-form" style="width: 100%;">
                         <div class="input-group"><label>E-MAIL</label><input type="email" id="login-email" class="input-control" required></div>
