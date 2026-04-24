@@ -113,21 +113,26 @@ const app = {
     renderLogin() {
         this.bottomNav.classList.add('hidden');
         this.mainContent.innerHTML = `
-            <div class="auth-container" style="padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh;">
-                <img src="/assets/icons/icon-192.png" alt="Logo" style="width: 80px; margin-bottom: 32px;">
-                <h1 style="font-family: var(--font-display); font-size: 32px; font-weight: 800; margin-bottom: 8px; color: var(--dx-teal);">DIAMOND X</h1>
-                <form id="login-form" style="width: 100%;">
-                    <div class="input-group"><label>E-MAIL</label><input type="email" id="login-email" class="input-control" required></div>
-                    <div class="input-group">
-                        <div style="display: flex; justify-content: space-between;">
-                            <label>SENHA</label>
-                            <a href="#forgot-password" style="font-size: 12px; color: var(--dx-teal);">Esqueci a senha</a>
+            <div style="position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+                <div style="position: absolute; inset: 0; background: url('/assets/bg-diamond.webp') center/cover no-repeat; z-index: 0;"></div>
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.95) 100%); z-index: 1;"></div>
+                <div class="auth-container" style="position: relative; z-index: 2; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 400px;">
+                    <img src="/base_icon_transparent_background.png" alt="Logo Diamond X" style="width: 100px; margin-bottom: 24px;">
+                    <h1 style="font-family: var(--font-brand); font-size: 36px; font-weight: 400; margin-bottom: 8px; color: var(--dx-teal); letter-spacing: 0.08em;">DIAMOND X</h1>
+                    <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 32px;">Performance & Training</p>
+                    <form id="login-form" style="width: 100%;">
+                        <div class="input-group"><label>E-MAIL</label><input type="email" id="login-email" class="input-control" required></div>
+                        <div class="input-group">
+                            <div style="display: flex; justify-content: space-between;">
+                                <label>SENHA</label>
+                                <a href="#forgot-password" style="font-size: 12px; color: var(--dx-teal);">Esqueci a senha</a>
+                            </div>
+                            <input type="password" id="login-password" class="input-control" required>
                         </div>
-                        <input type="password" id="login-password" class="input-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ENTRAR</button>
-                </form>
-                <p style="margin-top: 24px; font-size: 14px; color: var(--dx-muted);">Não tem conta? <a href="#register" style="color: var(--dx-teal); font-weight: 600;">Cadastre-se</a></p>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ENTRAR</button>
+                    </form>
+                    <p style="margin-top: 24px; font-size: 14px; color: var(--dx-muted);">Não tem conta? <a href="#register" style="color: var(--dx-teal); font-weight: 600;">Cadastre-se</a></p>
+                </div>
             </div>
         `;
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -201,7 +206,7 @@ const app = {
                         <div class="input-group"><label>CPF</label><input type="text" id="reg-cpf" class="input-control" placeholder="000.000.000-00" required></div>
                         <div class="input-group"><label>TELEFONE</label><input type="text" id="reg-phone" class="input-control" placeholder="(00) 00000-0000" required></div>
                     </div>
-                    <div class="input-group"><label>VOCÊ É?</label><select id="reg-role" class="input-control"><option value="student">Aluno</option><option value="responsible">Responsável</option></select></div>
+                    <div class="input-group"><label>VOCÊ É?</label><select id="reg-role" class="input-control"><option value="student">Atleta</option><option value="responsible">Responsável</option><option value="businessman">Empresário</option></select></div>
                     <div class="input-group"><label>SENHA</label><input type="password" id="reg-password" class="input-control" required minlength="6"></div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 16px;">CADASTRAR</button>
                 </form>
@@ -280,8 +285,14 @@ const app = {
         else await responsiblePayments.render();
     },
 
+    getRoleLabel(role) {
+        const labels = { 'student': 'Atleta', 'responsible': 'Responsável', 'businessman': 'Empresário', 'admin': 'Administrador' };
+        return labels[role] || role;
+    },
+
     renderProfile() {
         const avatarUrl = this.profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.profile?.full_name)}&background=00C9A7&color=0a0a0a`;
+        const currentRole = this.profile?.role || 'student';
 
         this.mainContent.innerHTML = `
             <div class="page-container">
@@ -312,7 +323,35 @@ const app = {
                     <p style="color: var(--dx-muted); font-size: 12px;">TELEFONE</p>
                     <p style="font-weight: 600;">${this.profile?.phone || 'Não informado'}</p>
                 </div>
-                
+
+                ${currentRole === 'student' ? `
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">FICHA DO ATLETA</p>
+                        <button id="edit-anamnese-btn" style="color: var(--dx-teal); font-size: 13px; font-weight: 700;">EDITAR</button>
+                    </div>
+                    <p style="color: var(--dx-muted); font-size: 12px;">DATA DE NASCIMENTO</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.birth_date ? new Date(this.profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                    <p style="color: var(--dx-muted); font-size: 12px;">CLUBE ATUAL</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.current_club || 'Não informado'}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <p style="color: var(--dx-muted); font-size: 12px;">PESO (KG)</p>
+                            <p style="font-weight: 600;">${this.profile?.weight_kg || '--'}</p>
+                        </div>
+                        <div>
+                            <p style="color: var(--dx-muted); font-size: 12px;">ALTURA (CM)</p>
+                            <p style="font-weight: 600;">${this.profile?.height_cm || '--'}</p>
+                        </div>
+                    </div>
+                    ${this.profile?.athlete_record_url ? `
+                        <a href="${this.profile.athlete_record_url}" target="_blank" style="display: flex; align-items: center; gap: 8px; color: var(--dx-teal); font-size: 13px; font-weight: 700;">
+                            <i class="ph ph-file-text"></i> VER FICHA COMPLETA
+                        </a>
+                    ` : ''}
+                </div>
+                ` : ''}
+
                 ${this.profile?.role === 'admin' ? `
                     <div class="card" style="margin-bottom: 24px; border-color: var(--dx-teal-border);">
                         <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">RELATÓRIOS</p>
@@ -331,10 +370,27 @@ const app = {
                     </div>
                 ` : ''}
 
-                <div class="card" style="margin-bottom: 32px; background: var(--dx-surface2);">
-                    <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">TIPO DE CONTA</p>
-                    <p style="font-weight: 700; color: var(--dx-teal); text-transform: uppercase; margin-top: 4px;">${this.profile?.role}</p>
+                <div class="card" style="margin-bottom: 24px; background: var(--dx-surface2);">
+                    <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700; margin-bottom: 12px;">TIPO DE CONTA</p>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${['student', 'responsible', 'businessman'].map(role => `
+                            <label class="role-option ${currentRole === role ? 'role-active' : ''}" data-role="${role}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-border)'}; background: ${currentRole === role ? 'var(--dx-teal-dim)' : 'var(--dx-surface)'}; cursor: pointer; transition: all 0.2s ease;">
+                                <i class="ph ${currentRole === role ? 'ph-fill' : ''} ${role === 'student' ? 'ph-soccer-ball' : role === 'responsible' ? 'ph-shield-check' : 'ph-briefcase'}" style="font-size: 20px; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-muted)'};"></i>
+                                <span style="font-weight: 700; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-text)'};">${this.getRoleLabel(role)}</span>
+                                ${currentRole === role ? '<i class="ph-fill ph-check-circle" style="margin-left: auto; color: var(--dx-teal);"></i>' : ''}
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
+
+                <a href="https://diamondxperformance.com.br" target="_blank" class="card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; text-decoration: none; border-color: var(--dx-teal-border);">
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 32px; height: 32px;">
+                    <div>
+                        <p style="font-weight: 700; color: var(--dx-text); font-size: 14px;">Site Diamond X Performance</p>
+                        <p style="font-size: 12px; color: var(--dx-teal);">diamondxperformance.com.br</p>
+                    </div>
+                    <i class="ph ph-arrow-square-out" style="margin-left: auto; color: var(--dx-muted);"></i>
+                </a>
 
                 <button id="logout-btn" class="btn" style="border: 1px solid var(--dx-border); color: var(--dx-danger);">SAIR DA CONTA</button>
             </div>
@@ -345,7 +401,7 @@ const app = {
             if (confirm('Deseja realmente sair do Diamond X?')) {
                 await auth.logout();
                 window.location.hash = '#login';
-                window.location.reload(); 
+                window.location.reload();
             }
         });
 
@@ -354,6 +410,79 @@ const app = {
         if (avatarInput) {
             avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         }
+
+        // Seletor de tipo de conta
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', async () => {
+                const newRole = option.dataset.role;
+                if (newRole === this.profile?.role) return;
+                if (!confirm(`Deseja alterar seu tipo de conta para "${this.getRoleLabel(newRole)}"? Isso vai alterar suas permissões no app.`)) return;
+
+                const { error } = await supabase.from('users').update({ role: newRole, updated_at: new Date().toISOString() }).eq('id', this.user.id);
+                if (error) { toast.show('Erro ao alterar: ' + error.message, 'error'); return; }
+                await supabase.auth.updateUser({ data: { role: newRole } });
+                toast.show(`Conta alterada para ${this.getRoleLabel(newRole)}!`);
+                await this.loadProfile();
+                this.render();
+            });
+        });
+
+        // Editar anamnese (atletas)
+        const editAnamneseBtn = document.getElementById('edit-anamnese-btn');
+        if (editAnamneseBtn) {
+            editAnamneseBtn.addEventListener('click', () => this.showEditAnamneseForm());
+        }
+    },
+
+    showEditAnamneseForm() {
+        const formHtml = `
+            <form id="edit-anamnese-form">
+                <div class="input-group">
+                    <label>DATA DE NASCIMENTO</label>
+                    <input type="date" name="birth_date" class="input-control" value="${this.profile?.birth_date || ''}">
+                </div>
+                <div class="input-group">
+                    <label>CLUBE ATUAL</label>
+                    <input type="text" name="current_club" class="input-control" value="${this.profile?.current_club || ''}" placeholder="Ex: Flamengo Sub-17">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="input-group">
+                        <label>PESO (KG)</label>
+                        <input type="number" step="0.1" name="weight_kg" class="input-control" value="${this.profile?.weight_kg || ''}" placeholder="70.5">
+                    </div>
+                    <div class="input-group">
+                        <label>ALTURA (CM)</label>
+                        <input type="number" name="height_cm" class="input-control" value="${this.profile?.height_cm || ''}" placeholder="175">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>LINK DA FICHA DO ATLETA</label>
+                    <input type="url" name="athlete_record_url" class="input-control" value="${this.profile?.athlete_record_url || ''}" placeholder="https://...">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR FICHA</button>
+            </form>
+        `;
+
+        ui.bottomSheet.show('Ficha do Atleta', formHtml, async (data) => {
+            const updateData = {
+                birth_date: data.birth_date || null,
+                current_club: data.current_club || null,
+                weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
+                height_cm: data.height_cm ? parseInt(data.height_cm) : null,
+                athlete_record_url: data.athlete_record_url || null,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await supabase.from('users').update(updateData).eq('id', this.user.id);
+            if (error) {
+                toast.show('Erro ao salvar: ' + error.message, 'error');
+                throw error;
+            }
+
+            toast.show('Ficha do atleta atualizada!');
+            await this.loadProfile();
+            this.render();
+        });
     },
 
     async handleAvatarUpload(event) {

@@ -7,8 +7,13 @@ export const studentDashboard = {
         
         mainContent.innerHTML = `
             <div class="page-container">
-                <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${user.user_metadata.full_name.split(' ')[0]}</h1>
-                <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 24px;">Painel do Atleta</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${user.user_metadata.full_name.split(' ')[0]}</h1>
+                        <p style="color: var(--dx-muted); font-size: 14px;">Painel do Atleta</p>
+                    </div>
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 36px; height: 36px; opacity: 0.7;">
+                </div>
                 
                 <div id="student-status-area" style="display: flex; flex-direction: column; gap: 16px;">
                     <p style="color: var(--dx-muted); text-align: center; padding: 20px;">Carregando informações...</p>

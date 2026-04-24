@@ -5,7 +5,10 @@ export const adminDashboard = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 24px;">PAINEL GERAL</h1>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                    <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal);">PAINEL GERAL</h1>
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 36px; height: 36px; opacity: 0.7;">
+                </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                     <div class="card">

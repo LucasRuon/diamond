@@ -47,7 +47,10 @@ export const adminPlans = {
             <div class="card" style="border-left: 4px solid ${plan.category === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div>
-                        <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
+                            <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
+                        </div>
                         <p style="font-weight: 800; font-size: 17px;">${plan.name}</p>
                     </div>
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
@@ -93,12 +96,21 @@ export const adminPlans = {
                     <label>NOME DO PLANO</label>
                     <input type="text" name="name" class="input-control" value="${plan?.name || ''}" placeholder="Ex: Mensal Basic" required>
                 </div>
-                <div class="input-group">
-                    <label>CATEGORIA</label>
-                    <select name="category" class="input-control" required>
-                        <option value="training" ${plan?.category === 'training' ? 'selected' : ''}>Treinamento / Aulas</option>
-                        <option value="physio" ${plan?.category === 'physio' ? 'selected' : ''}>Fisioterapia / Recovery</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="input-group">
+                        <label>CATEGORIA</label>
+                        <select name="category" class="input-control" required>
+                            <option value="training" ${plan?.category === 'training' ? 'selected' : ''}>Treinamento / Aulas</option>
+                            <option value="physio" ${plan?.category === 'physio' ? 'selected' : ''}>Fisioterapia / Recovery</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>TIER</label>
+                        <select name="tier" class="input-control" required>
+                            <option value="pre_diamond" ${plan?.tier !== 'diamond_x' ? 'selected' : ''}>Pré Diamond</option>
+                            <option value="diamond_x" ${plan?.tier === 'diamond_x' ? 'selected' : ''}>Diamond X</option>
+                        </select>
+                    </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
