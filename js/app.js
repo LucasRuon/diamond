@@ -85,7 +85,7 @@ const app = {
             window.location.hash = '#dashboard';
             return;
         }
-        if (responsibleRoutes.includes(hash) && role !== 'responsible' && role !== 'admin') {
+        if (responsibleRoutes.includes(hash) && role !== 'responsible' && role !== 'businessman' && role !== 'admin') {
             window.location.hash = '#dashboard';
             return;
         }
@@ -262,7 +262,7 @@ const app = {
         this.bottomNav.classList.remove('hidden');
         if (this.profile?.role === 'admin') {
             await adminDashboard.render();
-        } else if (this.profile?.role === 'responsible') {
+        } else if (this.profile?.role === 'responsible' || this.profile?.role === 'businessman') {
             await responsibleDashboard.render();
         } else {
             await studentDashboard.render();
@@ -276,7 +276,7 @@ const app = {
 
     async renderPlans() {
         if (this.profile?.role === 'admin') await adminPlans.render();
-        else if (this.profile?.role === 'responsible') await responsiblePlans.render();
+        else if (this.profile?.role === 'responsible' || this.profile?.role === 'businessman') await responsiblePlans.render();
         else await studentPlans.render();
     },
 
@@ -361,7 +361,7 @@ const app = {
                     </div>
                 ` : ''}
 
-                ${this.profile?.role === 'responsible' ? `
+                ${this.profile?.role === 'responsible' || this.profile?.role === 'businessman' ? `
                     <div class="card" style="margin-bottom: 24px; border-color: var(--dx-teal-border);">
                         <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">DEPENDENTES</p>
                         <a href="#students" class="btn btn-primary" style="margin-top: 12px; font-size: 13px; padding: 10px;">
@@ -594,7 +594,7 @@ const app = {
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
             { h: '#profile', i: 'ph-gear', t: 'Config' }
-        ] : (role === 'responsible' ? [
+        ] : (role === 'responsible' || role === 'businessman' ? [
             { h: '#dashboard', i: 'ph-house', t: 'Início' },
             { h: '#students', i: 'ph-user-list', t: 'Alunos' },
             { h: '#plans', i: 'ph-receipt', t: 'Planos' },
