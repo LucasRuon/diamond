@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const adminTrainings = {
     async render() {
@@ -59,21 +59,21 @@ export const adminTrainings = {
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
                             <p style="font-size: 11px; color: ${isPast ? 'var(--dx-muted)' : 'var(--dx-teal)'}; font-weight: 700; text-transform: uppercase;">${dateStr} • ${timeStr}</p>
-                            <p style="font-weight: 700; font-size: 17px;">${session.title}</p>
+                            <p style="font-weight: 700; font-size: 17px;">${escapeHtml(session.title)}</p>
                             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location)}" target="_blank" style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px;">
-                                <i class="ph ph-map-pin"></i> ${session.location}
+                                <i class="ph ph-map-pin"></i> ${escapeHtml(session.location)}
                             </a>
                         </div>
-                        <button class="btn-qr" data-token="${session.qr_code_token}" style="color: var(--dx-teal); font-size: 20px;">
+                        <button class="btn-qr" data-token="${escapeHtml(session.qr_code_token)}" style="color: var(--dx-teal); font-size: 20px;">
                             <i class="ph ph-qr-code"></i>
                         </button>
                     </div>
                     
                     <div style="display: flex; gap: 8px; margin-top: 16px;">
-                        <button class="btn btn-attendance" data-id="${session.id}" data-title="${session.title}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text);">
+                        <button class="btn btn-attendance" data-id="${escapeHtml(session.id)}" data-title="${escapeHtml(session.title)}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text);">
                             <i class="ph ph-users-three" style="margin-right: 6px;"></i> PRESENÇAS
                         </button>
-                        <button class="btn-delete-training" data-id="${session.id}" style="padding: 10px; color: var(--dx-danger); background: rgba(248, 113, 113, 0.1); border-radius: 8px;">
+                        <button class="btn-delete-training" data-id="${escapeHtml(session.id)}" style="padding: 10px; color: var(--dx-danger); background: rgba(248, 113, 113, 0.1); border-radius: 8px;">
                             <i class="ph ph-trash"></i>
                         </button>
                     </div>
@@ -125,8 +125,8 @@ export const adminTrainings = {
 
         const listContainer = document.getElementById('attendance-students-list');
         listContainer.innerHTML = students.map(s => `
-            <div class="attendance-item card" data-student-id="${s.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: ${presentIds.has(s.id) ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; border-color: ${presentIds.has(s.id) ? 'var(--dx-teal)' : 'var(--dx-border)'}">
-                <p style="font-weight: 600; font-size: 14px;">${s.full_name}</p>
+            <div class="attendance-item card" data-student-id="${escapeHtml(s.id)}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: ${presentIds.has(s.id) ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; border-color: ${presentIds.has(s.id) ? 'var(--dx-teal)' : 'var(--dx-border)'}">
+                <p style="font-weight: 600; font-size: 14px;">${escapeHtml(s.full_name)}</p>
                 <div class="attendance-toggle" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${presentIds.has(s.id) ? 'var(--dx-teal)' : 'var(--dx-muted)'}; display: flex; align-items: center; justify-content: center;">
                     ${presentIds.has(s.id) ? '<i class="ph-bold ph-check" style="color: var(--dx-teal); font-size: 14px;"></i>' : ''}
                 </div>

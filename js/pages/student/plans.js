@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const studentPlans = {
     currentCategory: 'training',
@@ -65,14 +65,14 @@ export const studentPlans = {
                 <div class="card" style="border-top: 4px solid ${color};">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${plan.name}</h3>
+                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 12px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual'}
                             </p>
                         </div>
                         <p style="font-weight: 800; font-size: 18px;">R$ ${parseFloat(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <button class="btn btn-primary buy-btn" data-id="${plan.id}" data-name="${plan.name}" style="background: ${color}; color: #000;">
+                    <button class="btn btn-primary buy-btn" data-id="${escapeHtml(plan.id)}" data-name="${escapeHtml(plan.name)}" style="background: ${color}; color: #000;">
                         CONTRATAR AGORA
                     </button>
                 </div>
@@ -85,7 +85,7 @@ export const studentPlans = {
                 <div class="card" style="border-top: 4px solid var(--dx-border); opacity: 0.5; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: var(--dx-muted);">${plan.name}</h3>
+                            <h3 style="font-weight: 800; font-size: 20px; color: var(--dx-muted);">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 12px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual'}
                             </p>
@@ -115,7 +115,7 @@ export const studentPlans = {
         
         const confirmHtml = `
             <div style="text-align: center;">
-                <p style="margin-bottom: 24px;">Deseja gerar a cobrança para <strong>${planName}</strong>?</p>
+                <p style="margin-bottom: 24px;">Deseja gerar a cobrança para <strong>${escapeHtml(planName)}</strong>?</p>
                 <button id="confirm-purchase" class="btn btn-primary" style="background: ${this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}; color: #000;">SIM, GERAR COBRANÇA</button>
             </div>
         `;

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js';
 import { auth, toast } from './auth.js';
-import { ui } from './ui.js';
+import { ui, escapeHtml, safeUrl } from './ui.js';
 import { adminUsers } from './pages/admin/users.js';
 import { adminPlans } from './pages/admin/plans.js';
 import { adminTrainings } from './pages/admin/trainings.js';
@@ -306,7 +306,7 @@ const app = {
                     </div>
                     <div>
                         <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin: 0;">PERFIL</h1>
-                        <p style="font-size: 13px; color: var(--dx-muted);">${this.user?.email}</p>
+                        <p style="font-size: 13px; color: var(--dx-muted);">${escapeHtml(this.user?.email)}</p>
                     </div>
                 </div>
                 <div class="card" style="margin-bottom: 24px;">
@@ -315,13 +315,13 @@ const app = {
                         <button id="edit-profile-btn" style="color: var(--dx-teal); font-size: 13px; font-weight: 700;">EDITAR</button>
                     </div>
                     <p style="color: var(--dx-muted); font-size: 12px;">NOME</p>
-                    <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.full_name}</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.full_name)}</p>
                     <p style="color: var(--dx-muted); font-size: 12px;">E-MAIL</p>
-                    <p style="font-weight: 600; margin-bottom: 12px;">${this.user?.email}</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.user?.email)}</p>
                     <p style="color: var(--dx-muted); font-size: 12px;">CPF</p>
-                    <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.cpf || 'Não informado'}</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.cpf || 'Não informado')}</p>
                     <p style="color: var(--dx-muted); font-size: 12px;">TELEFONE</p>
-                    <p style="font-weight: 600;">${this.profile?.phone || 'Não informado'}</p>
+                    <p style="font-weight: 600;">${escapeHtml(this.profile?.phone || 'Não informado')}</p>
                 </div>
 
                 ${currentRole === 'student' ? `
@@ -333,7 +333,7 @@ const app = {
                     <p style="color: var(--dx-muted); font-size: 12px;">DATA DE NASCIMENTO</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.birth_date ? new Date(this.profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}</p>
                     <p style="color: var(--dx-muted); font-size: 12px;">CLUBE ATUAL</p>
-                    <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.current_club || 'Não informado'}</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.current_club || 'Não informado')}</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <p style="color: var(--dx-muted); font-size: 12px;">PESO (KG)</p>
@@ -345,7 +345,7 @@ const app = {
                         </div>
                     </div>
                     ${this.profile?.athlete_record_url ? `
-                        <a href="${this.profile.athlete_record_url}" target="_blank" style="display: flex; align-items: center; gap: 8px; color: var(--dx-teal); font-size: 13px; font-weight: 700;">
+                        <a href="${safeUrl(this.profile.athlete_record_url)}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 8px; color: var(--dx-teal); font-size: 13px; font-weight: 700;">
                             <i class="ph ph-file-text"></i> VER FICHA COMPLETA
                         </a>
                     ` : ''}
@@ -439,11 +439,11 @@ const app = {
             <form id="edit-anamnese-form">
                 <div class="input-group">
                     <label>DATA DE NASCIMENTO</label>
-                    <input type="date" name="birth_date" class="input-control" value="${this.profile?.birth_date || ''}">
+                    <input type="date" name="birth_date" class="input-control" value="${escapeHtml(this.profile?.birth_date || '')}">
                 </div>
                 <div class="input-group">
                     <label>CLUBE ATUAL</label>
-                    <input type="text" name="current_club" class="input-control" value="${this.profile?.current_club || ''}" placeholder="Ex: Flamengo Sub-17">
+                    <input type="text" name="current_club" class="input-control" value="${escapeHtml(this.profile?.current_club || '')}" placeholder="Ex: Flamengo Sub-17">
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
@@ -457,7 +457,7 @@ const app = {
                 </div>
                 <div class="input-group">
                     <label>LINK DA FICHA DO ATLETA</label>
-                    <input type="url" name="athlete_record_url" class="input-control" value="${this.profile?.athlete_record_url || ''}" placeholder="https://...">
+                    <input type="url" name="athlete_record_url" class="input-control" value="${escapeHtml(this.profile?.athlete_record_url || '')}" placeholder="https://...">
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR FICHA</button>
             </form>
@@ -529,15 +529,15 @@ const app = {
             <form id="edit-profile-form">
                 <div class="input-group">
                     <label>NOME COMPLETO</label>
-                    <input type="text" name="full_name" class="input-control" value="${this.profile.full_name}" required>
+                    <input type="text" name="full_name" class="input-control" value="${escapeHtml(this.profile.full_name)}" required>
                 </div>
                 <div class="input-group">
                     <label>CPF</label>
-                    <input type="text" id="edit-cpf" name="cpf" class="input-control" value="${this.profile.cpf || ''}" placeholder="000.000.000-00">
+                    <input type="text" id="edit-cpf" name="cpf" class="input-control" value="${escapeHtml(this.profile.cpf || '')}" placeholder="000.000.000-00">
                 </div>
                 <div class="input-group">
                     <label>TELEFONE</label>
-                    <input type="text" id="edit-phone" name="phone" class="input-control" value="${this.profile.phone || ''}" placeholder="(00) 00000-0000">
+                    <input type="text" id="edit-phone" name="phone" class="input-control" value="${escapeHtml(this.profile.phone || '')}" placeholder="(00) 00000-0000">
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>
             </form>

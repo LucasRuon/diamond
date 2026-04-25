@@ -1,17 +1,39 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const studentAttendance = {
     async render(targetStudentId = null) {
         const mainContent = document.getElementById('main-content');
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         // Se targetStudentId for passado (por um responsável), usamos ele. Senão, usamos o do usuário logado.
         const studentId = targetStudentId || user.id;
+
+        // Verificação de autorização: só permite acesso ao histórico de outro usuário
+        // se o solicitante for admin ou responsável vinculado ao aluno.
+        if (targetStudentId && targetStudentId !== user.id) {
+            const { data: profile } = await supabase
+                .from('users').select('role').eq('id', user.id).single();
+
+            if (profile?.role !== 'admin') {
+                const { data: link } = await supabase
+                    .from('responsible_students')
+                    .select('student_id')
+                    .eq('responsible_id', user.id)
+                    .eq('student_id', targetStudentId)
+                    .single();
+
+                if (!link) {
+                    window.location.hash = '#dashboard';
+                    return;
+                }
+            }
+        }
         
         let title = "MINHA FREQUÊNCIA";
         if (targetStudentId) {
             const { data: student } = await supabase.from('users').select('full_name').eq('id', studentId).single();
-            title = `FREQUÊNCIA: ${student?.full_name.split(' ')[0].toUpperCase()}`;
+            title = `FREQUÊNCIA: ${escapeHtml(student?.full_name.split(' ')[0].toUpperCase())}`;
         }
 
         mainContent.innerHTML = `
@@ -89,7 +111,7 @@ export const studentAttendance = {
             return `
                 <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <p style="font-weight: 700; font-size: 15px;">${item.session.title}</p>
+                        <p style="font-weight: 700; font-size: 15px;">${escapeHtml(item.session.title)}</p>
                         <p style="font-size: 12px; color: var(--dx-muted);">${dateStr} às ${timeStr} • ${item.method === 'qrcode' ? 'QR Code' : 'Manual'}</p>
                     </div>
                     <div style="background: var(--dx-teal-dim); color: var(--dx-teal); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">

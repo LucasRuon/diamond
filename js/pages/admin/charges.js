@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const adminCharges = {
     async render() {
@@ -69,7 +69,7 @@ export const adminCharges = {
                     <label>ALUNO / CLIENTE</label>
                     <select name="student_id" class="input-control" required>
                         <option value="">Selecione um aluno...</option>
-                        ${students?.map(s => `<option value="${s.id}">${s.full_name} (${s.email})</option>`).join('')}
+                        ${students?.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.full_name)} (${escapeHtml(s.email)})</option>`).join('')}
                     </select>
                 </div>
                 <div class="input-group">
@@ -154,11 +154,11 @@ export const adminCharges = {
             const statusClass = this.getStatusClass(charge.status);
 
             return `
-                <div class="card charge-item-card" data-id="${charge.id}" style="cursor: pointer;">
+                <div class="card charge-item-card" data-id="${escapeHtml(charge.id)}" style="cursor: pointer;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <p style="font-weight: 700; font-size: 15px;">${charge.student?.full_name || 'Aluno Removido'}</p>
-                            <p style="font-size: 12px; color: var(--dx-muted);">${charge.plan?.name || 'Cobrança Avulsa'} • ${date}</p>
+                            <p style="font-weight: 700; font-size: 15px;">${escapeHtml(charge.student?.full_name || 'Aluno Removido')}</p>
+                            <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(charge.plan?.name || 'Cobrança Avulsa')} • ${date}</p>
                         </div>
                         <span class="badge ${statusClass}">${statusLabel}</span>
                     </div>
@@ -188,8 +188,8 @@ export const adminCharges = {
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="card" style="margin-bottom: 12px; background: var(--dx-surface2);">
                     <p style="font-size: 12px; color: var(--dx-muted);">DETALHES DA COBRANÇA</p>
-                    <p style="font-weight: 700; margin-top: 4px;">${charge.student?.full_name || 'Aluno'}</p>
-                    <p style="font-size: 14px;">${charge.plan?.name || 'Cobrança Avulsa'} - R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p style="font-weight: 700; margin-top: 4px;">${escapeHtml(charge.student?.full_name || 'Aluno')}</p>
+                    <p style="font-size: 14px;">${escapeHtml(charge.plan?.name || 'Cobrança Avulsa')} - R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 
                 ${charge.status === 'pending_payment' ? `

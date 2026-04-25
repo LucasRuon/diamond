@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const responsibleStudents = {
     async render() {
@@ -56,14 +56,14 @@ export const responsibleStudents = {
         }
 
         listContainer.innerHTML = links.map(link => `
-            <div class="card student-card" data-id="${link.student_id}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div class="card student-card" data-id="${escapeHtml(link.student_id)}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="background: var(--dx-teal-dim); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-teal-border);">
                         <i class="ph-bold ph-user" style="color: var(--dx-teal); font-size: 20px;"></i>
                     </div>
                     <div>
-                        <p style="font-weight: 700; font-size: 16px;">${link.student.full_name}</p>
-                        <p style="font-size: 12px; color: var(--dx-muted);">${link.student.email}</p>
+                        <p style="font-weight: 700; font-size: 16px;">${escapeHtml(link.student.full_name)}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(link.student.email)}</p>
                     </div>
                 </div>
                 <div style="color: var(--dx-teal); font-size: 24px;">

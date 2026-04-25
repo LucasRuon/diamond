@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const adminUsers = {
     async render() {
@@ -57,18 +57,18 @@ export const adminUsers = {
         }
 
         listContainer.innerHTML = users.map(user => `
-            <div class="card user-item-card" data-id="${user.id}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div class="card user-item-card" data-id="${escapeHtml(user.id)}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="background: var(--dx-surface2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-border);">
                         <i class="ph ph-user" style="color: var(--dx-teal);"></i>
                     </div>
                     <div>
-                        <p style="font-weight: 600; font-size: 15px;">${user.full_name}</p>
-                        <p style="font-size: 12px; color: var(--dx-muted);">${user.email}</p>
+                        <p style="font-weight: 600; font-size: 15px;">${escapeHtml(user.full_name)}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(user.email)}</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="badge ${this.getRoleBadgeClass(user.role)}">${user.role.toUpperCase()}</span>
+                    <span class="badge ${this.getRoleBadgeClass(user.role)}">${escapeHtml(user.role.toUpperCase())}</span>
                     <i class="ph ph-caret-right" style="color: var(--dx-muted);"></i>
                 </div>
             </div>
@@ -112,11 +112,11 @@ export const adminUsers = {
             <form id="edit-user-form">
                 <div class="input-group">
                     <label>NOME COMPLETO</label>
-                    <input type="text" name="full_name" class="input-control" value="${user.full_name}" required>
+                    <input type="text" name="full_name" class="input-control" value="${escapeHtml(user.full_name)}" required>
                 </div>
                 <div class="input-group">
                     <label>E-MAIL (APENAS LEITURA)</label>
-                    <input type="email" class="input-control" value="${user.email}" disabled style="opacity: 0.6;">
+                    <input type="email" class="input-control" value="${escapeHtml(user.email)}" disabled style="opacity: 0.6;">
                 </div>
                 <div class="input-group">
                     <label>PAPEL NO SISTEMA</label>
@@ -129,11 +129,11 @@ export const adminUsers = {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
                         <label>CPF</label>
-                        <input type="text" id="edit-user-cpf" name="cpf" class="input-control" value="${user.cpf || ''}" placeholder="000.000.000-00">
+                        <input type="text" id="edit-user-cpf" name="cpf" class="input-control" value="${escapeHtml(user.cpf || '')}" placeholder="000.000.000-00">
                     </div>
                     <div class="input-group">
                         <label>TELEFONE</label>
-                        <input type="text" id="edit-user-phone" name="phone" class="input-control" value="${user.phone || ''}" placeholder="(00) 00000-0000">
+                        <input type="text" id="edit-user-phone" name="phone" class="input-control" value="${escapeHtml(user.phone || '')}" placeholder="(00) 00000-0000">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>

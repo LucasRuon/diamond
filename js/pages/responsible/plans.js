@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 import { toast } from '../../auth.js';
 import { ui } from '../../ui.js';
 
@@ -65,15 +66,15 @@ export const responsiblePlans = {
                 <div class="card" style="border-top: 4px solid ${color};">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${plan.name}</h3>
+                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 13px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual / Pacote'}
                             </p>
                         </div>
                         <p style="font-weight: 800; font-size: 18px;">R$ ${parseFloat(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">${plan.description || 'Acesso completo ao serviço selecionado.'}</p>
-                    <button class="btn btn-primary buy-plan-btn" data-id="${plan.id}" data-name="${plan.name}" style="background: ${color}; color: #000;">
+                    <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">${escapeHtml(plan.description || 'Acesso completo ao serviço selecionado.')}</p>
+                    <button class="btn btn-primary buy-plan-btn" data-id="${escapeHtml(plan.id)}" data-name="${escapeHtml(plan.name)}" style="background: ${color}; color: #000;">
                         CONTRATAR AGORA
                     </button>
                 </div>
@@ -86,7 +87,7 @@ export const responsiblePlans = {
                 <div class="card" style="border-top: 4px solid var(--dx-border); opacity: 0.5;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: var(--dx-muted);">${plan.name}</h3>
+                            <h3 style="font-weight: 800; font-size: 20px; color: var(--dx-muted);">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 13px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual / Pacote'}
                             </p>

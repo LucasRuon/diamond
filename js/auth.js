@@ -45,9 +45,9 @@ export const toast = {
         const container = document.getElementById('toasts-container');
         const toastEl = document.createElement('div');
         toastEl.className = `toast toast-${type}`;
-        toastEl.innerHTML = `
-            <span>${message}</span>
-        `;
+        const span = document.createElement('span');
+        span.textContent = message;
+        toastEl.appendChild(span);
         
         // Inline styles for toast (can be moved to CSS later)
         Object.assign(toastEl.style, {

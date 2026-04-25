@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const adminDashboard = {
     async render() {
@@ -134,7 +135,7 @@ export const adminDashboard = {
 
         container.innerHTML = sessions.map(s => `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <p style="font-weight: 600; font-size: 15px;">${s.title}</p>
+                <p style="font-weight: 600; font-size: 15px;">${escapeHtml(s.title)}</p>
                 <p style="color: var(--dx-teal); font-weight: 700;">${new Date(s.scheduled_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
         `).join('');

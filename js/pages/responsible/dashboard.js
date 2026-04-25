@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const responsibleDashboard = {
     async render() {
@@ -91,8 +92,8 @@ export const responsibleDashboard = {
                     <div class="card" style="padding: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                             <div>
-                                <p style="font-weight: 800; font-size: 18px;">${student.full_name}</p>
-                                <p style="font-size: 12px; color: var(--dx-muted);">${latestPlan ? latestPlan.plan.name : 'Nenhuma contratação ativa'}</p>
+                                <p style="font-weight: 800; font-size: 18px;">${escapeHtml(student.full_name)}</p>
+                                <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(latestPlan ? latestPlan.plan.name : 'Nenhuma contratação ativa')}</p>
                             </div>
                             <span class="badge ${statusClass}">${statusLabel}</span>
                         </div>

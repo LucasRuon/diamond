@@ -1,6 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
-import { ui } from '../../ui.js';
+import { ui, escapeHtml } from '../../ui.js';
 
 export const adminPlans = {
     async render() {
@@ -51,16 +51,16 @@ export const adminPlans = {
                             <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
                         </div>
-                        <p style="font-weight: 800; font-size: 17px;">${plan.name}</p>
+                        <p style="font-weight: 800; font-size: 17px;">${escapeHtml(plan.name)}</p>
                     </div>
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
                 </div>
-                <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 16px;">${plan.description || 'Sem descrição'}</p>
+                <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 16px;">${escapeHtml(plan.description || 'Sem descrição')}</p>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn edit-plan" data-id="${plan.id}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
+                    <button class="btn edit-plan" data-id="${escapeHtml(plan.id)}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
                         EDITAR
                     </button>
-                    <button class="btn delete-plan" data-id="${plan.id}" style="padding: 10px; color: var(--dx-danger); background: rgba(248,113,113,0.1); border-radius: 8px;">
+                    <button class="btn delete-plan" data-id="${escapeHtml(plan.id)}" style="padding: 10px; color: var(--dx-danger); background: rgba(248,113,113,0.1); border-radius: 8px;">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
@@ -94,7 +94,7 @@ export const adminPlans = {
             <form id="plan-form">
                 <div class="input-group">
                     <label>NOME DO PLANO</label>
-                    <input type="text" name="name" class="input-control" value="${plan?.name || ''}" placeholder="Ex: Mensal Basic" required>
+                    <input type="text" name="name" class="input-control" value="${escapeHtml(plan?.name || '')}" placeholder="Ex: Mensal Basic" required>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
@@ -124,7 +124,7 @@ export const adminPlans = {
                 </div>
                 <div class="input-group">
                     <label>DESCRIÇÃO</label>
-                    <textarea name="description" class="input-control" rows="2">${plan?.description || ''}</textarea>
+                    <textarea name="description" class="input-control" rows="2">${escapeHtml(plan?.description || '')}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">${plan ? 'ATUALIZAR' : 'CRIAR'} PLANO</button>
             </form>

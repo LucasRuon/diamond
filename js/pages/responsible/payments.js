@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const responsiblePayments = {
     async render() {
@@ -56,8 +57,8 @@ export const responsiblePayments = {
                 <div class="card" style="padding: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <p style="font-weight: 800; font-size: 16px;">${p.plan.name}</p>
-                            <p style="font-size: 12px; color: var(--dx-muted);">Para: ${p.student.full_name} • ${date}</p>
+                            <p style="font-weight: 800; font-size: 16px;">${escapeHtml(p.plan.name)}</p>
+                            <p style="font-size: 12px; color: var(--dx-muted);">Para: ${escapeHtml(p.student.full_name)} • ${date}</p>
                         </div>
                         <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(p.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
@@ -65,7 +66,7 @@ export const responsiblePayments = {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 0.5px solid var(--dx-border);">
                         <span class="badge ${statusClass}">${statusLabel}</span>
                         ${p.status === 'pending_payment' ? `
-                            <button class="btn pay-btn" data-id="${p.id}" style="width: auto; padding: 6px 14px; font-size: 11px; background: var(--dx-teal); color: #000;">
+                            <button class="btn pay-btn" data-id="${escapeHtml(p.id)}" style="width: auto; padding: 6px 14px; font-size: 11px; background: var(--dx-teal); color: #000;">
                                 PAGAR AGORA
                             </button>
                         ` : `

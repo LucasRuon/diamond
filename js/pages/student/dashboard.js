@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const studentDashboard = {
     async render() {
@@ -71,7 +72,7 @@ export const studentDashboard = {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                     <div>
                         <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">Plano Ativo</p>
-                        <p style="font-weight: 800; font-size: 18px; margin-top: 4px;">${currentPlan ? currentPlan.plan.name : 'NENHUM PLANO'}</p>
+                        <p style="font-weight: 800; font-size: 18px; margin-top: 4px;">${escapeHtml(currentPlan ? currentPlan.plan.name : 'NENHUM PLANO')}</p>
                     </div>
                     ${currentPlan ? `<span class="badge ${currentPlan.status === 'active' ? 'badge-active' : 'badge-pending'}">${this.getPlanStatusLabel(currentPlan.status)}</span>` : ''}
                 </div>
@@ -118,9 +119,9 @@ export const studentDashboard = {
                     <i class="ph ph-soccer-ball" style="font-size: 80px;"></i>
                 </div>
                 <p style="color: var(--dx-teal); font-weight: 700; font-size: 12px;">${dateStr.toUpperCase()} • ${timeStr}</p>
-                <p style="font-weight: 800; font-size: 20px; margin: 4px 0;">${next.title}</p>
+                <p style="font-weight: 800; font-size: 20px; margin: 4px 0;">${escapeHtml(next.title)}</p>
                 <p style="font-size: 13px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px;">
-                    <i class="ph ph-map-pin"></i> ${next.location}
+                    <i class="ph ph-map-pin"></i> ${escapeHtml(next.location)}
                 </p>
                 <a href="#trainings" class="btn btn-primary" style="margin-top: 16px; padding: 10px; font-size: 13px;">CHECK-IN / DETALHES</a>
             </div>
@@ -155,8 +156,8 @@ export const studentDashboard = {
                         <i class="ph-fill ph-shield-check" style="color: var(--dx-teal);"></i>
                     </div>
                     <div>
-                        <p style="font-weight: 700;">${links.responsible.full_name}</p>
-                        <p style="font-size: 12px; color: var(--dx-muted);">${links.responsible.email}</p>
+                        <p style="font-weight: 700;">${escapeHtml(links.responsible.full_name)}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(links.responsible.email)}</p>
                     </div>
                 </div>
             `;

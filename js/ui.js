@@ -1,3 +1,19 @@
+export function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str ?? ''));
+    return div.innerHTML;
+}
+
+export function safeUrl(url) {
+    if (!url) return '#';
+    try {
+        const u = new URL(url);
+        return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
+    } catch {
+        return '#';
+    }
+}
+
 export const ui = {
     bottomSheet: {
         show(title, contentHtml, onSave) {

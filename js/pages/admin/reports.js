@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase.js';
+import { escapeHtml } from '../../ui.js';
 
 export const adminReports = {
     async render() {
@@ -91,7 +92,7 @@ export const adminReports = {
             return `
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <p style="font-weight: 700; font-size: 15px;">${stat.name}</p>
+                        <p style="font-weight: 700; font-size: 15px;">${escapeHtml(stat.name)}</p>
                         <p style="font-weight: 800; color: ${color};">${percent}%</p>
                     </div>
                     <div style="width: 100%; height: 6px; background: var(--dx-surface2); border-radius: 3px; overflow: hidden;">
