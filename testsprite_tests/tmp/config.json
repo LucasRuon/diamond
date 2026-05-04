@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "luucasruon@gmail.com",
+  "loginPassword": "123456789",
+  "executionArgs": {
+    "projectName": "Diamond",
+    "projectPath": "/Users/lucasruon/Downloads/Sistemas/Diamond",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-QwowJGHXaEHWfINsaA9VIk95Qu9apAZPwKVbwElCb1j2JkYH9ORn69P9fSmqcMEZkwFm8SqEZ7nBWvDVHBCzDuZfKPkXlLhN_8IhQwi8LBE3GF0gpwxxFKDzWVFuarp000o"
+    }
+  },
+  "serverPort": 57147,
+  "proxy": "http://c4d9eb45-b716-4a03-a442-b58b29c6c465:fzpKBgng0GesoVJXi0pz8EqdbzeLzwHM@tun.testsprite.com:8080"
+}

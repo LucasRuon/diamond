@@ -31,6 +31,10 @@ CREATE POLICY "users_select" ON public.users
   FOR SELECT
   USING (auth.uid() IS NOT NULL);
 
+-- Criacao de perfil nao possui politica INSERT publica.
+-- Novos perfis sao criados pelo trigger SECURITY DEFINER
+-- public.handle_new_auth_user(), definido em 004_auth_users_profile_trigger.sql.
+
 -- Update: usuário pode atualizar apenas seus próprios dados,
 -- e o campo `role` deve permanecer idêntico ao atual (impedindo escalada).
 CREATE POLICY "users_update_own" ON public.users

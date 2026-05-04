@@ -1,0 +1,63 @@
+version: "2"
+type: frontend
+tech_stack:
+  - HTML
+  - Vanilla JS
+  - CSS
+  - Supabase
+routes:
+  - path: /#login
+    file: js/auth.js
+    auth_required: false
+    description: User login page
+  - path: /#register
+    file: js/auth.js
+    auth_required: false
+    description: User registration page
+  - path: /#dashboard
+    file: js/app.js
+    auth_required: true
+    description: Athlete Dashboard
+  - path: /#trainings
+    file: js/app.js
+    auth_required: true
+    description: View and reserve training sessions
+  - path: /#attendance
+    file: js/app.js
+    auth_required: true
+    description: QR code check-in and attendance history
+features:
+  - name: User Login
+    description: Login with email and password credentials
+    files:
+      - js/auth.js
+      - index.html
+    entry_route: /#login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click Login button to submit
+      - See error message on invalid credentials
+    api_calls:
+      - method: POST
+        endpoint: /auth/v1/token
+    auth_required: false
+  - name: User Registration
+    description: Register a new account
+    files:
+      - js/auth.js
+      - index.html
+    entry_route: /#register
+    user_interactions:
+      - Fill full name
+      - Fill email
+      - Fill CPF
+      - Fill phone
+      - Select role
+      - Fill password
+      - Click Register button
+    api_calls:
+      - method: POST
+        endpoint: /auth/v1/signup
+    auth_required: false
+known_limitations: []

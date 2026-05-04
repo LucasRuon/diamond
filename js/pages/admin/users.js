@@ -126,6 +126,7 @@ export const adminUsers = {
                     <select name="role" class="input-control" required>
                         <option value="student" ${user.role === 'student' ? 'selected' : ''}>Aluno</option>
                         <option value="responsible" ${user.role === 'responsible' ? 'selected' : ''}>Responsável</option>
+                        <option value="businessman" ${user.role === 'businessman' ? 'selected' : ''}>Empresário</option>
                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
                     </select>
                 </div>

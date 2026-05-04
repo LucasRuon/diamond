@@ -190,7 +190,38 @@ const app = {
                 full_name: this.user.user_metadata?.full_name || this.user.email
             };
         } catch (e) {
-            this.profile = { role: 'student', full_name: this.user.email };
+            this.profile = {
+                role: this.user?.user_metadata?.role || 'student',
+                full_name: this.user?.user_metadata?.full_name || this.user?.email
+            };
+        }
+    },
+
+    async handleRegistrationSuccess(result) {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const session = result?.session || currentSession;
+
+        if (session?.user) {
+            this.user = session.user;
+            await this.loadProfile();
+            toast.show('Conta criada com sucesso!');
+
+            if (window.location.hash === '#dashboard') {
+                await this.render();
+            } else {
+                window.location.hash = '#dashboard';
+            }
+            return;
+        }
+
+        this.user = null;
+        this.profile = null;
+        toast.show('Conta criada! Verifique seu e-mail ou faça login para continuar.');
+
+        if (window.location.hash === '#login') {
+            await this.render();
+        } else {
+            window.location.hash = '#login';
         }
     },
 
@@ -505,7 +536,7 @@ const app = {
 
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
+            const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerText;
             
             try {
@@ -531,14 +562,15 @@ const app = {
                 const result = await auth.register(email, password, metadata);
                 console.log('Registro concluído:', result);
 
-                toast.show('Conta criada! Por favor, faça login.');
-                window.location.hash = '#login';
+                await this.handleRegistrationSuccess(result);
             } catch (err) { 
                 console.error('Erro detalhado no registro:', err);
                 toast.show(err.message || 'Erro ao salvar no banco de dados', 'error'); 
             } finally {
-                btn.disabled = false;
-                btn.innerText = originalText;
+                if (btn.isConnected) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
             }
         });
     },
@@ -659,15 +691,12 @@ const app = {
 
                 <div class="card" style="margin-bottom: 24px; background: var(--dx-surface2);">
                     <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px; font-weight: 400; margin-bottom: 12px;">TIPO DE CONTA</p>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        ${['student', 'responsible', 'businessman'].map(role => `
-                            <label class="role-option ${currentRole === role ? 'role-active' : ''}" data-role="${role}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-border)'}; background: ${currentRole === role ? 'var(--dx-teal-dim)' : 'var(--dx-surface)'}; cursor: pointer; transition: all 0.2s ease;">
-                                <i class="ph ${currentRole === role ? 'ph-fill' : ''} ${role === 'student' ? 'ph-soccer-ball' : role === 'responsible' ? 'ph-shield-check' : 'ph-briefcase'}" style="font-size: 20px; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-muted)'};"></i>
-                                <span style="font-family: var(--font-brand); font-weight: 400; font-size: 16px; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-text)'};">${this.getRoleLabel(role)}</span>
-                                ${currentRole === role ? '<i class="ph-fill ph-check-circle" style="margin-left: auto; color: var(--dx-teal);"></i>' : ''}
-                            </label>
-                        `).join('')}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--dx-teal); background: var(--dx-teal-dim);">
+                        <i class="ph-fill ${currentRole === 'student' ? 'ph-soccer-ball' : currentRole === 'admin' ? 'ph-crown' : currentRole === 'responsible' ? 'ph-shield-check' : 'ph-briefcase'}" style="font-size: 20px; color: var(--dx-teal);"></i>
+                        <span style="font-family: var(--font-brand); font-weight: 400; font-size: 16px; color: var(--dx-teal);">${this.getRoleLabel(currentRole)}</span>
+                        <i class="ph-fill ph-lock-key" style="margin-left: auto; color: var(--dx-muted);"></i>
                     </div>
+                    <p style="margin-top: 10px; color: var(--dx-muted); font-size: 12px; line-height: 1.4;">Apenas um administrador pode alterar o tipo de conta.</p>
                 </div>
 
                 <a href="https://diamondxperformance.com.br" target="_blank" class="card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; text-decoration: none; border-color: var(--dx-teal-border);">
@@ -697,22 +726,6 @@ const app = {
         if (avatarInput) {
             avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         }
-
-        // Seletor de tipo de conta
-        document.querySelectorAll('.role-option').forEach(option => {
-            option.addEventListener('click', async () => {
-                const newRole = option.dataset.role;
-                if (newRole === this.profile?.role) return;
-                if (!confirm(`Deseja alterar seu tipo de conta para "${this.getRoleLabel(newRole)}"? Isso vai alterar suas permissões no app.`)) return;
-
-                const { error } = await supabase.from('users').update({ role: newRole, updated_at: new Date().toISOString() }).eq('id', this.user.id);
-                if (error) { toast.show('Erro ao alterar: ' + error.message, 'error'); return; }
-                await supabase.auth.updateUser({ data: { role: newRole } });
-                toast.show(`Conta alterada para ${this.getRoleLabel(newRole)}!`);
-                await this.loadProfile();
-                this.render();
-            });
-        });
 
         // Editar anamnese (atletas)
         const editAnamneseBtn = document.getElementById('edit-anamnese-btn');
@@ -831,16 +844,26 @@ const app = {
         `;
 
         ui.bottomSheet.show('Editar Perfil', formHtml, async (data) => {
-            if (data.cpf && !ui.validate.cpf(data.cpf)) {
-                throw new Error('CPF Inválido.');
+            const fullName = data.full_name?.trim() || '';
+            const cpf = data.cpf?.trim() || null;
+            const phone = data.phone?.trim() || null;
+
+            if (!fullName) {
+                toast.show('Informe o nome completo.', 'error');
+                throw new Error('Nome completo obrigatório.');
+            }
+
+            if (cpf && !ui.validate.cpf(cpf)) {
+                toast.show('CPF invalido.', 'error');
+                throw new Error('CPF invalido.');
             }
 
             const { error } = await supabase
                 .from('users')
                 .update({
-                    full_name: data.full_name,
-                    cpf: data.cpf,
-                    phone: data.phone,
+                    full_name: fullName,
+                    cpf,
+                    phone,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', this.user.id);
@@ -851,10 +874,10 @@ const app = {
             }
 
             await supabase.auth.updateUser({
-                data: { full_name: data.full_name }
+                data: { full_name: fullName }
             });
 
-            toast.show('Perfil atualizado!');
+            toast.show('Alteracoes salvas com sucesso');
             await this.loadProfile();
             this.render();
         });

@@ -1,0 +1,1581 @@
+[
+  {
+    "id": "TC001",
+    "title": "Register and land in the role-based area",
+    "description": "This test verifies that a new user can register with valid details and reach the authenticated area for the selected role.",
+    "category": "Authentication and Session Access Control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with a valid full name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with a valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Select a role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated area for the selected role is opened"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard or role-specific home area is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Log in and enter the dashboard",
+    "description": "An existing user can log in with valid credentials and reach the authenticated dashboard.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Log in and reach the correct role-based area",
+    "description": "This test verifies that a valid login routes the user into the correct authenticated area for their role.",
+    "category": "Authentication and Session Access Control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated area for the user role is opened"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard or role-specific home area is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Register a new athlete account and enter the athlete area",
+    "description": "This verifies that a new athlete can complete registration and is routed into the authenticated athlete area afterward.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with a new athlete name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with a unique email address"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with a valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Select the athlete role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the athlete dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify authenticated athlete content is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Register a new account and enter the correct area",
+    "description": "A new user can register with valid details and lands in the authenticated area appropriate for the selected role.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with a valid name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with a valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Select an athlete role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands in the authenticated area for the selected role"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Block invalid registration data",
+    "description": "This test verifies that submitting registration with invalid input shows validation errors and does not complete sign up.",
+    "category": "Authentication and Session Access Control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with A"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with invalid-email"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with 123"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with 1"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with 123"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify registration validation errors are visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated area is not opened"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Register a new responsible user and enter the responsible area",
+    "description": "This verifies that a new responsible user can complete registration and is routed into the correct authenticated area afterward.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with a new responsible user name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with a unique email address"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with a valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Select the responsible user role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the responsible user area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify authenticated linked-athlete content is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Protect authenticated pages before login",
+    "description": "This test verifies that a visitor who opens an authenticated page is routed to login instead of seeing protected content.",
+    "category": "Authentication and Session Access Control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login page is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify protected dashboard content is not displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Register a new business manager and enter the business area",
+    "description": "This verifies that a new business manager can complete registration and is routed into the correct authenticated area afterward.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#register"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the full name field with a new business manager name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with a unique email address"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the CPF field with a valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Select the business manager role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the business manager area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify authenticated linked-athlete content is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Log in as an athlete and access the dashboard",
+    "description": "This verifies that an athlete can sign in successfully and reach the dashboard.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the athlete dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard status content is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Log in as an administrator and access the admin area",
+    "description": "This verifies that an administrator can sign in successfully and reach the administrator area.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the administrator area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify admin dashboard content is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Show a login error for invalid credentials",
+    "description": "The login form rejects invalid credentials and shows an error without entering the app.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with invalid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with invalid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a login error message is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Reserve an eligible future session",
+    "description": "An athlete can reserve an eligible future session and see the reservation state update.",
+    "category": "Training Sessions and Reservations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the trainings section"
+      },
+      {
+        "type": "action",
+        "description": "Open an eligible future session"
+      },
+      {
+        "type": "action",
+        "description": "Reserve the session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session reservation state is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Record a same-day attendance check-in",
+    "description": "This test verifies that an athlete can complete a valid same-day QR check-in and see the attendance entry recorded afterward.",
+    "category": "QR Code Check-In and Attendance",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the attendance section"
+      },
+      {
+        "type": "action",
+        "description": "Start QR code check-in"
+      },
+      {
+        "type": "action",
+        "description": "Scan a valid same-day session QR code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an attendance record is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly attendance history is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "View athlete dashboard status details",
+    "description": "This verifies that an athlete can review the dashboard and see plan, attendance, next session, and linked responsible user information.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /#dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify active plan information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify monthly attendance, next session, and linked responsible user information are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Display athlete dashboard status information",
+    "description": "An athlete can view their active plan, monthly attendance, next session, and linked responsible user details on the dashboard.",
+    "category": "Athlete Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the dashboard section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify active plan details are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify monthly attendance and next session information are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Browse the training calendar",
+    "description": "An athlete can open the trainings area and view the monthly calendar of available sessions.",
+    "category": "Training Sessions and Reservations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the trainings section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly training calendar is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Reserve an eligible training session",
+    "description": "This verifies that an athlete can browse trainings and reserve a future eligible session end to end.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /#trainings"
+      },
+      {
+        "type": "action",
+        "description": "Select an eligible future training session"
+      },
+      {
+        "type": "action",
+        "description": "Reserve the selected session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session shows as reserved"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the reservation is reflected in the trainings view"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Review attendance history and totals",
+    "description": "This test verifies that an athlete can open attendance history and review attendance totals, calendar, and prior records.",
+    "category": "QR Code Check-In and Attendance",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the attendance section"
+      },
+      {
+        "type": "action",
+        "description": "Review attendance totals"
+      },
+      {
+        "type": "action",
+        "description": "Review the monthly attendance history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attendance calendar is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify attendance records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Cancel an existing reservation",
+    "description": "An athlete can cancel a previously booked session and see the reservation removed.",
+    "category": "Training Sessions and Reservations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the trainings section"
+      },
+      {
+        "type": "action",
+        "description": "Open a previously booked session"
+      },
+      {
+        "type": "action",
+        "description": "Cancel the reservation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session reservation state is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC021",
+    "title": "Cancel a reserved training session",
+    "description": "This verifies that an athlete can cancel an existing reservation from the trainings area and see the session return to an unreserved state.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /#trainings"
+      },
+      {
+        "type": "action",
+        "description": "Reserve an eligible future training session"
+      },
+      {
+        "type": "action",
+        "description": "Cancel the reservation for that session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is no longer reserved"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is available again"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC022",
+    "title": "Check in to today's session with a valid QR code",
+    "description": "This verifies that an athlete can use same-day QR check-in and see attendance recorded with updated monthly history.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /#attendance"
+      },
+      {
+        "type": "action",
+        "description": "Scan a valid same-day QR code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attendance is recorded"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly attendance history is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC023",
+    "title": "Show attendance after a valid check-in",
+    "description": "This test verifies that completing a valid check-in results in updated attendance details being visible in the attendance area.",
+    "category": "QR Code Check-In and Attendance",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the attendance section"
+      },
+      {
+        "type": "action",
+        "description": "Start QR code check-in"
+      },
+      {
+        "type": "action",
+        "description": "Scan a valid same-day session QR code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify attendance totals are updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a new attendance record is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Browse linked athlete details as a responsible user",
+    "description": "This test verifies that a responsible user or business manager can open a linked athlete and review plan, reservation, and attendance information in read-only mode.",
+    "category": "Responsible and Business Manager Visibility",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the linked athletes area"
+      },
+      {
+        "type": "action",
+        "description": "Open a linked athlete record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the athlete plan status is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify reservation details are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify attendance details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "View linked athletes in read-only mode",
+    "description": "This verifies that a responsible user or business manager can review linked athlete information, including plan status, reservations, and attendance details, in read-only mode.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify linked athlete information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify plan status, reservations, and attendance details are displayed in read-only mode"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "Update profile information",
+    "description": "This verifies that a logged-in user can open their profile and save supported profile changes successfully.",
+    "category": "Profile Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the profile area"
+      },
+      {
+        "type": "action",
+        "description": "Update the supported profile fields"
+      },
+      {
+        "type": "action",
+        "description": "Save the profile changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated profile information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the profile save confirmation is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC027",
+    "title": "Browse available plans and start a purchase",
+    "description": "This test verifies that a user can review active plans and initiate a purchase for themselves from the plans area.",
+    "category": "Plans and Services",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the plans and services area"
+      },
+      {
+        "type": "action",
+        "description": "Review the active training plans"
+      },
+      {
+        "type": "action",
+        "description": "Review the physiotherapy plans"
+      },
+      {
+        "type": "action",
+        "description": "Start a plan purchase"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify plan options are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the purchase flow is started"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC028",
+    "title": "Update the avatar image",
+    "description": "This verifies that a logged-in user can change their avatar and see the new image displayed in the profile area.",
+    "category": "Profile Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the profile area"
+      },
+      {
+        "type": "action",
+        "description": "Upload a new avatar image"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new avatar is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the profile image update is reflected"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC029",
+    "title": "Start a purchase for a linked athlete",
+    "description": "This test verifies that a user allowed to act for a linked athlete can select that athlete and begin a plan purchase on their behalf.",
+    "category": "Plans and Services",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the plans and services area"
+      },
+      {
+        "type": "action",
+        "description": "Select a linked athlete"
+      },
+      {
+        "type": "action",
+        "description": "Start a plan purchase for the linked athlete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected athlete is shown in the purchase flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify plan options are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "Block a session that is too close to reserve",
+    "description": "An athlete cannot reserve a session that is too close in time and the session remains unavailable.",
+    "category": "Training Sessions and Reservations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the trainings section"
+      },
+      {
+        "type": "action",
+        "description": "Open a session that is too close in time"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to reserve the session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session cannot be reserved"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC031",
+    "title": "See an empty linked-athlete state",
+    "description": "This test verifies that a responsible user or business manager with no linked athletes sees an empty state instead of athlete data.",
+    "category": "Responsible and Business Manager Visibility",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the linked athletes area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state message is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no linked athlete records are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC032",
+    "title": "See the empty state when no athletes are linked",
+    "description": "This verifies that a responsible user or business manager with no linked athletes sees the correct empty state instead of linked-athlete content.",
+    "category": "authentication and session access control",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the empty linked-athlete state is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify linked-athlete details are not displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC033",
+    "title": "Block duplicate reservation of the same session",
+    "description": "An athlete cannot reserve a session that already has their booking and the session remains unavailable for a second reservation.",
+    "category": "Training Sessions and Reservations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the trainings section"
+      },
+      {
+        "type": "action",
+        "description": "Open a session with an existing booked reservation"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to reserve the session again"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session cannot be reserved again"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC034",
+    "title": "Review the admin dashboard summary",
+    "description": "This verifies that an administrator can open the admin dashboard and see key operational summary metrics.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the admin dashboard summary is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify student counts, active plans, revenue indicators, and today's sessions are displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC035",
+    "title": "Create and review a new user",
+    "description": "This verifies that an administrator can create a user and then see the updated user information in management.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to user management"
+      },
+      {
+        "type": "action",
+        "description": "Create a new user"
+      },
+      {
+        "type": "action",
+        "description": "Open the created user record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated user information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user record exists in management"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC036",
+    "title": "Create a training session and view it in the calendar",
+    "description": "This verifies that an administrator can create a training session and see it appear in the training calendar with accessible details.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to training management"
+      },
+      {
+        "type": "action",
+        "description": "Create a new training session"
+      },
+      {
+        "type": "action",
+        "description": "Open the session in the calendar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session appears in the calendar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session details are displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC037",
+    "title": "Create and toggle a plan",
+    "description": "This verifies that an administrator can create a plan and change its active state successfully.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to plans management"
+      },
+      {
+        "type": "action",
+        "description": "Create a new plan"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the plan active state"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the plan status is updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the plan appears in the plans list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC038",
+    "title": "Confirm or cancel a charge",
+    "description": "This verifies that an administrator can update a charge status from the financial management area.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to financial management"
+      },
+      {
+        "type": "action",
+        "description": "Open a charge record"
+      },
+      {
+        "type": "action",
+        "description": "Confirm or cancel the charge"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the charge status is updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated charge appears in the financial list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC039",
+    "title": "Review attendance and training reports",
+    "description": "This verifies that an administrator can open reports and see attendance and training performance metrics.",
+    "category": "Admin Operations",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /#login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to reports"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify attendance and training performance metrics are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the reports view is populated"
+      }
+    ],
+    "priority": "Low"
+  }
+]
