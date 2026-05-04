@@ -8,12 +8,12 @@ export const responsibleDashboard = {
         
         mainContent.innerHTML = `
             <div class="page-container">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div class="page-header">
                     <div>
                         <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${fullName.split(' ')[0]}</h1>
                         <p style="color: var(--dx-muted); font-size: 14px;">Visão geral dos seus atletas</p>
                     </div>
-                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 36px; height: 36px; opacity: 0.7;">
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
                 
                 <div id="students-summary" style="display: flex; flex-direction: column; gap: 16px;">
@@ -98,19 +98,18 @@ export const responsibleDashboard = {
                             <span class="badge ${statusClass}">${statusLabel}</span>
                         </div>
                         
-                        <div style="display: flex; gap: 12px;">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                             <a href="#attendance?id=${link.student_id}" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text); text-align: center; text-decoration: none;">
                                 VER FREQUÊNCIA
+                            </a>
+                            <a href="#trainings" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text); text-align: center; text-decoration: none;">
+                                VER TREINOS
                             </a>
                             ${!latestPlan || latestPlan.status !== 'active' ? `
                                 <a href="#plans" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 12px; text-align: center; text-decoration: none;">
                                     PLANOS
                                 </a>
-                            ` : `
-                                <button class="btn" style="flex: 1; padding: 10px; font-size: 12px; border: 1px solid var(--dx-teal-border); color: var(--dx-teal);">
-                                    DETALHES
-                                </button>
-                            `}
+                            ` : ''}
                         </div>
                     </div>
                 `;

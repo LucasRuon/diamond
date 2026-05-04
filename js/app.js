@@ -15,14 +15,19 @@ import { responsibleStudents } from './pages/responsible/students.js';
 import { responsiblePlans } from './pages/responsible/plans.js';
 import { responsibleDashboard } from './pages/responsible/dashboard.js';
 import { responsiblePayments } from './pages/responsible/payments.js';
+import { responsibleTrainings } from './pages/responsible/trainings.js';
 
 const app = {
     mainContent: document.getElementById('main-content'),
     bottomNav: document.getElementById('bottom-nav'),
     user: null,
     profile: null,
+    loginParticlesCleanup: null,
+    recoveryMode: false,
 
     async init() {
+        this.recoveryMode = this.isRecoveryRedirect();
+
         const { data: { session } } = await supabase.auth.getSession();
         this.user = session?.user || null;
         
@@ -34,7 +39,9 @@ const app = {
             this.user = session?.user || null;
             
             if (event === 'PASSWORD_RECOVERY') {
+                this.recoveryMode = true;
                 window.location.hash = '#update-password';
+                this.render();
                 return;
             }
 
@@ -45,6 +52,134 @@ const app = {
 
         window.addEventListener('hashchange', () => this.render());
         this.render();
+    },
+
+    isRecoveryRedirect() {
+        const hashParams = this.getHashParams();
+        const hashQueryParams = this.getHashQueryParams();
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashType = hashParams.get('type');
+        const hashQueryType = hashQueryParams.get('type');
+        const searchType = searchParams.get('type');
+
+        return hashType === 'recovery'
+            || hashQueryType === 'recovery'
+            || searchType === 'recovery'
+            || searchParams.get('reset-password') === '1'
+            || Boolean(this.getRecoveryCode())
+            || Boolean(this.getRecoveryTokenHash())
+            || Boolean(this.getRecoveryTokens().access_token && this.getRecoveryTokens().refresh_token)
+            || (window.location.hash.includes('access_token=') && window.location.hash.includes('type=recovery'));
+    },
+
+    getHashParams() {
+        const rawHash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+        return new URLSearchParams(rawHash);
+    },
+
+    getHashQueryParams() {
+        const rawHash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+        const queryIndex = rawHash.indexOf('?');
+        return new URLSearchParams(queryIndex >= 0 ? rawHash.slice(queryIndex + 1) : '');
+    },
+
+    getRecoveryCode() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = this.getHashParams();
+        const hashQueryParams = this.getHashQueryParams();
+
+        return searchParams.get('code') || hashQueryParams.get('code') || hashParams.get('code');
+    },
+
+    getRecoveryTokenHash() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = this.getHashParams();
+        const hashQueryParams = this.getHashQueryParams();
+
+        return searchParams.get('token_hash') || hashQueryParams.get('token_hash') || hashParams.get('token_hash');
+    },
+
+    getRecoveryTokens() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = this.getHashParams();
+        const hashQueryParams = this.getHashQueryParams();
+
+        return {
+            access_token: searchParams.get('access_token') || hashQueryParams.get('access_token') || hashParams.get('access_token'),
+            refresh_token: searchParams.get('refresh_token') || hashQueryParams.get('refresh_token') || hashParams.get('refresh_token')
+        };
+    },
+
+    hasRecoveryCredentials() {
+        const tokens = this.getRecoveryTokens();
+        return Boolean(
+            this.getRecoveryCode()
+            || this.getRecoveryTokenHash()
+            || (tokens.access_token && tokens.refresh_token)
+        );
+    },
+
+    async establishRecoverySession() {
+        const code = this.getRecoveryCode();
+        const tokenHash = this.getRecoveryTokenHash();
+        const tokens = this.getRecoveryTokens();
+        console.log('Reset password credential type:', code ? 'code' : tokenHash ? 'token_hash' : tokens.access_token && tokens.refresh_token ? 'session_tokens' : 'none');
+
+        if (tokens.access_token && tokens.refresh_token) {
+            const { data, error } = await supabase.auth.setSession({
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token
+            });
+
+            if (error) {
+                console.error('Erro ao restaurar sessão de recuperação:', error);
+                return;
+            }
+
+            this.user = data.session?.user || data.user || this.user;
+            window.history.replaceState(null, '', `${window.location.origin}${window.location.pathname}#update-password`);
+            return;
+        }
+
+        if (tokenHash) {
+            const { data, error } = await supabase.auth.verifyOtp({
+                type: 'recovery',
+                token_hash: tokenHash
+            });
+
+            if (error) {
+                console.error('Erro ao validar token de recuperação:', error);
+                return;
+            }
+
+            this.user = data.session?.user || data.user || this.user;
+            window.history.replaceState(null, '', `${window.location.origin}${window.location.pathname}#update-password`);
+            return;
+        }
+
+        if (!code) return;
+
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+            console.error('Erro ao validar link de recuperação:', error);
+            return;
+        }
+
+        this.user = data.session?.user || data.user || this.user;
+        window.history.replaceState(null, '', `${window.location.origin}${window.location.pathname}#update-password`);
+    },
+
+    getCurrentRoute() {
+        const rawHash = window.location.hash || '';
+
+        if (this.recoveryMode || this.isRecoveryRedirect()) {
+            return { hash: '#update-password', params: new URLSearchParams() };
+        }
+
+        const fullHash = rawHash || '#login';
+        const [hash, query] = fullHash.split('?');
+
+        return { hash, params: new URLSearchParams(query) };
     },
 
     async loadProfile() {
@@ -60,9 +195,7 @@ const app = {
     },
 
     async render() {
-        const fullHash = window.location.hash || '#login';
-        const [hash, query] = fullHash.split('?');
-        const params = new URLSearchParams(query);
+        const { hash, params } = this.getCurrentRoute();
         
         const publicRoutes = ['#login', '#register', '#forgot-password', '#update-password'];
 
@@ -90,6 +223,11 @@ const app = {
             return;
         }
 
+        // Transição animada de página
+        this.mainContent.classList.add('page-exit');
+        await new Promise(r => setTimeout(r, 200));
+        if (hash !== '#login') this.stopLoginParticles();
+
         switch (hash) {
             case '#login': this.renderLogin(); break;
             case '#register': this.renderRegister(); break;
@@ -107,20 +245,31 @@ const app = {
             default: this.mainContent.innerHTML = '<h1>404</h1>';
         }
 
+        // Entrada animada
+        this.mainContent.classList.remove('page-exit');
+        this.mainContent.classList.add('page-enter');
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.mainContent.classList.remove('page-enter');
+            });
+        });
+
         this.updateNav(hash);
     },
 
     renderLogin() {
         this.bottomNav.classList.add('hidden');
+        this.stopLoginParticles();
         this.mainContent.innerHTML = `
-            <div style="position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-                <div style="position: absolute; inset: 0; background: url('/assets/bg-diamond.webp') center/cover no-repeat; z-index: 0;"></div>
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.95) 100%); z-index: 1;"></div>
-                <div class="auth-container" style="position: relative; z-index: 2; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 400px;">
-                    <img src="/base_icon_transparent_background.png" alt="Logo Diamond X" style="width: 100px; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-brand); font-size: 28px; font-weight: 400; margin-bottom: 8px; color: var(--dx-teal); letter-spacing: 0.08em; white-space: nowrap;">DIAMOND X</h1>
-                    <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 32px;">Performance & Training</p>
-                    <form id="login-form" style="width: 100%;">
+            <div class="login-bg-wrapper">
+                <div class="login-bg-image"></div>
+                <div class="login-bg-overlay"></div>
+                <canvas id="login-particles"></canvas>
+                <div class="login-content">
+                    <img src="/base_icon_transparent_background.png" alt="Logo Diamond X" class="login-logo">
+                    <h1 class="login-title">DIAMOND X</h1>
+                    <p class="login-subtitle">Performance & Training Center</p>
+                    <form id="login-form" style="width: 100%; animation: loginTitleSlide 0.8s ease-out 0.6s both;">
                         <div class="input-group"><label>E-MAIL</label><input type="email" id="login-email" class="input-control" required></div>
                         <div class="input-group">
                             <div style="display: flex; justify-content: space-between;">
@@ -129,12 +278,16 @@ const app = {
                             </div>
                             <input type="password" id="login-password" class="input-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ENTRAR</button>
+                        <button type="submit" class="btn btn-diamond" style="margin-top: 16px;">ENTRAR</button>
                     </form>
-                    <p style="margin-top: 24px; font-size: 14px; color: var(--dx-muted);">Não tem conta? <a href="#register" style="color: var(--dx-teal); font-weight: 600;">Cadastre-se</a></p>
+                    <p style="margin-top: 24px; font-size: 14px; color: var(--dx-muted); animation: loginTitleSlide 0.8s ease-out 0.8s both;">Não tem conta? <a href="#register" style="color: var(--dx-teal); font-weight: 600;">Cadastre-se</a></p>
                 </div>
             </div>
         `;
+
+        // Partículas interativas no fundo
+        this.initLoginParticles();
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
@@ -144,50 +297,182 @@ const app = {
         });
     },
 
+    initLoginParticles() {
+        const canvas = document.getElementById('login-particles');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animId;
+        let observer;
+
+        const resize = () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        const particles = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 2 + 0.5,
+            dx: (Math.random() - 0.5) * 0.4,
+            dy: (Math.random() - 0.5) * 0.4,
+            alpha: Math.random() * 0.5 + 0.2
+        }));
+
+        const draw = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.dx;
+                p.y += p.dy;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 201, 167, ${p.alpha})`;
+                ctx.fill();
+            });
+
+            // Linhas entre partículas próximas
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0, 201, 167, ${0.08 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            animId = requestAnimationFrame(draw);
+        };
+        draw();
+
+        // Limpar animação ao sair da página
+        observer = new MutationObserver(() => {
+            if (!document.getElementById('login-particles')) {
+                this.stopLoginParticles();
+            }
+        });
+        observer.observe(this.mainContent, { childList: true });
+
+        this.loginParticlesCleanup = () => {
+            cancelAnimationFrame(animId);
+            window.removeEventListener('resize', resize);
+            observer?.disconnect();
+            this.loginParticlesCleanup = null;
+        };
+    },
+
+    stopLoginParticles() {
+        if (this.loginParticlesCleanup) this.loginParticlesCleanup();
+    },
+
     renderForgotPassword() {
         this.bottomNav.classList.add('hidden');
         this.mainContent.innerHTML = `
-            <div style="padding: 40px 20px;">
-                <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 8px;">RECUPERAR ACESSO</h1>
-                <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 32px;">Insira seu e-mail para receber um link de redefinição de senha.</p>
-                <form id="forgot-form">
-                    <div class="input-group"><label>E-MAIL CADASTRADO</label><input type="email" id="forgot-email" class="input-control" required></div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ENVIAR LINK</button>
-                </form>
-                <p style="margin-top: 24px; text-align: center;"><a href="#login" style="color: var(--dx-muted); font-size: 14px;">Voltar para o Login</a></p>
+            <div class="login-bg-wrapper forgot-access-page">
+                <div class="login-bg-image"></div>
+                <div class="login-bg-overlay"></div>
+                <div class="forgot-access-content">
+                    <a href="#login" class="forgot-back-link">
+                        <i class="ph ph-caret-left"></i>
+                        Login
+                    </a>
+
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="forgot-access-logo">
+                    <p class="forgot-access-kicker">Recuperar acesso</p>
+                    <h1 class="forgot-access-title">NOVA SENHA</h1>
+                    <p class="forgot-access-copy">Informe o e-mail cadastrado para receber o link seguro de redefinição.</p>
+
+                    <form id="forgot-form" class="forgot-access-form">
+                        <div class="input-group">
+                            <label>E-MAIL CADASTRADO</label>
+                            <input type="email" id="forgot-email" class="input-control" placeholder="voce@email.com" autocomplete="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-diamond forgot-access-submit">ENVIAR LINK</button>
+                    </form>
+
+                    <div id="forgot-success" class="forgot-success" hidden>
+                        <i class="ph ph-envelope-simple"></i>
+                        <div>
+                            <p>Link enviado</p>
+                            <span>Verifique sua caixa de entrada e o spam.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
         document.getElementById('forgot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+
             try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph ph-circle-notch-bold"></i> ENVIANDO...';
                 const email = document.getElementById('forgot-email').value;
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/#update-password',
+                    redirectTo: `${window.location.origin}${window.location.pathname}`,
                 });
                 if (error) throw error;
+                document.getElementById('forgot-success').hidden = false;
                 toast.show('E-mail enviado! Verifique sua caixa de entrada.');
-            } catch (err) { toast.show(err.message, 'error'); }
+            } catch (err) {
+                toast.show(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         });
     },
 
-    renderUpdatePassword() {
+    async renderUpdatePassword() {
         this.bottomNav.classList.add('hidden');
+        const { data: { session } } = await supabase.auth.getSession();
+        const canResetPassword = Boolean(session) || this.hasRecoveryCredentials();
+
         this.mainContent.innerHTML = `
             <div style="padding: 40px 20px;">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 8px;">NOVA SENHA</h1>
-                <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 32px;">Crie uma nova senha segura para sua conta.</p>
-                <form id="update-pass-form">
-                    <div class="input-group"><label>NOVA SENHA</label><input type="password" id="new-password" class="input-control" required minlength="6"></div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ATUALIZAR SENHA</button>
-                </form>
+                ${canResetPassword ? `
+                    <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 32px;">Crie uma nova senha segura para sua conta.</p>
+                    <form id="update-pass-form">
+                        <div class="input-group"><label>NOVA SENHA</label><input type="password" id="new-password" class="input-control" required minlength="6"></div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 16px;">ATUALIZAR SENHA</button>
+                    </form>
+                ` : `
+                    <p style="color: var(--dx-muted); font-size: 14px; margin-bottom: 24px;">Este link expirou ou já foi usado.</p>
+                    <a href="#forgot-password" class="btn btn-primary" style="text-decoration: none;">ENVIAR NOVO LINK</a>
+                `}
             </div>
         `;
+        if (!canResetPassword) return;
+
         document.getElementById('update-pass-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
+                let { data: { session } } = await supabase.auth.getSession();
+                if (!session && this.hasRecoveryCredentials()) {
+                    await this.establishRecoverySession();
+                    ({ data: { session } } = await supabase.auth.getSession());
+                }
+
+                if (!session) {
+                    throw new Error('Link de recuperação expirado ou inválido. Solicite um novo e-mail.');
+                }
+
                 const newPassword = document.getElementById('new-password').value;
                 const { error } = await supabase.auth.updateUser({ password: newPassword });
                 if (error) throw error;
+                this.recoveryMode = false;
                 toast.show('Senha atualizada com sucesso!');
                 window.location.hash = '#dashboard';
             } catch (err) { toast.show(err.message, 'error'); }
@@ -271,6 +556,7 @@ const app = {
 
     async renderTrainings() {
         if (this.profile?.role === 'admin') await adminTrainings.render();
+        else if (this.profile?.role === 'responsible' || this.profile?.role === 'businessman') await responsibleTrainings.render();
         else await studentTrainings.render();
     },
 
@@ -304,43 +590,44 @@ const app = {
                         </label>
                         <input type="file" id="avatar-input" accept="image/*" style="display: none;">
                     </div>
-                    <div>
-                        <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin: 0;">PERFIL</h1>
+                    <div style="flex: 1;">
+                        <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400; margin: 0;">PERFIL</h1>
                         <p style="font-size: 13px; color: var(--dx-muted);">${escapeHtml(this.user?.email)}</p>
                     </div>
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">DADOS PESSOAIS</p>
+                        <p style="font-family: var(--font-display); color: var(--dx-muted); font-size: 12px; font-weight: 700;">DADOS PESSOAIS</p>
                         <button id="edit-profile-btn" style="color: var(--dx-teal); font-size: 13px; font-weight: 700;">EDITAR</button>
                     </div>
-                    <p style="color: var(--dx-muted); font-size: 12px;">NOME</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">NOME</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.full_name)}</p>
-                    <p style="color: var(--dx-muted); font-size: 12px;">E-MAIL</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">E-MAIL</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.user?.email)}</p>
-                    <p style="color: var(--dx-muted); font-size: 12px;">CPF</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">CPF</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.cpf || 'Não informado')}</p>
-                    <p style="color: var(--dx-muted); font-size: 12px;">TELEFONE</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">TELEFONE</p>
                     <p style="font-weight: 600;">${escapeHtml(this.profile?.phone || 'Não informado')}</p>
                 </div>
 
                 ${currentRole === 'student' ? `
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">FICHA DO ATLETA</p>
+                        <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px; font-weight: 700;">FICHA DO ATLETA</p>
                         <button id="edit-anamnese-btn" style="color: var(--dx-teal); font-size: 13px; font-weight: 700;">EDITAR</button>
                     </div>
-                    <p style="color: var(--dx-muted); font-size: 12px;">DATA DE NASCIMENTO</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">DATA DE NASCIMENTO</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.birth_date ? new Date(this.profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}</p>
-                    <p style="color: var(--dx-muted); font-size: 12px;">CLUBE ATUAL</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">CLUBE ATUAL</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.current_club || 'Não informado')}</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <p style="color: var(--dx-muted); font-size: 12px;">PESO (KG)</p>
+                            <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">PESO (KG)</p>
                             <p style="font-weight: 600;">${this.profile?.weight_kg || '--'}</p>
                         </div>
                         <div>
-                            <p style="color: var(--dx-muted); font-size: 12px;">ALTURA (CM)</p>
+                            <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">ALTURA (CM)</p>
                             <p style="font-weight: 600;">${this.profile?.height_cm || '--'}</p>
                         </div>
                     </div>
@@ -371,12 +658,12 @@ const app = {
                 ` : ''}
 
                 <div class="card" style="margin-bottom: 24px; background: var(--dx-surface2);">
-                    <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700; margin-bottom: 12px;">TIPO DE CONTA</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px; font-weight: 400; margin-bottom: 12px;">TIPO DE CONTA</p>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         ${['student', 'responsible', 'businessman'].map(role => `
                             <label class="role-option ${currentRole === role ? 'role-active' : ''}" data-role="${role}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-border)'}; background: ${currentRole === role ? 'var(--dx-teal-dim)' : 'var(--dx-surface)'}; cursor: pointer; transition: all 0.2s ease;">
                                 <i class="ph ${currentRole === role ? 'ph-fill' : ''} ${role === 'student' ? 'ph-soccer-ball' : role === 'responsible' ? 'ph-shield-check' : 'ph-briefcase'}" style="font-size: 20px; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-muted)'};"></i>
-                                <span style="font-weight: 700; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-text)'};">${this.getRoleLabel(role)}</span>
+                                <span style="font-family: var(--font-brand); font-weight: 400; font-size: 16px; color: ${currentRole === role ? 'var(--dx-teal)' : 'var(--dx-text)'};">${this.getRoleLabel(role)}</span>
                                 ${currentRole === role ? '<i class="ph-fill ph-check-circle" style="margin-left: auto; color: var(--dx-teal);"></i>' : ''}
                             </label>
                         `).join('')}
@@ -384,7 +671,7 @@ const app = {
                 </div>
 
                 <a href="https://diamondxperformance.com.br" target="_blank" class="card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; text-decoration: none; border-color: var(--dx-teal-border);">
-                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 32px; height: 32px;">
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="brand-card-logo">
                     <div>
                         <p style="font-weight: 700; color: var(--dx-text); font-size: 14px;">Site Diamond X Performance</p>
                         <p style="font-size: 12px; color: var(--dx-teal);">diamondxperformance.com.br</p>
@@ -581,6 +868,11 @@ const app = {
 
     updateNav(activeHash) {
         if (!this.user) return;
+        if (['#login', '#register', '#forgot-password', '#update-password'].includes(activeHash)) {
+            this.bottomNav.classList.add('hidden');
+            return;
+        }
+
         this.bottomNav.classList.remove('hidden');
         const role = this.profile?.role || 'student';
         const hash = activeHash || '#dashboard';
@@ -597,6 +889,7 @@ const app = {
         ] : (role === 'responsible' || role === 'businessman' ? [
             { h: '#dashboard', i: 'ph-house', t: 'Início' },
             { h: '#students', i: 'ph-user-list', t: 'Alunos' },
+            { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-receipt', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Faturas' },
             { h: '#profile', i: 'ph-user', t: 'Perfil' }

@@ -7,11 +7,14 @@ export const adminPlans = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">GESTÃO DE PLANOS</h1>
-                    <button id="add-plan-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
-                        <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
-                    </button>
+                <div class="page-header">
+                    <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">GESTÃO DE PLANOS</h1>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                        <button id="add-plan-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
+                            <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="admin-plans-list" style="display: flex; flex-direction: column; gap: 12px;">
@@ -51,14 +54,14 @@ export const adminPlans = {
                             <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
                         </div>
-                        <p style="font-weight: 800; font-size: 17px;">${escapeHtml(plan.name)}</p>
+                        <p style="font-family: var(--font-brand); font-weight: 400; font-size: 17px;">${escapeHtml(plan.name)}</p>
                     </div>
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
                 </div>
                 <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 16px;">${escapeHtml(plan.description || 'Sem descrição')}</p>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn edit-plan" data-id="${escapeHtml(plan.id)}" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border);">
-                        EDITAR
+                    <button class="btn btn-diamond edit-plan" data-id="${escapeHtml(plan.id)}" style="flex: 1; padding: 10px; font-size: 12px;">
+                        <i class="ph ph-pencil-simple" style="margin-right: 6px;"></i> EDITAR
                     </button>
                     <button class="btn delete-plan" data-id="${escapeHtml(plan.id)}" style="padding: 10px; color: var(--dx-danger); background: rgba(248,113,113,0.1); border-radius: 8px;">
                         <i class="ph ph-trash"></i>

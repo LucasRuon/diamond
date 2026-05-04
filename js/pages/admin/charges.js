@@ -7,9 +7,10 @@ export const adminCharges = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">FINANCEIRO</h1>
-                    <div style="display: flex; gap: 8px;">
+                <div class="page-header">
+                    <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">FINANCEIRO</h1>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                         <button id="add-charge-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
                             <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
                         </button>

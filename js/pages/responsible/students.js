@@ -56,9 +56,9 @@ export const responsibleStudents = {
         }
 
         listContainer.innerHTML = links.map(link => `
-            <div class="card student-card" data-id="${escapeHtml(link.student_id)}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div class="card student-card" data-id="${escapeHtml(link.student_id)}" style="display: flex; flex-direction: column; gap: 14px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="background: var(--dx-teal-dim); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-teal-border);">
+                    <div style="background: var(--dx-teal-dim); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-teal-border); flex: 0 0 auto;">
                         <i class="ph-bold ph-user" style="color: var(--dx-teal); font-size: 20px;"></i>
                     </div>
                     <div>
@@ -66,22 +66,16 @@ export const responsibleStudents = {
                         <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(link.student.email)}</p>
                     </div>
                 </div>
-                <div style="color: var(--dx-teal); font-size: 24px;">
-                    <i class="ph ph-caret-right"></i>
+                <div style="display: flex; gap: 10px;">
+                    <a href="#attendance?id=${escapeHtml(link.student_id)}" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text); text-align: center; text-decoration: none;">
+                        FREQUÊNCIA
+                    </a>
+                    <a href="#trainings" class="btn" style="flex: 1; padding: 10px; font-size: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); color: var(--dx-text); text-align: center; text-decoration: none;">
+                        TREINOS
+                    </a>
                 </div>
             </div>
         `).join('');
-
-        this.setupClickEvents();
-    },
-
-    setupClickEvents() {
-        document.querySelectorAll('.student-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const studentId = card.dataset.id;
-                window.location.hash = `#attendance?id=${studentId}`;
-            });
-        });
     },
 
     showLinkStudentForm() {

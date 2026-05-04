@@ -1,17 +1,39 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
+import { formatMonthLabel, getMonthMatrix, getWeekdayLabels, groupByDate } from '../../calendar.js';
+import { getReservationsLoadMessage } from '../../trainingReservations.js';
 
 export const adminTrainings = {
+    currentMonth: new Date(),
+
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">TREINOS</h1>
-                    <button id="add-training-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
-                        <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
-                    </button>
+                <div class="page-header">
+                    <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">TREINOS</h1>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                        <button id="add-training-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
+                            <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card calendar-shell" style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <button id="admin-prev-training-month" class="icon-action" aria-label="Mês anterior">
+                            <i class="ph ph-caret-left"></i>
+                        </button>
+                        <h2 id="admin-training-month" class="brand-title" style="font-size: 16px; text-align: center; text-transform: uppercase;"></h2>
+                        <button id="admin-next-training-month" class="icon-action" aria-label="Próximo mês">
+                            <i class="ph ph-caret-right"></i>
+                        </button>
+                    </div>
+                    <div id="admin-training-calendar" class="calendar-grid">
+                        <p style="color: var(--dx-muted); grid-column: 1 / -1; text-align: center; padding: 20px;">Carregando calendário...</p>
+                    </div>
                 </div>
 
                 <div id="trainings-list" style="display: flex; flex-direction: column; gap: 12px;">
@@ -22,40 +44,83 @@ export const adminTrainings = {
 
         this.loadTrainings();
         document.getElementById('add-training-btn').addEventListener('click', () => this.showAddTrainingForm());
+        document.getElementById('admin-prev-training-month').addEventListener('click', () => this.changeMonth(-1));
+        document.getElementById('admin-next-training-month').addEventListener('click', () => this.changeMonth(1));
     },
 
     async loadTrainings() {
         const listContainer = document.getElementById('trainings-list');
+        const calendarContainer = document.getElementById('admin-training-calendar');
+        const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
+        const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+        document.getElementById('admin-training-month').textContent = formatMonthLabel(this.currentMonth);
         
         const { data: sessions, error } = await supabase
             .from('training_sessions')
             .select('*')
-            .order('scheduled_at', { ascending: false });
+            .gte('scheduled_at', monthStart.toISOString())
+            .lt('scheduled_at', monthEnd.toISOString())
+            .order('scheduled_at', { ascending: true });
 
         if (error) {
             listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar treinos.</p>`;
+            calendarContainer.innerHTML = '';
             return;
         }
 
-        if (sessions.length === 0) {
+        const safeSessions = sessions || [];
+        const sessionIds = safeSessions.map(session => session.id);
+        const { data: reservations, error: reservationsError } = sessionIds.length
+            ? await supabase
+                .from('training_reservations')
+                .select('id, session_id, status, student:users!student_id(id, full_name, email)')
+                .in('session_id', sessionIds)
+                .eq('status', 'booked')
+            : { data: [], error: null };
+
+        let safeReservations = reservations || [];
+        let reservationsUnavailable = false;
+        let reservationsMessage = '';
+
+        if (reservationsError) {
+            console.error('Erro ao carregar reservas admin:', reservationsError);
+            safeReservations = [];
+            reservationsUnavailable = true;
+            reservationsMessage = getReservationsLoadMessage(reservationsError);
+        }
+
+        const reservationsBySession = safeReservations.reduce((groups, reservation) => {
+            if (!groups[reservation.session_id]) groups[reservation.session_id] = [];
+            groups[reservation.session_id].push(reservation);
+            return groups;
+        }, {});
+
+        this.renderCalendar(safeSessions, reservationsBySession);
+
+        if (safeSessions.length === 0) {
             listContainer.innerHTML = `
+                ${reservationsUnavailable ? `<div class="card" style="border-color: var(--dx-danger); color: var(--dx-danger); font-size: 13px;">${reservationsMessage}</div>` : ''}
                 <div style="text-align: center; margin-top: 60px; padding: 20px;">
                     <i class="ph ph-calendar-blank" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
-                    <p style="color: var(--dx-muted); font-size: 15px;">Nenhum treino agendado no momento.</p>
+                    <p style="color: var(--dx-muted); font-size: 15px;">Nenhum treino agendado neste mês.</p>
                     <p style="color: var(--dx-muted); font-size: 13px; margin-top: 8px;">Clique no botão "+" para criar a agenda.</p>
                 </div>
             `;
             return;
         }
 
-        listContainer.innerHTML = sessions.map(session => {
+        listContainer.innerHTML = `
+            ${reservationsUnavailable ? `<div class="card" style="border-color: var(--dx-danger); color: var(--dx-danger); font-size: 13px;">${reservationsMessage}</div>` : ''}
+            ${safeSessions.map(session => {
             const date = new Date(session.scheduled_at);
             const isPast = date < new Date();
             const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+            const reservationCount = reservationsBySession[session.id]?.length || 0;
+            const reservationLabel = reservationsUnavailable ? '-- reservas' : `${reservationCount} reserva${reservationCount === 1 ? '' : 's'}`;
 
             return `
-                <div class="card training-card" style="border-left: 4px solid ${isPast ? 'var(--dx-border)' : 'var(--dx-teal)'}">
+                <div class="card training-card" data-session-id="${escapeHtml(session.id)}" style="border-left: 4px solid ${isPast ? 'var(--dx-border)' : 'var(--dx-teal)'}">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
                             <p style="font-size: 11px; color: ${isPast ? 'var(--dx-muted)' : 'var(--dx-teal)'}; font-weight: 700; text-transform: uppercase;">${dateStr} • ${timeStr}</p>
@@ -63,6 +128,9 @@ export const adminTrainings = {
                             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location)}" target="_blank" style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px;">
                                 <i class="ph ph-map-pin"></i> ${escapeHtml(session.location)}
                             </a>
+                            <p style="font-size: 12px; color: var(--dx-muted); margin-top: 6px;">
+                                <i class="ph ph-calendar-check"></i> ${reservationLabel}
+                            </p>
                         </div>
                         <button class="btn-qr" data-token="${escapeHtml(session.qr_code_token)}" style="color: var(--dx-teal); font-size: 20px;">
                             <i class="ph ph-qr-code"></i>
@@ -79,9 +147,42 @@ export const adminTrainings = {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('')}
+        `;
 
         this.setupEvents();
+    },
+
+    renderCalendar(sessions, reservationsBySession = {}) {
+        const calendarContainer = document.getElementById('admin-training-calendar');
+        const sessionsByDate = groupByDate(sessions, session => session.scheduled_at);
+        const reservedSessionIds = new Set(Object.keys(reservationsBySession));
+
+        calendarContainer.innerHTML = `
+            ${getWeekdayLabels().map(label => `<div class="calendar-weekday">${label}</div>`).join('')}
+            ${getMonthMatrix(this.currentMonth).flat().map(day => {
+                const daySessions = sessionsByDate[day.key] || [];
+                const hasTraining = Boolean(daySessions.length);
+                const hasReservation = daySessions.some(session => reservedSessionIds.has(session.id));
+                return `
+                    <button class="calendar-day ${day.isToday ? 'is-today' : ''} ${hasTraining ? 'has-training' : ''} ${hasReservation ? 'has-reservation' : ''} ${day.isCurrentMonth ? '' : 'is-disabled'}" data-day="${day.key}" type="button">
+                        ${day.day}
+                    </button>
+                `;
+            }).join('')}
+        `;
+
+        calendarContainer.querySelectorAll('.calendar-day.has-training').forEach(dayButton => {
+            dayButton.addEventListener('click', () => {
+                const card = document.querySelector(`[data-session-id="${sessionsByDate[dayButton.dataset.day][0].id}"]`);
+                card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+    },
+
+    changeMonth(direction) {
+        this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
+        this.loadTrainings();
     },
 
     setupEvents() {
@@ -108,6 +209,10 @@ export const adminTrainings = {
         const content = `
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 8px;">Selecione os alunos presentes nesta sessão.</p>
+                <div id="reserved-students-list" class="card" style="background: var(--dx-surface2);">
+                    <p class="section-label" style="margin-bottom: 8px;">Reservas</p>
+                    <p style="text-align: center; padding: 12px; color: var(--dx-muted);">Carregando reservas...</p>
+                </div>
                 <div id="attendance-students-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
                     <p style="text-align: center; padding: 20px; color: var(--dx-muted);">Carregando alunos...</p>
                 </div>
@@ -122,6 +227,33 @@ export const adminTrainings = {
         // 2. Buscar quem já tem presença marcada
         const { data: attendance } = await supabase.from('attendance').select('student_id').eq('session_id', sessionId);
         const presentIds = new Set(attendance.map(a => a.student_id));
+        const { data: reservations, error: reservationsError } = await supabase
+            .from('training_reservations')
+            .select('student:users!student_id(id, full_name, email)')
+            .eq('session_id', sessionId)
+            .eq('status', 'booked');
+
+        const reservedContainer = document.getElementById('reserved-students-list');
+        if (reservationsError) {
+            console.error('Erro ao carregar reservas admin:', reservationsError);
+            reservedContainer.innerHTML = `
+                <p class="section-label" style="margin-bottom: 8px;">Reservas</p>
+                <p style="font-size: 12px; color: var(--dx-danger);">${getReservationsLoadMessage(reservationsError)}</p>
+            `;
+        } else {
+            reservedContainer.innerHTML = `
+                <p class="section-label" style="margin-bottom: 8px;">Reservas</p>
+                ${(reservations || []).length ? reservations.map(reservation => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--dx-border);">
+                        <div>
+                            <p style="font-weight: 700; font-size: 13px;">${escapeHtml(reservation.student?.full_name || 'Aluno')}</p>
+                            <p style="font-size: 11px; color: var(--dx-muted);">${escapeHtml(reservation.student?.email || '')}</p>
+                        </div>
+                        <span class="badge ${presentIds.has(reservation.student?.id) ? 'badge-active' : 'badge-pending'}">${presentIds.has(reservation.student?.id) ? 'PRESENTE' : 'RESERVADO'}</span>
+                    </div>
+                `).join('') : '<p style="font-size: 12px; color: var(--dx-muted);">Nenhuma reserva para este treino.</p>'}
+            `;
+        }
 
         const listContainer = document.getElementById('attendance-students-list');
         listContainer.innerHTML = students.map(s => `

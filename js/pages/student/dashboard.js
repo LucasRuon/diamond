@@ -8,12 +8,12 @@ export const studentDashboard = {
         
         mainContent.innerHTML = `
             <div class="page-container">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div class="page-header">
                     <div>
-                        <h1 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${user.user_metadata.full_name.split(' ')[0]}</h1>
+                        <h1 style="font-family: var(--font-brand); font-size: 28px; font-weight: 400; color: var(--dx-teal); margin-bottom: 4px;">OLÁ, ${user.user_metadata.full_name.split(' ')[0]}</h1>
                         <p style="color: var(--dx-muted); font-size: 14px;">Painel do Atleta</p>
                     </div>
-                    <img src="/base_icon_transparent_background.png" alt="Diamond X" style="width: 36px; height: 36px; opacity: 0.7;">
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
                 
                 <div id="student-status-area" style="display: flex; flex-direction: column; gap: 16px;">

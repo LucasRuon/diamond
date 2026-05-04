@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diamondx-v2';
+const CACHE_NAME = 'diamondx-v5';
 const ASSETS = [
     '/',
     '/index.html',
@@ -46,6 +46,31 @@ self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET' || 
         event.request.url.includes('supabase.co') || 
         event.request.url.includes('chrome-extension')) {
+        return;
+    }
+
+    const requestUrl = new URL(event.request.url);
+    const shouldUseNetworkFirst = requestUrl.origin === self.location.origin
+        && (
+            requestUrl.pathname === '/'
+            || requestUrl.pathname === '/index.html'
+            || requestUrl.pathname.endsWith('.js')
+            || requestUrl.pathname.endsWith('.css')
+        );
+
+    if (shouldUseNetworkFirst) {
+        event.respondWith(
+            caches.open(CACHE_NAME).then(cache => {
+                return fetch(event.request)
+                    .then(networkResponse => {
+                        if (networkResponse.status === 200) {
+                            cache.put(event.request, networkResponse.clone());
+                        }
+                        return networkResponse;
+                    })
+                    .catch(() => cache.match(event.request));
+            })
+        );
         return;
     }
 

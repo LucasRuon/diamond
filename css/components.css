@@ -111,3 +111,212 @@
 .nav-item i {
     font-size: 20px;
 }
+
+/* Diamond Button — fundo preto, borda verde esmeralda, click inverte */
+.btn-diamond {
+    background: #000;
+    border: 2px solid var(--dx-teal);
+    color: var(--dx-teal);
+}
+
+.btn-diamond:active {
+    background: var(--dx-teal);
+    color: #000;
+    transform: scale(0.98);
+}
+
+/* Page Header — Logo + Título padronizado */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 56px;
+    margin-bottom: 20px;
+}
+
+.page-header h1,
+.page-header > div:first-child {
+    min-width: 0;
+}
+
+.page-header > div:last-child {
+    flex-shrink: 0;
+}
+
+.page-header h1 {
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+}
+
+.page-header-logo {
+    width: 72px;
+    height: 52px;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    opacity: 0.95;
+    flex-shrink: 0;
+}
+
+.brand-card-logo {
+    width: 66px;
+    height: 48px;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 380px) {
+    .page-header {
+        gap: 12px;
+    }
+
+    .page-header-logo {
+        width: 64px;
+        height: 46px;
+    }
+
+    .brand-card-logo {
+        width: 58px;
+        height: 42px;
+    }
+}
+
+.brand-title {
+    font-family: var(--font-brand);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--dx-text);
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dx-muted);
+}
+
+.icon-action {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--dx-surface2);
+    border: var(--border-width) solid var(--dx-border);
+    color: var(--dx-text);
+    flex-shrink: 0;
+}
+
+.icon-action:active {
+    border-color: var(--dx-teal);
+    color: var(--dx-teal);
+    transform: scale(0.98);
+}
+
+.calendar-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.calendar-weekday,
+.calendar-day {
+    min-width: 0;
+    text-align: center;
+}
+
+.calendar-weekday {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--dx-muted);
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    min-height: 42px;
+    padding: 7px 4px;
+    border: var(--border-width) solid var(--dx-border);
+    border-radius: var(--radius-md);
+    background: var(--dx-surface2);
+    color: var(--dx-text);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.calendar-day.is-today {
+    border-color: var(--dx-teal);
+}
+
+.calendar-day.has-training::after,
+.calendar-day.has-attendance::after {
+    content: "";
+    position: absolute;
+    bottom: 5px;
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background: var(--dx-teal);
+}
+
+.calendar-day.has-reservation {
+    border-color: var(--dx-teal-border);
+    background: var(--dx-teal-dim);
+}
+
+.calendar-day.has-reservation::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--dx-teal);
+    border-radius: var(--radius-full);
+    background: var(--dx-surface2);
+}
+
+.calendar-day.has-attendance {
+    background: var(--dx-teal-dim);
+    color: var(--dx-teal);
+}
+
+.calendar-day.has-attendance.has-reservation,
+.calendar-day.has-training.has-reservation {
+    box-shadow: inset 0 0 0 1px rgba(0, 201, 167, 0.2);
+}
+
+.calendar-day.is-disabled {
+    opacity: 0.35;
+}
+
+.chart-bars {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(34px, 1fr);
+    align-items: end;
+    gap: 8px;
+    min-height: 140px;
+}
+
+.chart-bar {
+    min-height: 8px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: linear-gradient(180deg, var(--dx-teal), rgba(0, 201, 167, 0.35));
+    border: var(--border-width) solid var(--dx-teal-border);
+}

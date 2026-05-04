@@ -1,0 +1,19 @@
+Ajustes App Diamond X
+- Capa = Logo Diamond + Fonte da Marca - Montando Design System.
+- Capa = Gif da estrutura no Background 
+- Fonte Diamond nos Títulos das Abas - Ajustar
+- Logos da Diamond como identidade visual em cada aba - Incluir
+- Link do Site da Diamond dentro do App - Incluir
+- Dados Perfil Atleta ( Anamnese ):
+- [ ] Nome do Atleta 
+- [ ] Data de Nascimento
+- [ ] Clube Atual
+- [ ] Peso x Altura 
+- [ ] Ficha Atleta 
+- Pagamento e Agendamento dos treinos ( Habilitar ) - Aguardando Token Asaas
+- Planos Pré Diamond disponível para compra atualmente 
+- Planos Diamond X indisponível visualização atualmente 
+- Última aba do perfil atleta ( Tipo de Conta ) : Incluir opções:
+- [ ] Atleta 
+- [ ] Responsável 
+- [ ] Empresário

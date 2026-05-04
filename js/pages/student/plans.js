@@ -9,7 +9,10 @@ export const studentPlans = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">PLANOS E SERVIÇOS</h1>
+                <div class="page-header">
+                    <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">PLANOS E SERVIÇOS</h1>
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                </div>
                 
                 <div style="display: flex; gap: 8px; margin-bottom: 24px;">
                     <button class="cat-tab active" data-cat="training">Treinamento</button>
@@ -65,14 +68,14 @@ export const studentPlans = {
                 <div class="card" style="border-top: 4px solid ${color};">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${escapeHtml(plan.name)}</h3>
+                            <h3 style="font-family: var(--font-brand); font-weight: 400; font-size: 20px; color: ${color};">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 12px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual'}
                             </p>
                         </div>
                         <p style="font-weight: 800; font-size: 18px;">R$ ${parseFloat(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <button class="btn btn-primary buy-btn" data-id="${escapeHtml(plan.id)}" data-name="${escapeHtml(plan.name)}" style="background: ${color}; color: #000;">
+                    <button class="btn btn-diamond buy-btn" data-id="${escapeHtml(plan.id)}" data-name="${escapeHtml(plan.name)}" style="border-color: ${color}; color: ${color};">
                         CONTRATAR AGORA
                     </button>
                 </div>
@@ -85,7 +88,7 @@ export const studentPlans = {
                 <div class="card" style="border-top: 4px solid var(--dx-border); opacity: 0.5; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: var(--dx-muted);">${escapeHtml(plan.name)}</h3>
+                            <h3 style="font-family: var(--font-brand); font-weight: 400; font-size: 20px; color: var(--dx-muted);">${escapeHtml(plan.name)}</h3>
                             <p style="font-size: 12px; color: var(--dx-muted);">
                                 ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual'}
                             </p>
