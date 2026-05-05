@@ -7,15 +7,15 @@ export const adminCharges = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <div class="page-header">
-                    <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">FINANCEIRO</h1>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="page-header page-header--financeiro">
+                    <h1 class="brand-title page-header-title">FINANCEIRO</h1>
+                    <div class="page-header-actions page-header-actions--financeiro">
                         <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
-                        <button id="add-charge-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
-                            <i class="ph ph-plus-circle" style="font-size: 20px;"></i>
+                        <button id="add-charge-btn" class="btn btn-primary finance-header-action" aria-label="Adicionar cobranca">
+                            <i class="ph ph-plus-circle"></i>
                         </button>
-                        <button id="refresh-charges-btn" class="btn" style="width: auto; padding: 10px; color: var(--dx-teal);">
-                            <i class="ph ph-arrows-clockwise" style="font-size: 24px;"></i>
+                        <button id="refresh-charges-btn" class="btn finance-header-action" aria-label="Atualizar cobrancas">
+                            <i class="ph ph-arrows-clockwise"></i>
                         </button>
                     </div>
                 </div>
