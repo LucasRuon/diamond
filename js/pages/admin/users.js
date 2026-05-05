@@ -3,6 +3,8 @@ import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
 
 export const adminUsers = {
+    currentRoleFilter: 'all',
+
     async render() {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
@@ -39,6 +41,7 @@ export const adminUsers = {
     },
 
     async loadUsers(roleFilter = 'all') {
+        this.currentRoleFilter = roleFilter;
         const listContainer = document.getElementById('users-list');
         
         let query = supabase.from('users').select('*').order('full_name');
@@ -146,28 +149,46 @@ export const adminUsers = {
         `;
 
         ui.bottomSheet.show('Editar Usuário', formHtml, async (data) => {
-            if (data.cpf && !ui.validate.cpf(data.cpf)) {
+            const fullName = data.full_name?.trim() || '';
+            const role = data.role;
+            const cpf = data.cpf?.trim() || null;
+            const phone = data.phone?.trim() || null;
+
+            if (!fullName) {
+                toast.show('Informe o nome completo.', 'error');
+                throw new Error('Informe o nome completo.');
+            }
+
+            if (cpf && !ui.validate.cpf(cpf)) {
+                toast.show('CPF Inválido.', 'error');
                 throw new Error('CPF Inválido.');
             }
 
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    full_name: data.full_name,
-                    role: data.role,
-                    cpf: data.cpf,
-                    phone: data.phone,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', user.id);
+            const { data: responseData, error } = await supabase.functions.invoke('admin-update-user', {
+                body: {
+                    userId: user.id,
+                    full_name: fullName,
+                    role,
+                    cpf,
+                    phone
+                }
+            });
 
             if (error) {
-                toast.show('Erro ao atualizar: ' + error.message, 'error');
+                toast.show(`Erro ao atualizar usuário: ${error.message}`, 'error');
                 throw error;
             }
 
+            if (responseData?.error) {
+                toast.show(`Erro ao atualizar usuário: ${responseData.error}`, 'error');
+                throw new Error(responseData.error);
+            }
+
             toast.show('Usuário atualizado com sucesso!');
-            this.loadUsers();
+            if (responseData?.metadataWarning) {
+                console.warn(responseData.metadataWarning);
+            }
+            this.loadUsers(this.currentRoleFilter || 'all');
         });
 
         // Máscaras e Reset
@@ -176,9 +197,13 @@ export const adminUsers = {
             ui.mask.apply(document.getElementById('edit-user-phone'), 'phone');
             
             document.getElementById('reset-pass-btn').addEventListener('click', async () => {
-                const { error } = await supabase.auth.resetPasswordForEmail(user.email);
-                if (error) toast.show(error.message, 'error');
-                else toast.show('E-mail de redefinição enviado!');
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+                    if (error) toast.show(error.message, 'error');
+                    else toast.show('E-mail de redefinição enviado!');
+                } catch (error) {
+                    toast.show(error.message || 'Erro ao enviar redefinição de senha.', 'error');
+                }
             });
         }, 100);
     }
