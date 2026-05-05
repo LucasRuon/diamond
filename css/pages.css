@@ -4,6 +4,17 @@
     min-height: 100vh;
 }
 
+#main-content.auth-screen {
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 100dvh;
+    background: var(--dx-bg);
+}
+
+.profile-page {
+    padding-bottom: calc(var(--nav-height) + 40px + env(safe-area-inset-bottom));
+}
+
 #main-content.page-exit {
     opacity: 0;
     transform: translateY(12px);
@@ -12,6 +23,11 @@
 #main-content.page-enter {
     opacity: 0;
     transform: translateY(-12px);
+}
+
+#main-content.auth-screen.page-exit,
+#main-content.auth-screen.page-enter {
+    transform: none;
 }
 
 /* === Login — Fundo Interativo (Partículas) === */
@@ -24,7 +40,7 @@
 
 .login-bg-wrapper {
     position: relative;
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -51,6 +67,19 @@
     z-index: 1;
 }
 
+#main-content.auth-screen .login-bg-image,
+#main-content.auth-screen .login-bg-overlay,
+#main-content.auth-screen #login-particles {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+}
+
+#main-content.auth-screen #login-particles {
+    pointer-events: none;
+}
+
 .login-content {
     position: relative;
     z-index: 2;
@@ -61,7 +90,7 @@
     justify-content: center;
     width: 100%;
     max-width: 400px;
-    min-height: 100vh;
+    min-height: 100dvh;
     box-sizing: border-box;
 }
 
@@ -117,13 +146,19 @@
     z-index: 2;
     width: 100%;
     max-width: 420px;
-    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0 auto;
     padding: 32px 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     box-sizing: border-box;
+}
+
+#main-content.auth-screen .login-content,
+#main-content.auth-screen .forgot-access-content {
+    padding-top: calc(40px + env(safe-area-inset-top));
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
 }
 
 .forgot-back-link {

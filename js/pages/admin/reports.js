@@ -6,15 +6,13 @@ export const adminReports = {
         const mainContent = document.getElementById('main-content');
         mainContent.innerHTML = `
             <div class="page-container">
-                <div class="page-header">
+                <div class="page-header page-header--reports">
                     <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400; margin: 0;">FREQUÊNCIA</h1>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
-                        <select id="month-filter" class="input-control" style="width: auto; padding: 6px 12px; font-size: 13px;">
-                            <option value="all">Todo Período</option>
-                            <option value="current" selected>Este Mês</option>
-                        </select>
-                    </div>
+                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                    <select id="month-filter" class="input-control page-header-filter">
+                        <option value="all">Todo Período</option>
+                        <option value="current" selected>Este Mês</option>
+                    </select>
                 </div>
                 
                 <div class="card card-highlight" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">

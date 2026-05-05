@@ -229,6 +229,7 @@ const app = {
         const { hash, params } = this.getCurrentRoute();
         
         const publicRoutes = ['#login', '#register', '#forgot-password', '#update-password'];
+        const authBackgroundRoutes = ['#login', '#forgot-password'];
 
         if (!this.user && !publicRoutes.includes(hash)) {
             window.location.hash = '#login';
@@ -255,6 +256,7 @@ const app = {
         }
 
         // Transição animada de página
+        this.mainContent.classList.toggle('auth-screen', authBackgroundRoutes.includes(hash));
         this.mainContent.classList.add('page-exit');
         await new Promise(r => setTimeout(r, 200));
         if (hash !== '#login') this.stopLoginParticles();
@@ -336,8 +338,8 @@ const app = {
         let observer;
 
         const resize = () => {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+            canvas.width = canvas.offsetWidth || window.innerWidth;
+            canvas.height = canvas.offsetHeight || window.innerHeight;
         };
         resize();
         window.addEventListener('resize', resize);
@@ -613,7 +615,7 @@ const app = {
         const currentRole = this.profile?.role || 'student';
 
         this.mainContent.innerHTML = `
-            <div class="page-container">
+            <div class="page-container profile-page">
                 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                     <div id="avatar-container" style="position: relative; width: 64px; height: 64px;">
                         <img id="profile-avatar" src="${avatarUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--dx-teal-border);">
