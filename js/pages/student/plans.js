@@ -156,6 +156,7 @@ if (!document.getElementById('cat-tabs-style')) {
             border-radius: 8px;
             color: var(--dx-muted);
             font-family: var(--font-display);
+            font-size: 14px;
             font-weight: 700;
             text-transform: uppercase;
             transition: all 0.2s ease;
