@@ -615,7 +615,7 @@ const app = {
         const currentRole = this.profile?.role || 'student';
 
         this.mainContent.innerHTML = `
-            <div class="page-container profile-page">
+            <div class="page-container">
                 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                     <div id="avatar-container" style="position: relative; width: 64px; height: 64px;">
                         <img id="profile-avatar" src="${avatarUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--dx-teal-border);">
