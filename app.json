@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Diamond X",
+    "slug": "diamond-x",
+    "scheme": "diamondx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/icon-512.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./base_icon_transparent_background.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/icon-512.png",
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icons/icon-192.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O Diamond X precisa de acesso à câmera para ler QR Codes de check-in."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Diamond X precisa acessar suas fotos para que você possa enviar um avatar.",
+          "cameraPermission": "O Diamond X precisa acessar sua câmera para que você possa tirar uma foto de perfil."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
