@@ -3,6 +3,7 @@ import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
 import { formatMonthLabel, getMonthMatrix, getWeekdayLabels, groupByDate } from '../../calendar.js';
 import { getReservationsLoadMessage } from '../../trainingReservations.js';
+import { preTrainingQuestionnaire } from '../student/preTrainingQuestionnaire.js';
 
 export const adminTrainings = {
     currentMonth: new Date(),
@@ -206,6 +207,7 @@ export const adminTrainings = {
     },
 
     async showAttendanceList(sessionId, title) {
+        const session = { id: sessionId, title };
         const content = `
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 8px;">Selecione os alunos presentes nesta sessão.</p>
@@ -282,20 +284,42 @@ export const adminTrainings = {
                         item.querySelector('.attendance-toggle').style.borderColor = 'var(--dx-muted)';
                     }
                 } else {
-                    // Adicionar presença manual
-                    const adminId = (await supabase.auth.getUser()).data.user.id;
-                    const { error } = await supabase.from('attendance').insert([{
-                        session_id: sessionId,
-                        student_id: studentId,
-                        method: 'manual',
-                        marked_by: adminId
-                    }]);
-                    if (!error) {
+                    item.style.pointerEvents = 'none';
+                    item.style.opacity = '0.65';
+
+                    try {
+                        const adminId = (await supabase.auth.getUser()).data.user.id;
+
+                        await preTrainingQuestionnaire.ensureCompleted({
+                            session,
+                            studentId,
+                            actorId: adminId,
+                            source: 'manual'
+                        });
+
+                        const { error } = await supabase.from('attendance').insert([{
+                            session_id: sessionId,
+                            student_id: studentId,
+                            method: 'manual',
+                            marked_by: adminId
+                        }]);
+
+                        if (error) throw error;
+
                         presentIds.add(studentId);
                         item.style.background = 'var(--dx-teal-dim)';
                         item.style.borderColor = 'var(--dx-teal)';
                         item.querySelector('.attendance-toggle').innerHTML = '<i class="ph-bold ph-check" style="color: var(--dx-teal); font-size: 14px;"></i>';
                         item.querySelector('.attendance-toggle').style.borderColor = 'var(--dx-teal)';
+                    } catch (error) {
+                        console.error('Erro no check-in manual:', error);
+                        const message = error.code === 'PRECHECK_CANCELLED'
+                            ? 'Questionário obrigatório para marcar presença manual.'
+                            : (error.message || 'Não foi possível marcar presença manual.');
+                        toast.show(message, 'error');
+                    } finally {
+                        item.style.pointerEvents = '';
+                        item.style.opacity = '';
                     }
                 }
             });
