@@ -151,7 +151,7 @@ async def complete_questionnaire(page):
         await page.locator(f'[data-wellness-key="{key}"][data-wellness-value="{value}"]').click()
 
     await page.locator(".precheck-next").click()
-    await page.locator('.precheck-body-region[data-region="ombro"]').first.click()
+    await page.locator('.precheck-body-region[data-region="ombro_esquerdo"]').click()
     await expect(page.locator(".precheck-sheet-overlay")).to_be_visible()
     await page.locator('.precheck-sheet-scale').nth(1).click()
     await page.locator(".precheck-sheet-form button[type='submit']").click()

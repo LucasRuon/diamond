@@ -3,7 +3,7 @@ import { escapeHtml, ui } from '../../ui.js';
 
 const STEPS = ['recovery', 'wellness', 'pain', 'weight', 'review'];
 
-const WELLNESS_GROUPS = [
+export const PRE_TRAINING_WELLNESS_GROUPS = [
     {
         key: 'nutrition_hydration',
         label: 'Nutrição e hidratação',
@@ -26,22 +26,48 @@ const WELLNESS_GROUPS = [
     }
 ];
 
-const BODY_REGIONS = [
-    { region: 'cabeca', label: 'Cabeça', top: 8, left: 50, width: 18, height: 11 },
-    { region: 'ombro', label: 'Ombro', top: 21, left: 50, width: 44, height: 9 },
-    { region: 'braco', label: 'Braço', top: 35, left: 24, width: 17, height: 27 },
-    { region: 'braco', label: 'Braço', top: 35, left: 76, width: 17, height: 27 },
-    { region: 'tronco', label: 'Tronco', top: 36, left: 50, width: 30, height: 28 },
-    { region: 'quadril', label: 'Quadril', top: 64, left: 50, width: 28, height: 10 },
-    { region: 'coxa', label: 'Coxa', top: 73, left: 42, width: 15, height: 18 },
-    { region: 'coxa', label: 'Coxa', top: 73, left: 58, width: 15, height: 18 },
-    { region: 'joelho', label: 'Joelho', top: 85, left: 42, width: 14, height: 7 },
-    { region: 'joelho', label: 'Joelho', top: 85, left: 58, width: 14, height: 7 },
-    { region: 'panturrilha', label: 'Panturrilha', top: 93, left: 42, width: 14, height: 13 },
-    { region: 'panturrilha', label: 'Panturrilha', top: 93, left: 58, width: 14, height: 13 },
-    { region: 'tornozelo_pe', label: 'Tornozelo/Pé', top: 98, left: 42, width: 17, height: 6 },
-    { region: 'tornozelo_pe', label: 'Tornozelo/Pé', top: 98, left: 58, width: 17, height: 6 }
-];
+const WELLNESS_GROUPS = PRE_TRAINING_WELLNESS_GROUPS;
+
+const BODY_REGIONS = {
+    frente: [
+        { region: 'cabeca', label: 'Cabeça', top: 8, left: 12.5, width: 15, height: 4 },
+        { region: 'ombro_esquerdo', label: 'Ombro esquerdo', top: 24, left: 12.5, width: 15, height: 4 },
+        { region: 'braco_esquerdo', label: 'Braço esquerdo', top: 34, left: 12.5, width: 15, height: 4 },
+        { region: 'pubis', label: 'Púbis', top: 45, left: 12.5, width: 15, height: 4 },
+        { region: 'adutor_esquerdo', label: 'Adutor esquerdo', top: 54, left: 12.5, width: 15, height: 4 },
+        { region: 'anterior_coxa_esquerda', label: 'Anterior coxa esquerda', top: 62, left: 12.5, width: 20, height: 4 },
+        { region: 'joelho_esquerdo', label: 'Joelho esquerdo', top: 70, left: 12.5, width: 15, height: 4 },
+        { region: 'canela_esquerda', label: 'Canela esquerda', top: 78, left: 12.5, width: 15, height: 4 },
+        { region: 'tornozelo_esquerdo', label: 'Tornozelo esquerdo', top: 86, left: 11.25, width: 17.5, height: 4 },
+        { region: 'pe_esquerdo', label: 'Pé esquerdo', top: 90, left: 12.5, width: 15, height: 4 },
+        { region: 'torax', label: 'Tórax', top: 16, left: 87.5, width: 15, height: 4 },
+        { region: 'ombro_direito', label: 'Ombro direito', top: 24, left: 87.5, width: 15, height: 4 },
+        { region: 'braco_direito', label: 'Braço direito', top: 34, left: 87.5, width: 15, height: 4 },
+        { region: 'abdomen', label: 'Abdômen', top: 42, left: 86.25, width: 17.5, height: 4 },
+        { region: 'adutor_direito', label: 'Adutor direito', top: 54, left: 87.5, width: 15, height: 4 },
+        { region: 'anterior_coxa_direita', label: 'Anterior coxa direita', top: 62, left: 87.5, width: 20, height: 4 },
+        { region: 'joelho_direito', label: 'Joelho direito', top: 70, left: 87.5, width: 15, height: 4 },
+        { region: 'canela_direita', label: 'Canela direita', top: 78, left: 87.5, width: 15, height: 4 },
+        { region: 'tornozelo_direito', label: 'Tornozelo direito', top: 86, left: 88.75, width: 17.5, height: 4 },
+        { region: 'pe_direito', label: 'Pé direito', top: 90, left: 87.5, width: 15, height: 4 }
+    ],
+    costas: [
+        { region: 'pescoco', label: 'Pescoço', top: 20, left: 12.5, width: 15, height: 4 },
+        { region: 'lombar', label: 'Lombar', top: 40, left: 12.5, width: 15, height: 4 },
+        { region: 'punho_esquerdo', label: 'Punho esquerdo', top: 47, left: 12.5, width: 15, height: 4 },
+        { region: 'mao_esquerda', label: 'Mão esquerda', top: 56, left: 12.5, width: 15, height: 4 },
+        { region: 'posterior_coxa_esquerda', label: 'Posterior coxa esquerda', top: 62, left: 12.5, width: 20, height: 4 },
+        { region: 'panturrilha_esquerda', label: 'Panturrilha esquerda', top: 76, left: 12.5, width: 20, height: 4 },
+        { region: 'calcanhar_esquerdo', label: 'Calcanhar esquerdo', top: 89, left: 12.5, width: 15, height: 4 },
+        { region: 'costas', label: 'Costas', top: 28, left: 87.5, width: 15, height: 4 },
+        { region: 'nadegas', label: 'Nádegas', top: 44, left: 87.5, width: 15, height: 4 },
+        { region: 'punho_direito', label: 'Punho direito', top: 47, left: 87.5, width: 15, height: 4 },
+        { region: 'mao_direita', label: 'Mão direita', top: 56, left: 87.5, width: 15, height: 4 },
+        { region: 'posterior_coxa_direita', label: 'Posterior coxa direita', top: 62, left: 87.5, width: 20, height: 4 },
+        { region: 'panturrilha_direita', label: 'Panturrilha direita', top: 76, left: 87.5, width: 20, height: 4 },
+        { region: 'calcanhar_direito', label: 'Calcanhar direito', top: 89, left: 87.5, width: 15, height: 4 }
+    ]
+};
 
 function createInitialState() {
     return {
@@ -66,8 +92,9 @@ function painKey(point) {
     return `${point.side}:${point.region}`;
 }
 
-function formatPainLabel(point) {
-    return `${point.region.replace('tornozelo_pe', 'tornozelo/pé')} (${point.side}) - dor ${point.intensity}/10`;
+export function formatPainLabel(point) {
+    const fallbackRegion = point?.region ? point.region.replaceAll('_', ' ') : 'Região não informada';
+    return `${point?.label || fallbackRegion} (${point?.side || 'lado não informado'}) - dor ${point?.intensity ?? 'não informada'}/10`;
 }
 
 function getSessionTitle(session) {
@@ -77,11 +104,28 @@ function getSessionTitle(session) {
 function getQuestionnaireSaveErrorMessage(error) {
     const message = error?.message || '';
 
+    if (error?.code === 'PRECHECK_SAVE_TIMEOUT') {
+        return 'O envio demorou demais. Verifique sua conexão e tente novamente.';
+    }
+
     if (message.includes('row-level security') || error?.code === '42501') {
         return 'Não foi possível salvar o pré-treino. Confirme se o treino é de hoje e tente novamente.';
     }
 
     return message || 'Não foi possível salvar o questionário.';
+}
+
+function withTimeout(promise, timeoutMs, code) {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+            const error = new Error('Tempo limite excedido.');
+            error.code = code;
+            reject(error);
+        }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
 export const preTrainingQuestionnaire = {
@@ -159,15 +203,17 @@ export const preTrainingQuestionnaire = {
                 nextButton.innerHTML = '<i class="ph ph-circle-notch-bold"></i> ENVIANDO...';
 
                 try {
-                    const { data, error } = await supabase
-                        .from('pre_training_questionnaires')
-                        .upsert(payload, { onConflict: 'session_id,student_id' })
-                        .select()
-                        .single();
+                    const { error } = await withTimeout(
+                        supabase
+                            .from('pre_training_questionnaires')
+                            .upsert(payload, { onConflict: 'session_id,student_id' }),
+                        12000,
+                        'PRECHECK_SAVE_TIMEOUT'
+                    );
 
                     if (error) throw error;
                     overlay.remove();
-                    resolve(data);
+                    resolve(payload);
                 } catch (error) {
                     nextButton.disabled = false;
                     nextButton.innerHTML = originalText;
@@ -229,8 +275,8 @@ export const preTrainingQuestionnaire = {
                 }
             };
 
-            const setPainIntensity = (region, side, intensity) => {
-                const point = { region, side, intensity: Number(intensity) };
+            const setPainIntensity = (region, side, intensity, label) => {
+                const point = { region, side, label, intensity: Number(intensity) };
                 const existingIndex = state.painPoints.findIndex(item => painKey(item) === painKey(point));
 
                 if (existingIndex >= 0) {
@@ -247,7 +293,7 @@ export const preTrainingQuestionnaire = {
                 render();
             };
 
-            const showPainIntensity = (region, side) => {
+            const showPainIntensity = (region, side, label) => {
                 const current = state.painPoints.find(point => point.region === region && point.side === side);
                 const options = Array.from({ length: 10 }, (_, index) => index + 1).map(value => `
                     <label class="precheck-sheet-scale ${current?.intensity === value ? 'is-selected' : ''}">
@@ -262,7 +308,7 @@ export const preTrainingQuestionnaire = {
                         <button type="submit" class="btn btn-primary">SALVAR DOR</button>
                     </form>
                 `, async (data) => {
-                    setPainIntensity(region, side, data.intensity);
+                    setPainIntensity(region, side, data.intensity, label);
                 }, { className: 'precheck-sheet-overlay' });
             };
 
@@ -333,6 +379,7 @@ export const preTrainingQuestionnaire = {
                 const selectedKeys = new Set(state.painPoints.map(painKey));
                 const sideLabel = state.painSide === 'frente' ? 'Frente' : 'Costas';
                 const figureSrc = state.painSide === 'frente' ? '/assets/pre-training/body-front.svg' : '/assets/pre-training/body-back.svg';
+                const regions = BODY_REGIONS[state.painSide];
 
                 return `
                     <section class="precheck-step">
@@ -351,13 +398,13 @@ export const preTrainingQuestionnaire = {
                             <div class="precheck-body-figure">
                                 <img src="${figureSrc}" alt="Mapa corporal ${sideLabel.toLowerCase()}">
                                 <div class="precheck-body-fallback" hidden>
-                                    ${BODY_REGIONS.filter((region, index, list) => list.findIndex(item => item.region === region.region) === index).map(region => `
+                                    ${regions.map(region => `
                                         <button type="button" class="btn" data-region="${region.region}" data-region-label="${region.label}">
                                             ${region.label}
                                         </button>
                                     `).join('')}
                                 </div>
-                                ${BODY_REGIONS.map(region => {
+                                ${regions.map(region => {
                                     const key = `${state.painSide}:${region.region}`;
                                     return `
                                         <button type="button"
@@ -462,7 +509,7 @@ export const preTrainingQuestionnaire = {
 
                 overlay.querySelectorAll('[data-region]').forEach(button => {
                     button.addEventListener('click', () => {
-                        showPainIntensity(button.dataset.region, state.painSide);
+                        showPainIntensity(button.dataset.region, state.painSide, button.dataset.regionLabel);
                     });
                 });
 

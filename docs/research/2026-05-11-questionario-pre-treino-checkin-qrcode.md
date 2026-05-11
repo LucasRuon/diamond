@@ -9,6 +9,7 @@ tags: [research, codebase]
 status: complete
 last_updated: 2026-05-11
 last_updated_by: Codex
+last_updated_note: "Added follow-up research for shared questionnaire response viewing screen"
 ---
 
 # Research: nova feature, para criarmos um formulário obrigatório antes de completar o checkin do qrcode. Semlhante ao das imagens.
@@ -192,7 +193,121 @@ UI boundaries:
 
 ## Open Questions
 
+These were the open questions from the initial research pass before the current working-tree questionnaire implementation was added. The follow-up section below documents the newer persisted model and runtime behavior.
+
 - The live codebase does not define where a pre-training questionnaire response should be stored.
 - The live codebase does not define whether questionnaire completion should be required only for QR Code check-in or also for admin manual attendance.
 - The live codebase does not define whether one response is required per `training_sessions` row, per calendar day, or per attempted QR scan.
 - The visual references show a body diagram asset, but no matching front/rear body diagram asset exists in the current project asset list.
+
+## Follow-up Research 2026-05-11T18:12:00-03:00
+
+### Research Question
+
+precisamos criar uma tela geral para todos os niveis de usuário para visualização do questionario respondido no checkin do treino.
+
+### Scope
+
+Included: current persisted questionnaire response model, current questionnaire write flow, role routing, attendance viewing patterns for student/admin/responsible/businessman, and existing read permissions that would affect viewing answered questionnaires.
+
+Excluded: implementation design, route proposal, UI wireframe, and code changes.
+
+Assumption: "todos os niveis de usuário" refers to the app's current roles: `student`, `responsible`, `businessman`, and `admin`, as listed in role labels and role-based renderers.
+
+### Summary
+
+The current codebase now has persistence and write flows for answered pre-training questionnaires, but no read-only screen, route, component, or link that displays those saved answers. The only module for the feature is `js/pages/student/preTrainingQuestionnaire.js`, and it is built as an overlay for collecting or reusing a response during check-in; it does not expose a read-only renderer.
+
+The existing cross-role viewing pattern closest to the requested screen is the `#attendance` route. That route renders `studentAttendance.render(params.get('id'))`, supports the logged-in student by default, and also supports viewing another student when the requester is admin or linked through `responsible_students`. Today it shows attendance stats, calendar, chart, and history, but its Supabase query only reads `attendance` joined to `training_sessions` for title/scheduled date; it does not read `pre_training_questionnaires`.
+
+The database access shape for questionnaire viewing already exists at the RLS level: `pre_training_questionnaires_select` allows the student to read their own responses, admins to read all responses, and responsible/business users to read responses for linked students through `responsible_students`.
+
+### Detailed Findings
+
+#### Questionnaire Persistence
+
+- `migrations/005_pre_training_questionnaires.sql` creates `public.pre_training_questionnaires` with `session_id`, `student_id`, `recovery_score`, `wellness_scores`, `pain_points`, `weight_kg`, `submitted_by`, `source`, `submitted_at`, and `updated_at` (`migrations/005_pre_training_questionnaires.sql:4`, `migrations/005_pre_training_questionnaires.sql:6`, `migrations/005_pre_training_questionnaires.sql:7`, `migrations/005_pre_training_questionnaires.sql:8`, `migrations/005_pre_training_questionnaires.sql:9`, `migrations/005_pre_training_questionnaires.sql:10`, `migrations/005_pre_training_questionnaires.sql:11`, `migrations/005_pre_training_questionnaires.sql:12`, `migrations/005_pre_training_questionnaires.sql:13`, `migrations/005_pre_training_questionnaires.sql:14`, `migrations/005_pre_training_questionnaires.sql:15`).
+- The table enforces one questionnaire response per training session and student through `pre_training_questionnaires_session_student_unique` on `(session_id, student_id)` (`migrations/005_pre_training_questionnaires.sql:16`).
+- The local migration indexes lookup by `session_id`, `student_id`, and `submitted_at` (`migrations/005_pre_training_questionnaires.sql:22`, `migrations/005_pre_training_questionnaires.sql:25`, `migrations/005_pre_training_questionnaires.sql:28`).
+- The table does not include an `attendance_id`; the persisted relationship to a confirmed check-in is by the same `session_id` and `student_id` used in `attendance` (`migrations/005_pre_training_questionnaires.sql:6`, `migrations/005_pre_training_questionnaires.sql:7`).
+
+#### Questionnaire Read Permissions
+
+- The `pre_training_questionnaires_select` policy allows the owner athlete to select their own rows with `student_id = auth.uid()` (`migrations/005_pre_training_questionnaires.sql:75`, `migrations/005_pre_training_questionnaires.sql:78`).
+- The same policy allows admins to select all rows through an `EXISTS` check on `public.users` where the current user's role is `admin` (`migrations/005_pre_training_questionnaires.sql:79`, `migrations/005_pre_training_questionnaires.sql:80`, `migrations/005_pre_training_questionnaires.sql:81`, `migrations/005_pre_training_questionnaires.sql:82`).
+- The same policy allows linked responsible/business users to select rows where `responsible_students.responsible_id = auth.uid()` and `responsible_students.student_id = pre_training_questionnaires.student_id` (`migrations/005_pre_training_questionnaires.sql:83`, `migrations/005_pre_training_questionnaires.sql:84`, `migrations/005_pre_training_questionnaires.sql:85`, `migrations/005_pre_training_questionnaires.sql:86`, `migrations/005_pre_training_questionnaires.sql:87`).
+- `migrations/002_rls_security.sql` defines `responsible_students_insert` for roles `responsible`, `businessman`, and `admin`, which is the link model used by the questionnaire select policy (`migrations/002_rls_security.sql:175`, `migrations/002_rls_security.sql:178`, `migrations/002_rls_security.sql:180`).
+
+#### Current Questionnaire Runtime
+
+- `js/pages/student/preTrainingQuestionnaire.js` exports `preTrainingQuestionnaire` with `ensureCompleted({ session, studentId, actorId, source })` (`js/pages/student/preTrainingQuestionnaire.js:128`, `js/pages/student/preTrainingQuestionnaire.js:129`).
+- `ensureCompleted` queries `pre_training_questionnaires` by `session_id` and `student_id`, returns an existing response when found, or opens the collection overlay when none exists (`js/pages/student/preTrainingQuestionnaire.js:134`, `js/pages/student/preTrainingQuestionnaire.js:135`, `js/pages/student/preTrainingQuestionnaire.js:137`, `js/pages/student/preTrainingQuestionnaire.js:138`, `js/pages/student/preTrainingQuestionnaire.js:139`, `js/pages/student/preTrainingQuestionnaire.js:141`, `js/pages/student/preTrainingQuestionnaire.js:142`, `js/pages/student/preTrainingQuestionnaire.js:144`).
+- The overlay stores local response state for recovery, wellness, pain points, current pain-side view, optional weight, and errors (`js/pages/student/preTrainingQuestionnaire.js:70`, `js/pages/student/preTrainingQuestionnaire.js:72`, `js/pages/student/preTrainingQuestionnaire.js:73`, `js/pages/student/preTrainingQuestionnaire.js:74`, `js/pages/student/preTrainingQuestionnaire.js:75`, `js/pages/student/preTrainingQuestionnaire.js:76`, `js/pages/student/preTrainingQuestionnaire.js:77`, `js/pages/student/preTrainingQuestionnaire.js:78`).
+- Saving uses `supabase.from('pre_training_questionnaires').upsert(payload, { onConflict: 'session_id,student_id' })` and resolves with the saved payload after a successful write (`js/pages/student/preTrainingQuestionnaire.js:185`, `js/pages/student/preTrainingQuestionnaire.js:186`, `js/pages/student/preTrainingQuestionnaire.js:187`, `js/pages/student/preTrainingQuestionnaire.js:188`, `js/pages/student/preTrainingQuestionnaire.js:189`, `js/pages/student/preTrainingQuestionnaire.js:190`, `js/pages/student/preTrainingQuestionnaire.js:191`, `js/pages/student/preTrainingQuestionnaire.js:192`, `js/pages/student/preTrainingQuestionnaire.js:193`, `js/pages/student/preTrainingQuestionnaire.js:194`, `js/pages/student/preTrainingQuestionnaire.js:203`, `js/pages/student/preTrainingQuestionnaire.js:205`, `js/pages/student/preTrainingQuestionnaire.js:206`, `js/pages/student/preTrainingQuestionnaire.js:212`, `js/pages/student/preTrainingQuestionnaire.js:213`).
+- The module renders collection/review steps, but there is no exported method for a read-only response detail view; the export only contains `ensureCompleted` and `open` (`js/pages/student/preTrainingQuestionnaire.js:128`, `js/pages/student/preTrainingQuestionnaire.js:147`).
+
+#### QR and Manual Check-in Integration
+
+- The student training page imports `preTrainingQuestionnaire` and calls `ensureCompleted` after validating the QR token and before inserting the `attendance` row (`js/pages/student/trainings.js:7`, `js/pages/student/trainings.js:325`, `js/pages/student/trainings.js:337`, `js/pages/student/trainings.js:341`, `js/pages/student/trainings.js:348`, `js/pages/student/trainings.js:349`).
+- The QR path passes `studentId: user.id`, `actorId: user.id`, and `source: 'qrcode'` (`js/pages/student/trainings.js:341`, `js/pages/student/trainings.js:343`, `js/pages/student/trainings.js:344`, `js/pages/student/trainings.js:345`).
+- The admin training page imports the same questionnaire module and calls `ensureCompleted` before inserting manual attendance (`js/pages/admin/trainings.js:6`, `js/pages/admin/trainings.js:290`, `js/pages/admin/trainings.js:293`, `js/pages/admin/trainings.js:300`).
+- The manual path passes `studentId` for the selected athlete, `actorId` as the logged-in admin id, and `source: 'manual'` (`js/pages/admin/trainings.js:291`, `js/pages/admin/trainings.js:293`, `js/pages/admin/trainings.js:295`, `js/pages/admin/trainings.js:296`, `js/pages/admin/trainings.js:297`).
+
+#### Existing Shared Attendance Viewing Pattern
+
+- The central router maps `#attendance` to `studentAttendance.render(params.get('id'))` (`js/app.js:271`).
+- `#attendance` is not listed in the `adminRoutes` or `responsibleRoutes` route guard arrays; those arrays only guard `#users`, `#reports`, and `#students` (`js/app.js:246`, `js/app.js:247`, `js/app.js:249`, `js/app.js:253`).
+- `studentAttendance.render(targetStudentId = null)` defaults to the logged-in user when no `id` query parameter is present (`js/pages/student/attendance.js:6`, `js/pages/student/attendance.js:8`, `js/pages/student/attendance.js:10`, `js/pages/student/attendance.js:11`).
+- When a different student id is passed, the attendance page checks whether the requester is admin or has a matching `responsible_students` link before showing the page (`js/pages/student/attendance.js:15`, `js/pages/student/attendance.js:16`, `js/pages/student/attendance.js:19`, `js/pages/student/attendance.js:20`, `js/pages/student/attendance.js:21`, `js/pages/student/attendance.js:23`, `js/pages/student/attendance.js:24`, `js/pages/student/attendance.js:27`, `js/pages/student/attendance.js:28`).
+- The attendance page currently loads `attendance` rows with `checked_in_at`, `method`, and a joined `training_sessions` object containing `title` and `scheduled_at` (`js/pages/student/attendance.js:95`, `js/pages/student/attendance.js:98`, `js/pages/student/attendance.js:100`, `js/pages/student/attendance.js:101`, `js/pages/student/attendance.js:102`, `js/pages/student/attendance.js:103`, `js/pages/student/attendance.js:104`, `js/pages/student/attendance.js:105`, `js/pages/student/attendance.js:108`, `js/pages/student/attendance.js:109`).
+- The attendance history renders each confirmed session with title, check-in date/time, method, and a `CONFIRMADO` badge; it does not render questionnaire fields or query `pre_training_questionnaires` (`js/pages/student/attendance.js:136`, `js/pages/student/attendance.js:141`, `js/pages/student/attendance.js:144`, `js/pages/student/attendance.js:145`, `js/pages/student/attendance.js:147`, `js/pages/student/attendance.js:148`).
+
+#### Role Entry Points
+
+- `renderDashboard()`, `renderTrainings()`, and `renderPlans()` dispatch by role: admin modules for `admin`, responsible modules for `responsible` and `businessman`, and student modules otherwise (`js/app.js:580`, `js/app.js:581`, `js/app.js:583`, `js/app.js:584`, `js/app.js:591`, `js/app.js:592`, `js/app.js:593`, `js/app.js:597`, `js/app.js:598`, `js/app.js:599`).
+- Admin bottom navigation includes `#dashboard`, `#users`, `#trainings`, `#plans`, `#payments`, and `#profile`; it does not include `#attendance` (`js/app.js:907`, `js/app.js:908`, `js/app.js:909`, `js/app.js:910`, `js/app.js:911`, `js/app.js:912`, `js/app.js:913`).
+- Responsible/business bottom navigation includes `#dashboard`, `#students`, `#trainings`, `#plans`, `#payments`, and `#profile`; it does not include a direct `#attendance` tab (`js/app.js:914`, `js/app.js:915`, `js/app.js:916`, `js/app.js:917`, `js/app.js:918`, `js/app.js:919`, `js/app.js:920`).
+- Student bottom navigation includes `#attendance` as `Presença` (`js/app.js:921`, `js/app.js:922`, `js/app.js:923`, `js/app.js:924`, `js/app.js:925`, `js/app.js:926`).
+- Responsible/business users reach a linked student's attendance through `#attendance?id=<student_id>` links on the `Meus Alunos` screen (`js/pages/responsible/students.js:58`, `js/pages/responsible/students.js:70`, `js/pages/responsible/students.js:71`).
+- Responsible/business dashboards also link to `#attendance?id=<student_id>` for linked athletes (`js/pages/responsible/dashboard.js:102`).
+- Admin reporting is currently a separate `#reports` page focused on aggregate frequency; it queries `training_sessions`, `attendance`, and `users`, but not `pre_training_questionnaires` (`js/pages/admin/reports.js:4`, `js/pages/admin/reports.js:10`, `js/pages/admin/reports.js:55`, `js/pages/admin/reports.js:56`, `js/pages/admin/reports.js:96`).
+
+### Code References
+
+- `migrations/005_pre_training_questionnaires.sql:4` - Questionnaire response table begins.
+- `migrations/005_pre_training_questionnaires.sql:16` - One response per session/student constraint.
+- `migrations/005_pre_training_questionnaires.sql:75` - Select policy for students, admins, and linked responsible users begins.
+- `js/pages/student/preTrainingQuestionnaire.js:128` - Current questionnaire module export begins.
+- `js/pages/student/preTrainingQuestionnaire.js:134` - Existing response lookup by session/student begins.
+- `js/pages/student/preTrainingQuestionnaire.js:203` - Questionnaire upsert begins.
+- `js/pages/student/trainings.js:341` - QR check-in requires questionnaire before attendance insert.
+- `js/pages/admin/trainings.js:293` - Manual admin check-in requires questionnaire before attendance insert.
+- `js/app.js:271` - Current shared attendance route.
+- `js/pages/student/attendance.js:95` - Attendance history query begins.
+- `js/pages/student/attendance.js:136` - Attendance history rendering begins.
+- `js/pages/responsible/students.js:70` - Responsible/business linked student path to attendance.
+
+### Architecture Documentation
+
+Current response collection path:
+
+`student QR scan or admin manual attendance` -> `preTrainingQuestionnaire.ensureCompleted({ session, studentId, actorId, source })` -> lookup `pre_training_questionnaires` by `session_id` and `student_id` -> open overlay only when missing -> `upsert` response -> caller inserts `attendance`.
+
+Current response visibility boundaries:
+
+- Database: `pre_training_questionnaires_select` already models student/admin/linked-responsible visibility.
+- Frontend: no route, nav item, list action, page renderer, or bottom-sheet viewer currently selects and displays `pre_training_questionnaires`.
+- Existing UI pattern: `#attendance?id=<student_id>` already handles cross-role student-scoped viewing for attendance data.
+- Existing data join gap: `studentAttendance.loadAttendance()` does not select `session_id`, `student_id`, questionnaire rows, or questionnaire submission metadata.
+
+### Historical Context
+
+- The existing spec for the questionnaire explicitly excluded a screen for analyzing/displaying saved responses: "Criar tela administrativa de análise das respostas" and "Alterar o histórico de presença para exibir detalhes do questionário" are listed as not included (`docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:30`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:31`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:32`).
+- The same spec defines persistence by `session_id` and `student_id`, plus role visibility through RLS for student, admin, and responsible/business users (`docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:21`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:73`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:74`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:75`, `docs/specs/2026-05-11-questionario-pre-treino-qrcode-spec.md:76`).
+
+### Open Questions
+
+- The live codebase does not define whether the shared questionnaire viewing screen should be a new route, part of `#attendance`, part of `#trainings`, or a bottom sheet opened from an existing attendance/training card.
+- The live codebase does not define whether admins need an all-students aggregate list of questionnaire responses or only student/session detail access.
+- The live codebase does not define whether questionnaire responses should remain visible when the related `attendance` row is later deleted by an admin.
+- The live codebase does not define whether responsible/business users should see all questionnaire fields, or a subset of fields for linked athletes.
