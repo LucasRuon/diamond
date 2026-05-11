@@ -7,10 +7,12 @@ import { adminTrainings } from './pages/admin/trainings.js';
 import { adminDashboard } from './pages/admin/dashboard.js';
 import { adminCharges } from './pages/admin/charges.js';
 import { adminReports } from './pages/admin/reports.js';
+import { adminPreTrainingQuestionnaires } from './pages/admin/preTrainingQuestionnaires.js';
 import { studentTrainings } from './pages/student/trainings.js';
 import { studentAttendance } from './pages/student/attendance.js';
 import { studentDashboard } from './pages/student/dashboard.js';
 import { studentPlans } from './pages/student/plans.js';
+import { preTrainingQuestionnaireView } from './pages/student/preTrainingQuestionnaireView.js';
 import { responsibleStudents } from './pages/responsible/students.js';
 import { responsiblePlans } from './pages/responsible/plans.js';
 import { responsibleDashboard } from './pages/responsible/dashboard.js';
@@ -243,7 +245,7 @@ const app = {
 
         // Bloqueio de rotas por papel
         const role = this.profile?.role || 'student';
-        const adminRoutes = ['#users', '#reports'];
+        const adminRoutes = ['#users', '#reports', '#pre-training-questionnaires'];
         const responsibleRoutes = ['#students'];
 
         if (adminRoutes.includes(hash) && role !== 'admin') {
@@ -269,11 +271,13 @@ const app = {
             case '#dashboard': await this.renderDashboard(); break;
             case '#trainings': await this.renderTrainings(); break;
             case '#attendance': await studentAttendance.render(params.get('id')); break;
+            case '#pre-training-questionnaire': await preTrainingQuestionnaireView.render(params.get('id')); break;
             case '#students': await responsibleStudents.render(); break;
             case '#plans': await this.renderPlans(); break;
             case '#payments': await this.renderPayments(); break;
             case '#users': await adminUsers.render(); break;
             case '#reports': await adminReports.render(); break;
+            case '#pre-training-questionnaires': await adminPreTrainingQuestionnaires.render(); break;
             case '#profile': this.renderProfile(); break;
             default: this.mainContent.innerHTML = '<h1>404</h1>';
         }
@@ -908,6 +912,7 @@ const app = {
             { h: '#dashboard', i: 'ph-chart-line-up', t: 'Dash' },
             { h: '#users', i: 'ph-users', t: 'Usuários' },
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
+            { h: '#pre-training-questionnaires', i: 'ph-clipboard-text', t: 'Pré' },
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
             { h: '#profile', i: 'ph-gear', t: 'Config' }

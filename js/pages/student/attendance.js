@@ -98,6 +98,8 @@ export const studentAttendance = {
         const { data: history, error } = await supabase
             .from('attendance')
             .select(`
+                session_id,
+                student_id,
                 checked_in_at,
                 method,
                 session:training_sessions (
@@ -113,17 +115,40 @@ export const studentAttendance = {
             return;
         }
 
-        document.getElementById('stat-count').textContent = history.length;
+        const safeHistory = history || [];
+        const sessionIds = [...new Set(safeHistory.map(item => item.session_id).filter(Boolean))];
+        let questionnairesBySessionId = new Map();
+        let questionnairesUnavailable = false;
+
+        if (sessionIds.length) {
+            const { data: questionnaires, error: questionnairesError } = await supabase
+                .from('pre_training_questionnaires')
+                .select('id, session_id, student_id, submitted_at, source')
+                .eq('student_id', studentId)
+                .in('session_id', sessionIds);
+
+            if (questionnairesError) {
+                console.error('Erro ao carregar questionários do histórico:', questionnairesError);
+                questionnairesUnavailable = true;
+            } else {
+                questionnairesBySessionId = new Map((questionnaires || []).map(questionnaire => [
+                    questionnaire.session_id,
+                    questionnaire
+                ]));
+            }
+        }
+
+        document.getElementById('stat-count').textContent = safeHistory.length;
         
         const now = new Date();
-        const thisMonth = history.filter(a => {
+        const thisMonth = safeHistory.filter(a => {
             const d = new Date(a.checked_in_at);
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         }).length;
         document.getElementById('stat-month').textContent = thisMonth;
-        this.renderVisuals(history);
+        this.renderVisuals(safeHistory);
 
-        if (history.length === 0) {
+        if (safeHistory.length === 0) {
             listContainer.innerHTML = `
                 <div style="text-align: center; margin-top: 40px; padding: 20px;">
                     <i class="ph ph-calendar-x" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
@@ -133,19 +158,41 @@ export const studentAttendance = {
             return;
         }
 
-        listContainer.innerHTML = history.map(item => {
+        listContainer.innerHTML = safeHistory.map(item => {
             const date = new Date(item.checked_in_at);
             const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
             const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const questionnaire = questionnairesBySessionId.get(item.session_id);
+            const questionnaireAction = questionnairesUnavailable
+                ? `
+                    <span class="badge" style="max-width: 148px; color: var(--dx-muted); background: var(--dx-surface2); border: 1px solid var(--dx-border); white-space: normal; line-height: 1.2; text-align: center; justify-content: center;">
+                        QUESTIONÁRIO INDISPONÍVEL
+                    </span>
+                `
+                : questionnaire
+                    ? `
+                        <a href="#pre-training-questionnaire?id=${encodeURIComponent(questionnaire.id)}" class="btn" style="width: auto; padding: 8px 10px; font-size: 11px; border: 1px solid var(--dx-teal); color: var(--dx-teal); background: var(--dx-teal-dim); text-decoration: none; gap: 6px;">
+                            <i class="ph ph-clipboard-text"></i>
+                            QUESTIONÁRIO
+                        </a>
+                    `
+                    : `
+                        <span class="badge" style="color: var(--dx-muted); background: var(--dx-surface2); border: 1px solid var(--dx-border);">
+                            SEM QUESTIONÁRIO
+                        </span>
+                    `;
 
             return `
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <p style="font-weight: 700; font-size: 15px;">${escapeHtml(item.session?.title || 'Treino')}</p>
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                    <div style="min-width: 0;">
+                        <p style="font-weight: 700; font-size: 15px; overflow-wrap: anywhere;">${escapeHtml(item.session?.title || 'Treino')}</p>
                         <p style="font-size: 12px; color: var(--dx-muted);">${dateStr} às ${timeStr} • ${item.method === 'qrcode' ? 'QR Code' : 'Manual'}</p>
                     </div>
-                    <div style="background: var(--dx-teal-dim); color: var(--dx-teal); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
-                        CONFIRMADO
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: 0 0 auto;">
+                        <div style="background: var(--dx-teal-dim); color: var(--dx-teal); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                            CONFIRMADO
+                        </div>
+                        ${questionnaireAction}
                     </div>
                 </div>
             `;

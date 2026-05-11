@@ -638,13 +638,14 @@
 .precheck-body-map {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    align-items: center;
+    gap: 12px;
 }
 
 .precheck-body-figure {
     position: relative;
-    width: min(100%, 260px);
-    aspect-ratio: 240 / 420;
+    width: min(100%, 560px);
+    aspect-ratio: 4 / 5;
     margin: 0 auto;
     color: var(--dx-muted);
 }
@@ -663,9 +664,9 @@
     width: var(--width);
     height: var(--height);
     transform: translate(-50%, -50%);
-    border-radius: var(--radius-full);
-    background: rgba(0, 201, 167, 0.08);
-    border: 1px solid rgba(0, 201, 167, 0.18);
+    border-radius: 20px;
+    background: transparent;
+    border: 2px solid transparent;
 }
 
 .precheck-body-region.is-selected,
@@ -675,10 +676,20 @@
     box-shadow: 0 0 0 3px rgba(0, 201, 167, 0.1);
 }
 
+.precheck-body-region:focus-visible {
+    border-color: var(--dx-teal);
+    outline: none;
+}
+
 .precheck-body-fallback {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
+    width: 100%;
+}
+
+.precheck-body-fallback[hidden] {
+    display: none;
 }
 
 .precheck-pain-summary,
@@ -686,6 +697,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    justify-content: center;
 }
 
 .precheck-pain-pill {
