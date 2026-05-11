@@ -4,6 +4,7 @@ import { toast } from '../../auth.js';
 import { ui } from '../../ui.js';
 import { dateKey, formatMonthLabel, getMonthMatrix, getWeekdayLabels, groupByDate } from '../../calendar.js';
 import { getReservationsLoadMessage, isReservationsSchemaError } from '../../trainingReservations.js';
+import { preTrainingQuestionnaire } from './preTrainingQuestionnaire.js';
 
 export const studentTrainings = {
     scanner: null,
@@ -287,6 +288,40 @@ export const studentTrainings = {
         }
     },
 
+    async validateQrCheckin(token, userId) {
+        const { data: plan, error: planError } = await supabase
+            .from('student_plans')
+            .select('status')
+            .eq('student_id', userId)
+            .eq('status', 'active')
+            .maybeSingle();
+
+        if (planError) throw planError;
+
+        if (!plan) {
+            throw new Error('Você precisa de um plano ativo para registrar presença.');
+        }
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0,0,0,0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23,59,59,999);
+
+        const { data: session, error: sessionError } = await supabase
+            .from('training_sessions')
+            .select('id, title, scheduled_at')
+            .eq('qr_code_token', token)
+            .gte('scheduled_at', startOfDay.toISOString())
+            .lte('scheduled_at', endOfDay.toISOString())
+            .single();
+
+        if (sessionError || !session) {
+            throw new Error('QR Code inválido ou treino não agendado para hoje.');
+        }
+
+        return session;
+    },
+
     async handleScanSuccess(token) {
         console.log('Token lido:', token);
         await this.stopScanner();
@@ -299,38 +334,17 @@ export const studentTrainings = {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            
-            // 1. Verificar se o aluno tem plano ativo (Regra de Negócio)
-            const { data: plan, error: pError } = await supabase
-                .from('student_plans')
-                .select('status')
-                .eq('student_id', user.id)
-                .eq('status', 'active')
-                .maybeSingle();
+            const session = await this.validateQrCheckin(token, user.id);
 
-            if (!plan) {
-                throw new Error('Você precisa de um plano ativo para registrar presença.');
-            }
+            toast.show('Responda o pré-treino para concluir o check-in.', 'success');
 
-            // 2. Buscar a sessão pelo token e validar se é de hoje
-            const startOfDay = new Date();
-            startOfDay.setHours(0,0,0,0);
-            const endOfDay = new Date();
-            endOfDay.setHours(23,59,59,999);
+            await preTrainingQuestionnaire.ensureCompleted({
+                session,
+                studentId: user.id,
+                actorId: user.id,
+                source: 'qrcode'
+            });
 
-            const { data: session, error: sError } = await supabase
-                .from('training_sessions')
-                .select('id, title, scheduled_at')
-                .eq('qr_code_token', token)
-                .gte('scheduled_at', startOfDay.toISOString())
-                .lte('scheduled_at', endOfDay.toISOString())
-                .single();
-
-            if (sError || !session) {
-                throw new Error('QR Code inválido ou treino não agendado para hoje.');
-            }
-
-            // 3. Registrar presença
             const { error: aError } = await supabase
                 .from('attendance')
                 .insert([{
@@ -348,6 +362,10 @@ export const studentTrainings = {
             this.loadAvailableTrainings(); // Atualiza a lista
         } catch (err) {
             console.error('Erro no check-in:', err);
+            if (err.code === 'PRECHECK_CANCELLED') {
+                toast.show('Check-in pausado. Responda o questionário para confirmar presença.', 'error');
+                return;
+            }
             toast.show(err.message, 'error');
         }
     }

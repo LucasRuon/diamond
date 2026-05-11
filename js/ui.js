@@ -16,9 +16,10 @@ export function safeUrl(url) {
 
 export const ui = {
     bottomSheet: {
-        show(title, contentHtml, onSave) {
+        show(title, contentHtml, onSave, options = {}) {
             const overlay = document.createElement('div');
             overlay.id = 'sheet-overlay';
+            if (options.className) overlay.className = options.className;
             overlay.innerHTML = `
                 <div class="sheet-content">
                     <div class="sheet-header">

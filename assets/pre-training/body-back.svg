@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 420" role="img" aria-labelledby="title desc">
+  <title id="title">Mapa corporal posterior</title>
+  <desc id="desc">Ilustração posterior simplificada do corpo para seleção de regiões de dor.</desc>
+  <defs>
+    <linearGradient id="backBody" x1="120" x2="120" y1="16" y2="404" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f0f0f0" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#00c9a7" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="420" rx="28" fill="#141414"/>
+  <g fill="none" stroke="url(#backBody)" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="120" cy="48" r="28" stroke-width="7"/>
+    <path d="M92 92c18 9 38 9 56 0" stroke-width="7"/>
+    <path d="M84 108c18-15 54-15 72 0 14 36 13 82 4 117-12 15-68 15-80 0-9-35-10-81 4-117Z" stroke-width="7"/>
+    <path d="M87 115 56 148 40 225" stroke-width="9"/>
+    <path d="M153 115 184 148 200 225" stroke-width="9"/>
+    <path d="M74 232 62 335 56 390" stroke-width="10"/>
+    <path d="M104 236 101 337 92 392" stroke-width="10"/>
+    <path d="M136 236 139 337 148 392" stroke-width="10"/>
+    <path d="M166 232 178 335 184 390" stroke-width="10"/>
+    <path d="M92 122c15 19 41 19 56 0" stroke-width="4" opacity="0.5"/>
+    <path d="M98 123v96" stroke-width="4" opacity="0.5"/>
+    <path d="M142 123v96" stroke-width="4" opacity="0.5"/>
+    <path d="M88 190c18 11 46 11 64 0" stroke-width="4" opacity="0.42"/>
+  </g>
+  <g fill="#00c9a7" opacity="0.16">
+    <path d="M91 119c21-16 37-16 58 0l9 92c-19 12-57 12-76 0l9-92Z"/>
+    <path d="M77 244h31l-10 76H68l9-76Z"/>
+    <path d="M132 244h31l9 76h-30l-10-76Z"/>
+  </g>
+</svg>

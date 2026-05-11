@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diamondx-v5';
+const CACHE_NAME = 'diamondx-v6';
 const ASSETS = [
     '/',
     '/index.html',
@@ -12,6 +12,9 @@ const ASSETS = [
     '/js/supabase.js',
     '/js/ui.js',
     '/js/qrcode.js',
+    '/js/pages/student/preTrainingQuestionnaire.js',
+    '/assets/pre-training/body-front.svg',
+    '/assets/pre-training/body-back.svg',
     '/assets/icons/icon-192.png',
     '/assets/icons/icon-512.png',
     'https://unpkg.com/@phosphor-icons/web',
