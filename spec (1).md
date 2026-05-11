@@ -22,7 +22,7 @@
 
 ---
 
-## 3. Arquitetura Geral
+## 3. Arquitetura Geral 
 
 ```
 diamondx-app/
