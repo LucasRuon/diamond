@@ -638,12 +638,14 @@
 .precheck-body-map {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    align-items: center;
+    gap: 12px;
 }
 
 .precheck-body-figure {
     position: relative;
-    width: min(100%, 260px);
+    width: min(68vw, 220px);
+    max-height: 46dvh;
     aspect-ratio: 240 / 420;
     margin: 0 auto;
     color: var(--dx-muted);
@@ -679,6 +681,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
+    width: 100%;
+}
+
+.precheck-body-fallback[hidden] {
+    display: none;
 }
 
 .precheck-pain-summary,
@@ -686,6 +693,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    justify-content: center;
 }
 
 .precheck-pain-pill {

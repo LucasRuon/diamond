@@ -1,31 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 420" role="img" aria-labelledby="title desc">
   <title id="title">Mapa corporal frontal</title>
-  <desc id="desc">Ilustração frontal simplificada do corpo para seleção de regiões de dor.</desc>
+  <desc id="desc">Silhueta frontal simplificada para seleção de regiões de dor.</desc>
   <defs>
-    <linearGradient id="frontBody" x1="120" x2="120" y1="16" y2="404" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f0f0f0" stop-opacity="0.82"/>
-      <stop offset="1" stop-color="#00c9a7" stop-opacity="0.42"/>
+    <linearGradient id="bodyFrontStroke" x1="120" x2="120" y1="22" y2="398" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d9fff8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#00c9a7" stop-opacity="0.64"/>
+    </linearGradient>
+    <linearGradient id="bodyFrontFill" x1="120" x2="120" y1="72" y2="382" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00c9a7" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#00c9a7" stop-opacity="0.08"/>
     </linearGradient>
   </defs>
-  <rect width="240" height="420" rx="28" fill="#141414"/>
-  <g fill="none" stroke="url(#frontBody)" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="120" cy="48" r="28" stroke-width="7"/>
-    <path d="M90 89c12 11 48 11 60 0" stroke-width="7"/>
-    <path d="M86 104c16-10 52-10 68 0 12 30 15 68 6 116-9 14-71 14-80 0-9-48-6-86 6-116Z" stroke-width="7"/>
-    <path d="M87 112 55 143 38 225" stroke-width="9"/>
-    <path d="M153 112 185 143 202 225" stroke-width="9"/>
-    <path d="M74 232 61 335 55 390" stroke-width="10"/>
-    <path d="M104 237 100 338 91 392" stroke-width="10"/>
-    <path d="M136 237 140 338 149 392" stroke-width="10"/>
-    <path d="M166 232 179 335 185 390" stroke-width="10"/>
-    <path d="M80 144c20 12 60 12 80 0" stroke-width="4" opacity="0.55"/>
-    <path d="M86 182c18 9 50 9 68 0" stroke-width="4" opacity="0.45"/>
-    <path d="M92 222c13 8 43 8 56 0" stroke-width="4" opacity="0.45"/>
+  <g fill="url(#bodyFrontFill)" stroke="url(#bodyFrontStroke)" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="120" cy="46" r="24" stroke-width="5"/>
+    <path d="M96 87c11 9 37 9 48 0" fill="none" stroke-width="5"/>
+    <path d="M88 103c18-13 46-13 64 0 12 24 16 65 9 104-4 20-13 31-25 34-9 2-23 2-32 0-12-3-21-14-25-34-7-39-3-80 9-104Z" stroke-width="5"/>
+    <path d="M88 113 64 145 47 229" fill="none" stroke-width="11"/>
+    <path d="M152 113 176 145 193 229" fill="none" stroke-width="11"/>
+    <path d="M98 238 89 322 80 390" fill="none" stroke-width="13"/>
+    <path d="M142 238 151 322 160 390" fill="none" stroke-width="13"/>
+    <path d="M106 240 106 319 101 388" fill="none" stroke-width="10"/>
+    <path d="M134 240 134 319 139 388" fill="none" stroke-width="10"/>
+    <path d="M86 145c17 9 51 9 68 0" fill="none" stroke-width="3" opacity="0.45"/>
+    <path d="M85 184c20 7 50 7 70 0" fill="none" stroke-width="3" opacity="0.36"/>
+    <path d="M92 222c15 7 41 7 56 0" fill="none" stroke-width="3" opacity="0.36"/>
   </g>
-  <g fill="#00c9a7" opacity="0.18">
-    <circle cx="120" cy="48" r="18"/>
-    <path d="M92 116h56l9 96c-19 10-55 10-74 0l9-96Z"/>
-    <path d="M80 242h28l-11 79H70l10-79Z"/>
-    <path d="M132 242h28l10 79h-27l-11-79Z"/>
+  <g fill="#00c9a7" opacity="0.13">
+    <ellipse cx="120" cy="120" rx="36" ry="28"/>
+    <ellipse cx="120" cy="186" rx="34" ry="43"/>
+    <ellipse cx="96" cy="286" rx="17" ry="58"/>
+    <ellipse cx="144" cy="286" rx="17" ry="58"/>
   </g>
 </svg>

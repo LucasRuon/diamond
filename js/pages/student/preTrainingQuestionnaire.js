@@ -74,6 +74,16 @@ function getSessionTitle(session) {
     return session?.title || 'Treino do dia';
 }
 
+function getQuestionnaireSaveErrorMessage(error) {
+    const message = error?.message || '';
+
+    if (message.includes('row-level security') || error?.code === '42501') {
+        return 'Não foi possível salvar o pré-treino. Confirme se o treino é de hoje e tente novamente.';
+    }
+
+    return message || 'Não foi possível salvar o questionário.';
+}
+
 export const preTrainingQuestionnaire = {
     async ensureCompleted({ session, studentId, actorId, source }) {
         if (!session?.id || !studentId || !actorId || !source) {
@@ -161,7 +171,7 @@ export const preTrainingQuestionnaire = {
                 } catch (error) {
                     nextButton.disabled = false;
                     nextButton.innerHTML = originalText;
-                    state.error = error.message || 'Não foi possível salvar o questionário.';
+                    state.error = getQuestionnaireSaveErrorMessage(error);
                     render();
                 }
             };
