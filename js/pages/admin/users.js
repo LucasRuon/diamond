@@ -47,7 +47,7 @@ export const adminUsers = {
         this.currentRoleFilter = roleFilter;
         const listContainer = document.getElementById('users-list');
         
-        let query = supabase.from('users').select('*, club:clubs(id, name)').order('full_name');
+        let query = supabase.from('users').select('*, club:clubs!users_club_id_fkey(id, name)').order('full_name');
         
         if (roleFilter !== 'all') {
             query = query.eq('role', roleFilter);

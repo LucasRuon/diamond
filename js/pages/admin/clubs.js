@@ -5,8 +5,18 @@ import {
     validateClubLogoFile,
     getClubLogoUrl,
     uploadClubLogo,
+    updateClubLogoMetadata,
+    removeClubLogoObject,
+    getClubErrorMessage,
     softDeleteClub
 } from '../../clubs.js';
+
+function throwClubValidation(message) {
+    toast.show(message, 'error');
+    const error = new Error(message);
+    error.alreadyNotified = true;
+    throw error;
+}
 
 export const adminClubs = {
     async render() {
@@ -140,53 +150,90 @@ export const adminClubs = {
         `;
 
         ui.bottomSheet.show(club ? 'Editar Clube' : 'Novo Clube', formHtml, async (data) => {
-            const name = data.name?.trim();
-            if (!name) {
-                toast.show('Informe o nome do clube.', 'error');
-                throw new Error('Nome obrigatório.');
-            }
-
-            const fileInput = document.getElementById('club-logo-file');
-            const file = fileInput?.files?.[0] || null;
-
-            if (file) {
-                const validationError = validateClubLogoFile(file);
-                if (validationError) {
-                    toast.show(validationError, 'error');
-                    throw new Error(validationError);
+            try {
+                const name = data.name?.trim();
+                if (!name) {
+                    throwClubValidation('Informe o nome do clube.');
                 }
-            }
 
-            if (club) {
-                const { error: updateError } = await supabase
-                    .from('clubs')
-                    .update({ name, updated_at: new Date().toISOString() })
-                    .eq('id', club.id);
-                if (updateError) throw updateError;
+                const fileInput = document.getElementById('club-logo-file');
+                const file = fileInput?.files?.[0] || null;
 
                 if (file) {
-                    const { logo_bucket, logo_path } = await uploadClubLogo({ clubId: club.id, file });
-                    await supabase.from('clubs').update({ logo_bucket, logo_path }).eq('id', club.id);
+                    const validationError = validateClubLogoFile(file);
+                    if (validationError) {
+                        throwClubValidation(validationError);
+                    }
                 }
 
-                toast.show('Clube atualizado!');
-            } else {
-                const { data: newClub, error: insertError } = await supabase
-                    .from('clubs')
-                    .insert({ name, created_by: (await supabase.auth.getUser()).data.user?.id })
-                    .select('id')
-                    .single();
-                if (insertError) throw insertError;
+                if (club) {
+                    let uploadedLogoPath = null;
+                    const payload = { name, updated_at: new Date().toISOString() };
 
-                if (file) {
-                    const { logo_bucket, logo_path } = await uploadClubLogo({ clubId: newClub.id, file });
-                    await supabase.from('clubs').update({ logo_bucket, logo_path }).eq('id', newClub.id);
+                    if (file) {
+                        const { logo_bucket, logo_path } = await uploadClubLogo({ clubId: club.id, file });
+                        uploadedLogoPath = logo_path;
+                        payload.logo_bucket = logo_bucket;
+                        payload.logo_path = logo_path;
+                    }
+
+                    const { error: updateError } = await supabase
+                        .from('clubs')
+                        .update(payload)
+                        .eq('id', club.id);
+
+                    if (updateError) {
+                        await removeClubLogoObject(uploadedLogoPath);
+                    }
+                    if (updateError) throw updateError;
+
+                    toast.show('Clube atualizado!');
+                } else {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const userId = session?.user?.id;
+                    if (!userId) {
+                        throwClubValidation('Sessão expirada. Faça login novamente.');
+                    }
+
+                    const { data: newClub, error: insertError } = await supabase
+                        .from('clubs')
+                        .insert({ name, created_by: userId })
+                        .select('id')
+                        .single();
+
+                    if (insertError) throw insertError;
+
+                    if (file) {
+                        let uploadedLogoPath = null;
+
+                        try {
+                            const { logo_bucket, logo_path } = await uploadClubLogo({ clubId: newClub.id, file });
+                            uploadedLogoPath = logo_path;
+                            await updateClubLogoMetadata(newClub.id, { logo_bucket, logo_path });
+                        } catch (logoError) {
+                            await removeClubLogoObject(uploadedLogoPath);
+
+                            try {
+                                await softDeleteClub(newClub.id);
+                            } catch (deleteError) {
+                                console.warn('Não foi possível desfazer o cadastro do clube após falha na logo.', deleteError);
+                            }
+
+                            throw logoError;
+                        }
+                    }
+
+                    toast.show('Clube cadastrado!');
                 }
 
-                toast.show('Clube cadastrado!');
+                await this.loadClubs();
+            } catch (err) {
+                if (!err.alreadyNotified) {
+                    const message = getClubErrorMessage(err, 'Erro ao salvar clube. Tente novamente.');
+                    toast.show(message, 'error');
+                }
+                throw err;
             }
-
-            await this.loadClubs();
         });
 
         setTimeout(() => {

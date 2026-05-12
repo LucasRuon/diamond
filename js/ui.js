@@ -63,6 +63,7 @@ export const ui = {
                         await onSave(data);
                         close();
                     } catch (err) {
+                        console.error('[bottomSheet] onSave error:', err);
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                     }

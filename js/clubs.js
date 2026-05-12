@@ -38,6 +38,54 @@ export async function uploadClubLogo({ clubId, file }) {
     return { logo_bucket: CLUB_LOGO_BUCKET, logo_path: path };
 }
 
+export async function updateClubLogoMetadata(clubId, logoData) {
+    const { error } = await supabase
+        .from('clubs')
+        .update(logoData)
+        .eq('id', clubId);
+
+    if (error) throw error;
+}
+
+export async function removeClubLogoObject(logoPath) {
+    if (!logoPath) return;
+
+    const { error } = await supabase.storage
+        .from(CLUB_LOGO_BUCKET)
+        .remove([logoPath]);
+
+    if (error) {
+        console.warn('Não foi possível remover a logo enviada após falha no cadastro do clube.', error);
+    }
+}
+
+export function getClubErrorMessage(error, fallback = 'Erro ao salvar clube. Tente novamente.') {
+    const code = String(error?.code || '');
+    const message = String(error?.message || error?.error_description || error || '');
+    const normalizedMessage = message.toLowerCase();
+
+    if (code === '23505' || normalizedMessage.includes('clubs_active_name_idx')) {
+        return 'Já existe um clube ativo com este nome.';
+    }
+
+    if (
+        normalizedMessage.includes('row-level security') ||
+        normalizedMessage.includes('permission')
+    ) {
+        return 'Você não tem permissão para alterar clubes. Entre novamente como administrador.';
+    }
+
+    if (
+        normalizedMessage.includes('storage') ||
+        normalizedMessage.includes('bucket') ||
+        normalizedMessage.includes('upload')
+    ) {
+        return 'Não foi possível salvar a logo do clube. Verifique o arquivo e tente novamente.';
+    }
+
+    return fallback;
+}
+
 export async function listActiveClubs() {
     const { data, error } = await supabase
         .from('clubs')
