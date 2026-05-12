@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diamondx-v13';
+const CACHE_NAME = 'diamondx-v14';
 const ASSETS = [
     '/',
     '/index.html',
@@ -12,8 +12,8 @@ const ASSETS = [
     '/js/supabase.js',
     '/js/ui.js',
     '/js/qrcode.js',
-    '/js/clubs.js',
-    '/js/pages/admin/clubs.js',
+    '/js/clubs.js?v=14',
+    '/js/pages/admin/clubs.js?v=14',
     '/js/pages/student/preTrainingQuestionnaire.js',
     '/js/pages/student/preTrainingQuestionnaireView.js',
     '/js/pages/admin/preTrainingQuestionnaires.js',
