@@ -47,21 +47,68 @@ const app = {
         
         if (this.user) await this.loadProfile();
 
-        // Escutar mudanças de autenticação
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        // Escutar mudanças de autenticação.
+        // IMPORTANTE: callback NÃO pode ser async nem chamar `await supabase.*` diretamente —
+        // o GoTrueClient segura um lock interno durante o callback; awaits aqui causam deadlock
+        // (queries `pending` para sempre) ao voltar a aba/app ao foco. Toda chamada Supabase
+        // é despachada para fora do callback via setTimeout(...,0).
+        supabase.auth.onAuthStateChange((event, session) => {
             console.log("Auth Event:", event);
-            this.user = session?.user || null;
-            
+
+            const newUserId = session?.user?.id || null;
+            const currentUserId = this.user?.id || null;
+
             if (event === 'PASSWORD_RECOVERY') {
+                this.user = session?.user || null;
                 this.recoveryMode = true;
                 window.location.hash = '#update-password';
-                this.render();
+                setTimeout(() => this.render(), 0);
                 return;
             }
 
-            if (this.user) await this.loadProfile();
-            else this.profile = null;
-            this.render();
+            if (event === 'SIGNED_OUT') {
+                this.user = null;
+                this.profile = null;
+                if (window.location.hash !== '#login') window.location.hash = '#login';
+                setTimeout(() => this.render(), 0);
+                return;
+            }
+
+            if (event === 'TOKEN_REFRESHED') {
+                // Refresh falhou — sessão inválida, tratar como logout sem ficar em loading.
+                if (!session) {
+                    this.user = null;
+                    this.profile = null;
+                    if (window.location.hash !== '#login') window.location.hash = '#login';
+                    setTimeout(() => {
+                        try { toast.show('Sua sessão expirou. Faça login novamente.', 'error'); } catch (_) {}
+                        this.render();
+                    }, 0);
+                    return;
+                }
+                // Apenas atualiza a referência em memória. Nada de loadProfile/render —
+                // é o evento que dispara ao voltar a aba e era a causa do loading infinito.
+                this.user = session.user;
+                return;
+            }
+
+            // SIGNED_IN / INITIAL_SESSION / USER_UPDATED — só recarrega se o user.id realmente mudou.
+            if (newUserId === currentUserId) {
+                this.user = session?.user || this.user;
+                return;
+            }
+
+            this.user = session?.user || null;
+            if (!this.user) {
+                this.profile = null;
+                setTimeout(() => this.render(), 0);
+                return;
+            }
+
+            setTimeout(async () => {
+                await this.loadProfile();
+                this.render();
+            }, 0);
         });
 
         window.addEventListener('hashchange', () => this.render());
