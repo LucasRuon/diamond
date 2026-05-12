@@ -1,6 +1,7 @@
 import { supabase } from '../../supabase.js';
-import { escapeHtml } from '../../ui.js';
+import { escapeHtml, safeUrl } from '../../ui.js';
 import { getActivePlanUsage } from '../../planUsage.js';
+import { translateAsaasStatus } from '../../asaas.js';
 
 export const studentDashboard = {
     async render() {
@@ -16,6 +17,8 @@ export const studentDashboard = {
                     </div>
                     <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
+
+                <div id="pending-payment-banner-area"></div>
                 
                 <div id="student-status-area" style="display: flex; flex-direction: column; gap: 16px;">
                     <p style="color: var(--dx-muted); text-align: center; padding: 20px;">Carregando informações...</p>
@@ -31,9 +34,87 @@ export const studentDashboard = {
             </div>
         `;
 
+        this.loadPendingPaymentBanner();
         this.loadStatus();
         this.loadNextTraining();
         this.loadResponsible();
+    },
+
+    async loadPendingPaymentBanner() {
+        const container = document.getElementById('pending-payment-banner-area');
+        if (!container) return;
+
+        const userId = (await supabase.auth.getUser()).data.user.id;
+        const { data: pendingPayments, error, count } = await supabase
+            .from('student_plans')
+            .select(`
+                id,
+                created_at,
+                asaas_status,
+                asaas_invoice_url,
+                plan:plans(name, price)
+            `, { count: 'exact' })
+            .eq('student_id', userId)
+            .eq('status', 'pending_payment')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (error) {
+            console.error('[studentDashboard] pending payments error', error);
+            container.innerHTML = '';
+            return;
+        }
+
+        if (!pendingPayments || pendingPayments.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const mainPayment = pendingPayments[0];
+        const paymentCount = count || pendingPayments.length;
+        const title = paymentCount > 1
+            ? `${paymentCount} faturas aguardando pagamento`
+            : 'Fatura aguardando pagamento';
+        const planName = mainPayment.plan?.name || 'Plano';
+        const price = mainPayment.plan?.price != null
+            ? `R$ ${parseFloat(mainPayment.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+            : '';
+        const createdAt = mainPayment.created_at
+            ? new Date(mainPayment.created_at).toLocaleDateString('pt-BR')
+            : '';
+        const asaasLine = mainPayment.asaas_status
+            ? `Asaas: ${translateAsaasStatus(mainPayment.asaas_status)}`
+            : 'Pagamento ainda não confirmado';
+
+        container.innerHTML = `
+            <section class="pending-payment-banner" aria-label="Pendência financeira">
+                <div class="pending-payment-banner__icon">
+                    <i class="ph ph-warning-circle"></i>
+                </div>
+                <div class="pending-payment-banner__content">
+                    <p class="pending-payment-banner__eyebrow">Pendência financeira</p>
+                    <h2 class="pending-payment-banner__title">${escapeHtml(title)}</h2>
+                    <p class="pending-payment-banner__text">
+                        ${escapeHtml(planName)}${price ? ` · ${escapeHtml(price)}` : ''}${createdAt ? ` · ${escapeHtml(createdAt)}` : ''}
+                    </p>
+                    <p class="pending-payment-banner__meta">${escapeHtml(asaasLine)}</p>
+                    <div class="pending-payment-banner__actions">
+                        <a href="#checkout?sp=${encodeURIComponent(mainPayment.id)}" class="btn btn-primary pending-payment-banner__primary">
+                            CONTINUAR PAGAMENTO
+                        </a>
+                        ${mainPayment.asaas_invoice_url ? `
+                            <a href="${safeUrl(mainPayment.asaas_invoice_url)}" target="_blank" rel="noopener noreferrer" class="btn pending-payment-banner__secondary">
+                                VER FATURA
+                            </a>
+                        ` : `
+                            <a href="#payments" class="btn pending-payment-banner__secondary">
+                                VER FATURAS
+                            </a>
+                        `}
+                    </div>
+                </div>
+            </section>
+        `;
     },
 
     async loadStatus() {

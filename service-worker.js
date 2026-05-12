@@ -1,12 +1,12 @@
-const CACHE_NAME = 'diamondx-v18';
+const CACHE_NAME = 'diamondx-v20';
 const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
-    '/css/reset.css',
+    '/css/reset.css?v=2',
     '/css/variables.css',
-    '/css/components.css?v=15',
-    '/css/pages.css',
+    '/css/components.css?v=16',
+    '/css/pages.css?v=2',
     '/js/app.js?v=17',
     '/js/auth.js',
     '/js/supabase.js',

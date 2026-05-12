@@ -6,16 +6,22 @@
 }
 
 :root {
-    --nav-height: 65px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-height: clamp(56px, 14vw, 68px);
+    --nav-bottom-padding: var(--safe-bottom);
+    --nav-bottom-offset: 0px;
+    --nav-clearance: calc(var(--nav-height) + 40px + var(--nav-bottom-padding));
 }
 
 html, body {
-    background-color: var(--dx-bg);
+    background-color: var(--dx-surface);
     color: var(--dx-text);
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
     height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
     overflow: hidden; /* Impede o scroll do body inteiro */
 }
@@ -23,8 +29,29 @@ html, body {
 #app {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
     height: 100dvh; /* Altura dinâmica da tela (respeita barras do navegador) */
     width: 100%;
+    background: var(--dx-bg);
+}
+
+@supports (-webkit-touch-callout: none) {
+    html, body {
+        min-height: -webkit-fill-available;
+    }
+
+    #app {
+        min-height: -webkit-fill-available;
+        height: -webkit-fill-available;
+    }
+}
+
+@media all and (display-mode: standalone) {
+    :root {
+        --nav-bottom-padding: max(var(--safe-bottom), 16px);
+        --nav-bottom-offset: calc(-1 * var(--nav-bottom-padding));
+    }
 }
 
 #main-content {
@@ -38,7 +65,7 @@ html, body {
     padding-top: calc(45px + env(safe-area-inset-top));
     
     /* ZONA DE SEGURANÇA INFERIOR (Menu + Barra de Gestos) */
-    padding-bottom: calc(var(--nav-height) + 40px + env(safe-area-inset-bottom));
+    padding-bottom: var(--nav-clearance);
 }
 
 .page-container {
