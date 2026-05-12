@@ -11,7 +11,7 @@ export const studentAttendance = {
         const studentId = targetStudentId || user.id;
 
         // Verificação de autorização: só permite acesso ao histórico de outro usuário
-        // se o solicitante for admin ou responsável vinculado ao aluno.
+        // se o solicitante for admin ou responsável vinculado ao atleta.
         if (targetStudentId && targetStudentId !== user.id) {
             const { data: profile } = await supabase
                 .from('users').select('role').eq('id', user.id).single();

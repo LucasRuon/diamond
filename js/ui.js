@@ -59,10 +59,18 @@ export const ui = {
                     btn.disabled = true;
                     btn.innerHTML = '<i class="ph ph-circle-notch-bold"></i> SALVANDO...';
 
+                    const watchdog = setTimeout(() => {
+                        console.error('[bottomSheet] onSave timeout watchdog');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }, 30000);
+
                     try {
                         await onSave(data);
+                        clearTimeout(watchdog);
                         close();
                     } catch (err) {
+                        clearTimeout(watchdog);
                         console.error('[bottomSheet] onSave error:', err);
                         btn.disabled = false;
                         btn.innerHTML = originalText;

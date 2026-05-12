@@ -210,20 +210,20 @@ export const adminTrainings = {
         const session = { id: sessionId, title };
         const content = `
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 8px;">Selecione os alunos presentes nesta sessão.</p>
+                <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 8px;">Selecione os atletas presentes nesta sessão.</p>
                 <div id="reserved-students-list" class="card" style="background: var(--dx-surface2);">
                     <p class="section-label" style="margin-bottom: 8px;">Reservas</p>
                     <p style="text-align: center; padding: 12px; color: var(--dx-muted);">Carregando reservas...</p>
                 </div>
                 <div id="attendance-students-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
-                    <p style="text-align: center; padding: 20px; color: var(--dx-muted);">Carregando alunos...</p>
+                    <p style="text-align: center; padding: 20px; color: var(--dx-muted);">Carregando atletas...</p>
                 </div>
             </div>
         `;
 
         ui.bottomSheet.show(`PRESENÇAS: ${title}`, content, () => {});
 
-        // 1. Buscar todos os alunos
+        // 1. Buscar todos os atletas
         const { data: students } = await supabase.from('users').select('id, full_name').eq('role', 'student').order('full_name');
         
         // 2. Buscar quem já tem presença marcada
@@ -248,7 +248,7 @@ export const adminTrainings = {
                 ${(reservations || []).length ? reservations.map(reservation => `
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--dx-border);">
                         <div>
-                            <p style="font-weight: 700; font-size: 13px;">${escapeHtml(reservation.student?.full_name || 'Aluno')}</p>
+                            <p style="font-weight: 700; font-size: 13px;">${escapeHtml(reservation.student?.full_name || 'Atleta')}</p>
                             <p style="font-size: 11px; color: var(--dx-muted);">${escapeHtml(reservation.student?.email || '')}</p>
                         </div>
                         <span class="badge ${presentIds.has(reservation.student?.id) ? 'badge-active' : 'badge-pending'}">${presentIds.has(reservation.student?.id) ? 'PRESENTE' : 'RESERVADO'}</span>

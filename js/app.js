@@ -21,6 +21,7 @@ import { responsiblePlans } from './pages/responsible/plans.js';
 import { responsibleDashboard } from './pages/responsible/dashboard.js';
 import { responsiblePayments } from './pages/responsible/payments.js';
 import { responsibleTrainings } from './pages/responsible/trainings.js';
+import { checkoutPage } from './pages/checkout.js';
 import {
     createStudentDocumentSignedUrl,
     formatDocumentDate,
@@ -324,6 +325,7 @@ const app = {
             case '#students': await responsibleStudents.render(); break;
             case '#plans': await this.renderPlans(); break;
             case '#payments': await this.renderPayments(); break;
+            case '#checkout': await checkoutPage.render(params.get('sp')); break;
             case '#users': await adminUsers.render(); break;
             case '#reports': await adminReports.render(); break;
             case '#pre-training-questionnaires': await adminPreTrainingQuestionnaires.render(); break;
@@ -766,7 +768,7 @@ const app = {
                     <div class="card" style="margin-bottom: 24px; border-color: var(--dx-teal-border);">
                         <p style="color: var(--dx-muted); font-size: 12px; font-weight: 700;">DEPENDENTES</p>
                         <a href="#students" class="btn btn-primary" style="margin-top: 12px; font-size: 13px; padding: 10px;">
-                            <i class="ph ph-users" style="margin-right: 8px;"></i> GERENCIAR MEUS ALUNOS
+                            <i class="ph ph-users" style="margin-right: 8px;"></i> GERENCIAR MEUS ATLETAS
                         </a>
                     </div>
                 ` : ''}
@@ -948,9 +950,25 @@ const app = {
                 throw error;
             }
 
+            const optimisticProfile = {
+                ...(this.profile || {}),
+                ...updateData
+            };
+            this.profile = optimisticProfile;
+
             toast.show('Ficha do atleta atualizada!');
-            await this.loadProfile();
-            this.render();
+            this.renderProfile();
+            const refreshProfile = async () => {
+                await this.loadProfile();
+                this.profile = {
+                    ...optimisticProfile,
+                    ...(this.profile || {})
+                };
+                this.renderProfile();
+            };
+            refreshProfile().catch((reloadError) => {
+                console.warn('Ficha salva, mas o perfil nao foi recarregado:', reloadError);
+            });
         });
     },
 
@@ -1027,14 +1045,16 @@ const app = {
                 throw new Error('CPF invalido.');
             }
 
+            const updateData = {
+                full_name: fullName,
+                cpf,
+                phone,
+                updated_at: new Date().toISOString()
+            };
+
             const { error } = await supabase
                 .from('users')
-                .update({
-                    full_name: fullName,
-                    cpf,
-                    phone,
-                    updated_at: new Date().toISOString()
-                })
+                .update(updateData)
                 .eq('id', this.user.id);
 
             if (error) {
@@ -1042,13 +1062,37 @@ const app = {
                 throw error;
             }
 
-            await supabase.auth.updateUser({
-                data: { full_name: fullName }
-            });
+            const optimisticProfile = {
+                ...(this.profile || {}),
+                ...updateData
+            };
+            this.profile = optimisticProfile;
+
+            const syncAuthMetadata = async () => {
+                try {
+                    const { error: metadataError } = await supabase.auth.updateUser({
+                        data: { full_name: fullName }
+                    });
+                    if (metadataError) throw metadataError;
+                } catch (err) {
+                    console.warn('Perfil salvo, mas metadados do Auth nao foram sincronizados:', err);
+                }
+            };
+            void syncAuthMetadata();
 
             toast.show('Alteracoes salvas com sucesso');
-            await this.loadProfile();
-            this.render();
+            this.renderProfile();
+            const refreshProfile = async () => {
+                await this.loadProfile();
+                this.profile = {
+                    ...optimisticProfile,
+                    ...(this.profile || {})
+                };
+                this.renderProfile();
+            };
+            refreshProfile().catch((reloadError) => {
+                console.warn('Perfil salvo, mas o perfil nao foi recarregado:', reloadError);
+            });
         });
 
         // Aplicar máscaras após injetar no DOM (via ui.bottomSheet)
@@ -1074,14 +1118,12 @@ const app = {
         const items = role === 'admin' ? [
             { h: '#dashboard', i: 'ph-chart-line-up', t: 'Dash' },
             { h: '#users', i: 'ph-users', t: 'Usuários' },
-            { h: '#clubs', i: 'ph-shield', t: 'Clubes' },
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
-            { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
-            { h: '#profile', i: 'ph-gear', t: 'Config' }
+            { a: 'more', i: 'ph-dots-three', t: 'Mais' }
         ] : (role === 'responsible' || role === 'businessman' ? [
             { h: '#dashboard', i: 'ph-house', t: 'Início' },
-            { h: '#students', i: 'ph-user-list', t: 'Alunos' },
+            { h: '#students', i: 'ph-user-list', t: 'Atletas' },
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-receipt', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Faturas' },
@@ -1094,12 +1136,72 @@ const app = {
             { h: '#profile', i: 'ph-user', t: 'Perfil' }
         ]);
 
-        this.bottomNav.innerHTML = items.map(item => `
-            <a href="${item.h}" class="nav-item ${hash === item.h ? 'active' : ''}">
-                <i class="ph${hash === item.h ? '-bold' : ''} ${item.i}"></i>
+        const moreRoutes = ['#clubs', '#payments', '#profile'];
+        this.bottomNav.innerHTML = items.map(item => {
+            if (item.a === 'more') {
+                const moreActive = moreRoutes.includes(hash);
+                return `<button type="button" class="nav-item ${moreActive ? 'active' : ''}" data-action="more" aria-label="Mais opções">
+                    <i class="ph${moreActive ? '-bold' : ''} ${item.i}"></i>
+                    <span>${item.t}</span>
+                </button>`;
+            }
+            const isActive = hash === item.h;
+            return `<a href="${item.h}" class="nav-item ${isActive ? 'active' : ''}">
+                <i class="ph${isActive ? '-bold' : ''} ${item.i}"></i>
                 <span>${item.t}</span>
-            </a>
-        `).join('');
+            </a>`;
+        }).join('');
+        const moreBtn = this.bottomNav.querySelector('[data-action="more"]');
+        if (moreBtn) {
+            moreBtn.addEventListener('click', () => this.openMoreMenu());
+        }
+    },
+
+    openMoreMenu() {
+        if (document.querySelector('.more-menu-overlay')) {
+            this.closeMoreMenu();
+            return;
+        }
+        const moreItems = [
+            { h: '#clubs', i: 'ph-shield', t: 'Clubes' },
+            { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
+            { h: '#profile', i: 'ph-gear', t: 'Configurações' }
+        ];
+        const overlay = document.createElement('div');
+        overlay.className = 'more-menu-overlay';
+        overlay.innerHTML = `
+            <div class="more-menu-sheet" role="dialog" aria-label="Mais opções">
+                ${moreItems.map(it => `
+                    <button type="button" class="more-menu-item" data-hash="${it.h}">
+                        <i class="ph ${it.i}"></i>
+                        <span>${it.t}</span>
+                    </button>
+                `).join('')}
+            </div>
+        `;
+        const close = () => this.closeMoreMenu();
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+        overlay.querySelectorAll('.more-menu-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-hash');
+                close();
+                if (target) window.location.hash = target;
+            });
+        });
+        this._moreMenuEsc = (e) => { if (e.key === 'Escape') close(); };
+        document.addEventListener('keydown', this._moreMenuEsc);
+        document.body.appendChild(overlay);
+    },
+
+    closeMoreMenu() {
+        const overlay = document.querySelector('.more-menu-overlay');
+        if (overlay) overlay.remove();
+        if (this._moreMenuEsc) {
+            document.removeEventListener('keydown', this._moreMenuEsc);
+            this._moreMenuEsc = null;
+        }
     }
 };
 

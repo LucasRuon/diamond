@@ -22,6 +22,86 @@ export function getClubLogoUrl(club) {
     return data?.publicUrl || null;
 }
 
+export async function removeImageBackground(file, { tolerance = 32 } = {}) {
+    if (!file) return file;
+    if (file.type === 'image/svg+xml') return file;
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+        const decodePromise = new Promise((resolve, reject) => {
+            const el = new Image();
+            el.onload = () => resolve(el);
+            el.onerror = () => reject(new Error('Não foi possível ler a imagem para remover o fundo.'));
+            el.src = objectUrl;
+        });
+        const decodeTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout ao decodificar imagem.')), 8000);
+        });
+        const img = await Promise.race([decodePromise, decodeTimeout]);
+
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) throw new Error('Imagem inválida.');
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+
+        const corners = [
+            [0, 0],
+            [w - 1, 0],
+            [0, h - 1],
+            [w - 1, h - 1],
+        ];
+        let r = 0, g = 0, b = 0;
+        for (const [x, y] of corners) {
+            const i = (y * w + x) * 4;
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+        }
+        r = Math.round(r / corners.length);
+        g = Math.round(g / corners.length);
+        b = Math.round(b / corners.length);
+
+        const inner2 = tolerance * tolerance * 3;
+        const outerTol = tolerance * 2;
+        const outer2 = outerTol * outerTol * 3;
+        for (let i = 0; i < data.length; i += 4) {
+            const dr = data[i] - r;
+            const dg = data[i + 1] - g;
+            const db = data[i + 2] - b;
+            const dist2 = dr * dr + dg * dg + db * db;
+            if (dist2 <= inner2) {
+                data[i + 3] = 0;
+            } else if (dist2 <= outer2) {
+                const t = (dist2 - inner2) / (outer2 - inner2);
+                data[i + 3] = Math.round(data[i + 3] * t);
+            }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        const blobPromise = new Promise((resolve, reject) => {
+            canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Falha ao gerar PNG transparente.'))), 'image/png');
+        });
+        const blobTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout ao gerar PNG transparente.')), 8000);
+        });
+        const blob = await Promise.race([blobPromise, blobTimeout]);
+
+        const baseName = (file.name || 'logo').replace(/\.[^.]+$/, '') || 'logo';
+        return new File([blob], `${baseName}.png`, { type: 'image/png' });
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
+
 export async function uploadClubLogo({ clubId, file }) {
     const validationError = validateClubLogoFile(file);
     if (validationError) throw new Error(validationError);

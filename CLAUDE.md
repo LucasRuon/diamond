@@ -55,7 +55,8 @@ Não há build, lint, nem suíte de testes configurados (`package.json` só decl
 ### Edge Functions
 
 - `supabase/functions/admin-update-user/` — operações privilegiadas em `auth.users` (precisa do service_role key como secret).
-- `supabase/functions/asaas-checkout/` — cria checkout no Asaas (secrets do Asaas como variáveis no Supabase).
+- `supabase/functions/asaas-checkout/` — cria customer + payment no Asaas, retorna QR PIX/`invoiceUrl` e persiste `student_plans` (secrets `ASAAS_API_KEY`, `ASAAS_ENV`).
+- `supabase/functions/asaas-webhook/` — recebe eventos Asaas, valida `asaas-access-token` e atualiza `student_plans` via RPC `activate_student_plan` (secret `ASAAS_WEBHOOK_TOKEN`). Ver `docs/asaas.md`.
 - Deno + `esm.sh` (lockado em `deno.lock`).
 
 ### PWA

@@ -88,7 +88,7 @@
     justify-content: space-around;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 1000;
-    height: calc(65px + env(safe-area-inset-bottom));
+    height: calc(clamp(56px, 14vw, 68px) + env(safe-area-inset-bottom));
 }
 
 .nav-item {
@@ -97,12 +97,16 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: clamp(2px, 0.8vw, 5px);
     color: var(--dx-muted);
-    font-size: 10px;
+    font-size: clamp(9px, 2.6vw, 11px);
     font-weight: 500;
-    height: 65px;
+    height: clamp(56px, 14vw, 68px);
     transition: all 0.2s ease;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .nav-item.active {
@@ -110,7 +114,78 @@
 }
 
 .nav-item i {
-    font-size: 20px;
+    font-size: clamp(18px, 5.2vw, 22px);
+}
+
+.nav-item span {
+    white-space: nowrap;
+    text-align: center;
+}
+
+@media (max-width: 380px) {
+    .nav-item {
+        padding: 0 2px;
+    }
+    .nav-item span {
+        letter-spacing: -0.2px;
+    }
+}
+
+/* "Mais" overlay (bottom sheet) */
+.more-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    display: flex;
+    align-items: flex-end;
+    animation: more-menu-fade 0.18s ease;
+}
+
+.more-menu-sheet {
+    background: var(--dx-surface);
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: more-menu-slide 0.22s ease;
+}
+
+.more-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 12px;
+    color: var(--dx-text);
+    font-size: 15px;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.more-menu-item i {
+    font-size: 22px;
+    color: var(--dx-teal);
+}
+
+.more-menu-item:hover,
+.more-menu-item:focus-visible {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+@keyframes more-menu-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes more-menu-slide {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* Diamond Button — fundo preto, borda verde esmeralda, click inverte */

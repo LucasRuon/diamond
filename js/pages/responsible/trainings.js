@@ -13,7 +13,7 @@ export const responsibleTrainings = {
                 <div class="page-header">
                     <div>
                         <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">TREINOS</h1>
-                        <p style="color: var(--dx-muted); font-size: 13px;">Reservas dos alunos vinculados</p>
+                        <p style="color: var(--dx-muted); font-size: 13px;">Reservas dos atletas vinculados</p>
                     </div>
                     <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
@@ -58,7 +58,7 @@ export const responsibleTrainings = {
             .eq('responsible_id', user.id);
 
         if (linksError) {
-            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar alunos vinculados.</p>`;
+            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar atletas vinculados.</p>`;
             calendarContainer.innerHTML = '';
             return;
         }
@@ -68,8 +68,8 @@ export const responsibleTrainings = {
             listContainer.innerHTML = `
                 <div style="text-align: center; margin-top: 60px; padding: 20px;">
                     <i class="ph ph-users-three" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
-                    <p style="color: var(--dx-muted);">Nenhum aluno vinculado.</p>
-                    <a href="#students" class="btn btn-primary" style="margin-top: 16px; width: auto; text-decoration: none;">VINCULAR ALUNO</a>
+                    <p style="color: var(--dx-muted);">Nenhum atleta vinculado.</p>
+                    <a href="#students" class="btn btn-primary" style="margin-top: 16px; width: auto; text-decoration: none;">VINCULAR ATLETA</a>
                 </div>
             `;
             return;
@@ -78,7 +78,7 @@ export const responsibleTrainings = {
         const linkedStudentIds = links.map(link => link.student_id);
         const studentsById = new Map(links.map(link => [
             link.student_id,
-            link.student || { id: link.student_id, full_name: 'Aluno', email: '' }
+            link.student || { id: link.student_id, full_name: 'Atleta', email: '' }
         ]));
         const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
         const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
@@ -158,7 +158,7 @@ export const responsibleTrainings = {
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${reservations.length ? reservations.map(reservation => {
-                        const student = studentsById.get(reservation.student_id) || { full_name: 'Aluno', email: '' };
+                        const student = studentsById.get(reservation.student_id) || { full_name: 'Atleta', email: '' };
                         return `
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; background: var(--dx-surface2); border: 1px solid var(--dx-border); border-radius: var(--radius-md);">
                                 <div>
@@ -168,7 +168,7 @@ export const responsibleTrainings = {
                                 <span class="badge badge-active">RESERVADO</span>
                             </div>
                         `;
-                    }).join('') : '<p style="font-size: 12px; color: var(--dx-muted);">Sem reserva dos seus alunos.</p>'}
+                    }).join('') : '<p style="font-size: 12px; color: var(--dx-muted);">Sem reserva dos seus atletas.</p>'}
                 </div>
             </div>
         `;

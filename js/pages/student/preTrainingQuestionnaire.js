@@ -30,42 +30,42 @@ const WELLNESS_GROUPS = PRE_TRAINING_WELLNESS_GROUPS;
 
 const BODY_REGIONS = {
     frente: [
-        { region: 'cabeca', label: 'Cabeça', top: 8, left: 12.5, width: 15, height: 4 },
+        { region: 'cabeca', label: 'Cabeça', top: 6, left: 12, width: 15, height: 4 },
         { region: 'ombro_esquerdo', label: 'Ombro esquerdo', top: 24, left: 12.5, width: 15, height: 4 },
-        { region: 'braco_esquerdo', label: 'Braço esquerdo', top: 34, left: 12.5, width: 15, height: 4 },
-        { region: 'pubis', label: 'Púbis', top: 45, left: 12.5, width: 15, height: 4 },
-        { region: 'adutor_esquerdo', label: 'Adutor esquerdo', top: 54, left: 12.5, width: 15, height: 4 },
-        { region: 'anterior_coxa_esquerda', label: 'Anterior coxa esquerda', top: 62, left: 12.5, width: 20, height: 4 },
-        { region: 'joelho_esquerdo', label: 'Joelho esquerdo', top: 70, left: 12.5, width: 15, height: 4 },
-        { region: 'canela_esquerda', label: 'Canela esquerda', top: 78, left: 12.5, width: 15, height: 4 },
-        { region: 'tornozelo_esquerdo', label: 'Tornozelo esquerdo', top: 86, left: 11.25, width: 17.5, height: 4 },
-        { region: 'pe_esquerdo', label: 'Pé esquerdo', top: 90, left: 12.5, width: 15, height: 4 },
+        { region: 'braco_esquerdo', label: 'Braço esquerdo', top: 32, left: 10.5, width: 15, height: 4 },
+        { region: 'pubis', label: 'Púbis', top: 46.5, left: 10.5, width: 15, height: 4 },
+        { region: 'adutor_esquerdo', label: 'Adutor esquerdo', top: 54, left: 11.5, width: 15, height: 4 },
+        { region: 'anterior_coxa_esquerda', label: 'Anterior coxa esquerda', top: 60, left: 15.5, width: 24, height: 4 },
+        { region: 'joelho_esquerdo', label: 'Joelho esquerdo', top: 69, left: 10.5, width: 15, height: 4 },
+        { region: 'canela_esquerda', label: 'Canela esquerda', top: 77, left: 10.5, width: 15, height: 4 },
+        { region: 'tornozelo_esquerdo', label: 'Tornozelo esquerdo', top: 85, left: 12.5, width: 17.5, height: 4 },
+        { region: 'pe_esquerdo', label: 'Pé esquerdo', top: 94, left: 7.75, width: 8, height: 4 },
         { region: 'torax', label: 'Tórax', top: 16, left: 87.5, width: 15, height: 4 },
-        { region: 'ombro_direito', label: 'Ombro direito', top: 24, left: 87.5, width: 15, height: 4 },
-        { region: 'braco_direito', label: 'Braço direito', top: 34, left: 87.5, width: 15, height: 4 },
-        { region: 'abdomen', label: 'Abdômen', top: 42, left: 86.25, width: 17.5, height: 4 },
-        { region: 'adutor_direito', label: 'Adutor direito', top: 54, left: 87.5, width: 15, height: 4 },
-        { region: 'anterior_coxa_direita', label: 'Anterior coxa direita', top: 62, left: 87.5, width: 20, height: 4 },
-        { region: 'joelho_direito', label: 'Joelho direito', top: 70, left: 87.5, width: 15, height: 4 },
-        { region: 'canela_direita', label: 'Canela direita', top: 78, left: 87.5, width: 15, height: 4 },
-        { region: 'tornozelo_direito', label: 'Tornozelo direito', top: 86, left: 88.75, width: 17.5, height: 4 },
-        { region: 'pe_direito', label: 'Pé direito', top: 90, left: 87.5, width: 15, height: 4 }
+        { region: 'ombro_direito', label: 'Ombro direito', top: 24.5, left: 88.5, width: 15, height: 4 },
+        { region: 'braco_direito', label: 'Braço direito', top: 32, left: 89.5, width: 15, height: 4 },
+        { region: 'abdomen', label: 'Abdômen', top: 39.5, left: 86.5, width: 17.5, height: 4 },
+        { region: 'adutor_direito', label: 'Adutor direito', top: 54, left: 89, width: 15, height: 4 },
+        { region: 'anterior_coxa_direita', label: 'Anterior coxa direita', top: 60, left: 85.5, width: 24, height: 4 },
+        { region: 'joelho_direito', label: 'Joelho direito', top: 69, left: 90, width: 15, height: 4 },
+        { region: 'canela_direita', label: 'Canela direita', top: 77, left: 90, width: 15, height: 4 },
+        { region: 'tornozelo_direito', label: 'Tornozelo direito', top: 85, left: 88, width: 17.5, height: 4 },
+        { region: 'pe_direito', label: 'Pé direito', top: 94, left: 94.10, width: 8, height: 4 }
     ],
     costas: [
-        { region: 'pescoco', label: 'Pescoço', top: 20, left: 12.5, width: 15, height: 4 },
-        { region: 'lombar', label: 'Lombar', top: 40, left: 12.5, width: 15, height: 4 },
-        { region: 'punho_esquerdo', label: 'Punho esquerdo', top: 47, left: 12.5, width: 15, height: 4 },
-        { region: 'mao_esquerda', label: 'Mão esquerda', top: 56, left: 12.5, width: 15, height: 4 },
-        { region: 'posterior_coxa_esquerda', label: 'Posterior coxa esquerda', top: 62, left: 12.5, width: 20, height: 4 },
-        { region: 'panturrilha_esquerda', label: 'Panturrilha esquerda', top: 76, left: 12.5, width: 20, height: 4 },
-        { region: 'calcanhar_esquerdo', label: 'Calcanhar esquerdo', top: 89, left: 12.5, width: 15, height: 4 },
-        { region: 'costas', label: 'Costas', top: 28, left: 87.5, width: 15, height: 4 },
-        { region: 'nadegas', label: 'Nádegas', top: 44, left: 87.5, width: 15, height: 4 },
-        { region: 'punho_direito', label: 'Punho direito', top: 47, left: 87.5, width: 15, height: 4 },
-        { region: 'mao_direita', label: 'Mão direita', top: 56, left: 87.5, width: 15, height: 4 },
-        { region: 'posterior_coxa_direita', label: 'Posterior coxa direita', top: 62, left: 87.5, width: 20, height: 4 },
-        { region: 'panturrilha_direita', label: 'Panturrilha direita', top: 76, left: 87.5, width: 20, height: 4 },
-        { region: 'calcanhar_direito', label: 'Calcanhar direito', top: 89, left: 87.5, width: 15, height: 4 }
+        { region: 'pescoco', label: 'Pescoço', top: 20.75, left: 12.5, width: 16, height: 4 },
+        { region: 'lombar', label: 'Lombar', top: 39.75, left: 11.85, width: 15, height: 4 },
+        { region: 'punho_esquerdo', label: 'Punho esquerdo', top: 50, left: 10.75, width: 15, height: 4 },
+        { region: 'mao_esquerda', label: 'Mão esquerda', top: 57, left: 10.5, width: 13, height: 4 },
+        { region: 'posterior_coxa_esquerda', label: 'Posterior coxa esquerda', top: 66.5, left: 14.5, width: 23, height: 4 },
+        { region: 'panturrilha_esquerda', label: 'Panturrilha esquerda', top: 81, left: 12.5, width: 20, height: 4 },
+        { region: 'calcanhar_esquerdo', label: 'Calcanhar esquerdo', top: 91.7, left: 12.5, width: 15, height: 4 },
+        { region: 'costas', label: 'Costas', top: 31, left: 89, width: 15, height: 4 },
+        { region: 'nadegas', label: 'Nádegas', top: 43, left: 88.5, width: 15, height: 4 },
+        { region: 'punho_direito', label: 'Punho direito', top: 50, left: 89.5, width: 14, height: 4 },
+        { region: 'mao_direita', label: 'Mão direita', top: 57.5, left: 90.5, width: 12, height: 4 },
+        { region: 'posterior_coxa_direita', label: 'Posterior coxa direita', top: 66.5, left: 85.5, width: 23, height: 4 },
+        { region: 'panturrilha_direita', label: 'Panturrilha direita', top: 81, left: 87.5, width: 20, height: 4 },
+        { region: 'calcanhar_direito', label: 'Calcanhar direito', top: 91.5, left: 87.5, width: 15, height: 4 }
     ]
 };
 
@@ -320,14 +320,14 @@ export const preTrainingQuestionnaire = {
             };
 
             const renderRecovery = () => {
-                const scores = Array.from({ length: 15 }, (_, index) => index + 6);
+                const scores = Array.from({ length: 10 }, (_, index) => index + 1);
                 return `
                     <section class="precheck-step">
                         <div class="precheck-step-title">
                             <i class="ph ph-battery-charging"></i>
                             <div>
                                 <h3>Recuperação</h3>
-                                <p>Escolha um valor de 6 a 20 para seu estado geral antes do treino.</p>
+                                <p>Escolha um valor de 1 a 10 para seu estado geral antes do treino.</p>
                             </div>
                         </div>
                         <div class="precheck-option-grid precheck-option-grid--scores">

@@ -67,9 +67,10 @@ Depois acesse `http://localhost:8080`.
    ```bash
    supabase functions deploy admin-update-user
    supabase functions deploy asaas-checkout
+   supabase functions deploy asaas-webhook
    ```
 4. Configure a URL e a anon key do projeto em `js/supabase.js`.
-5. Defina os secrets necessários para o Asaas nas Edge Functions.
+5. Defina os secrets necessários para o Asaas nas Edge Functions (`ASAAS_API_KEY`, `ASAAS_ENV`, `ASAAS_WEBHOOK_TOKEN`). Procedimento completo em `docs/asaas.md`.
 
 ## Migrations
 

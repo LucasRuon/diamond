@@ -7,6 +7,7 @@ import {
     uploadClubLogo,
     updateClubLogoMetadata,
     removeClubLogoObject,
+    removeImageBackground,
     getClubErrorMessage,
     softDeleteClub
 } from '../../clubs.js';
@@ -142,8 +143,12 @@ export const adminClubs = {
                         </div>
                     ` : ''}
                     <input type="file" id="club-logo-file" name="logo_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="input-control" style="padding: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--dx-text); cursor: pointer;">
+                        <input type="checkbox" id="club-logo-remove-bg" name="remove_bg" style="width: 16px; height: 16px; accent-color: var(--dx-teal);">
+                        Remover fundo automaticamente
+                    </label>
                     <p id="club-logo-error" style="color: var(--dx-danger); font-size: 12px; display: none;"></p>
-                    <p style="font-size: 11px; color: var(--dx-muted); margin-top: 4px;">PNG, JPG, WebP ou SVG • Máx. 2 MB</p>
+                    <p style="font-size: 11px; color: var(--dx-muted); margin-top: 4px;">PNG, JPG, WebP ou SVG • Máx. 2 MB • Remoção funciona melhor com fundo sólido (branco, preto, etc.)</p>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">${club ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR CLUBE'}</button>
             </form>
@@ -157,17 +162,28 @@ export const adminClubs = {
                 }
 
                 const fileInput = document.getElementById('club-logo-file');
-                const file = fileInput?.files?.[0] || null;
+                const removeBgInput = document.getElementById('club-logo-remove-bg');
+                let file = fileInput?.files?.[0] || null;
 
                 if (file) {
                     const validationError = validateClubLogoFile(file);
                     if (validationError) {
                         throwClubValidation(validationError);
                     }
+
+                    if (removeBgInput?.checked && file.type !== 'image/svg+xml') {
+                        try {
+                            file = await removeImageBackground(file);
+                        } catch (bgError) {
+                            console.warn('Falha ao remover fundo da logo, enviando original.', bgError);
+                            toast.show('Não foi possível remover o fundo automaticamente. A imagem original será enviada.', 'error');
+                        }
+                    }
                 }
 
                 if (club) {
                     let uploadedLogoPath = null;
+                    const previousLogoPath = club.logo_path || null;
                     const payload = { name, updated_at: new Date().toISOString() };
 
                     if (file) {
@@ -186,6 +202,10 @@ export const adminClubs = {
                         await removeClubLogoObject(uploadedLogoPath);
                     }
                     if (updateError) throw updateError;
+
+                    if (file && previousLogoPath && previousLogoPath !== uploadedLogoPath) {
+                        await removeClubLogoObject(previousLogoPath);
+                    }
 
                     toast.show('Clube atualizado!');
                 } else {

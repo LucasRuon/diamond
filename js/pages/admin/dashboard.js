@@ -13,7 +13,7 @@ export const adminDashboard = {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                     <div class="card">
-                        <p style="font-size: 12px; color: var(--dx-muted); text-transform: uppercase; font-weight: 600;">Alunos</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); text-transform: uppercase; font-weight: 600;">Atletas</p>
                         <p id="stat-students" style="font-weight: 800; font-size: 24px; margin-top: 4px;">--</p>
                     </div>
                     <div class="card">
@@ -42,7 +42,7 @@ export const adminDashboard = {
                     </div>
                     <div style="min-width: 0;">
                         <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Questionários pré-treino</p>
-                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Ver respostas de todos os alunos</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Ver respostas de todos os atletas</p>
                     </div>
                     <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
                 </a>
@@ -52,7 +52,7 @@ export const adminDashboard = {
                         <i class="ph ph-folder-open" style="font-size: 24px; color: var(--dx-teal);"></i>
                     </div>
                     <div style="min-width: 0;">
-                        <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Fichas dos alunos</p>
+                        <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Fichas dos atletas</p>
                         <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Enviar e consultar documentos vinculados</p>
                     </div>
                     <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
@@ -64,7 +64,7 @@ export const adminDashboard = {
                     </div>
                     <div style="min-width: 0;">
                         <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Clubes</p>
-                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Cadastrar logos e vincular alunos</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Cadastrar logos e vincular atletas</p>
                     </div>
                     <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
                 </a>

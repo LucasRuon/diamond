@@ -1,6 +1,8 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
+import { createCheckout } from '../../asaas.js';
+import { checkoutPage } from '../checkout.js';
 
 export const adminCharges = {
     async render() {
@@ -21,7 +23,7 @@ export const adminCharges = {
                 </div>
 
                 <div class="input-group" style="margin-bottom: 16px;">
-                    <input type="text" id="search-charge-input" class="input-control" placeholder="Buscar por nome do aluno..." style="padding: 10px 14px; font-size: 14px;">
+                    <input type="text" id="search-charge-input" class="input-control" placeholder="Buscar por nome do atleta..." style="padding: 10px 14px; font-size: 14px;">
                 </div>
 
                 <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px;">
@@ -57,66 +59,112 @@ export const adminCharges = {
     },
 
     async showAddChargeForm() {
-        toast.show('Carregando alunos...');
-        const { data: students } = await supabase
-            .from('users')
-            .select('id, full_name, email')
-            .eq('role', 'student')
-            .order('full_name');
+        toast.show('Carregando atletas...');
+        const [{ data: students }, { data: plans }] = await Promise.all([
+            supabase.from('users').select('id, full_name, email').eq('role', 'student').order('full_name'),
+            supabase.from('plans').select('id, name, price, category').eq('active', true).order('name')
+        ]);
 
         const formHtml = `
             <form id="manual-charge-form">
                 <div class="input-group">
-                    <label>ALUNO / CLIENTE</label>
+                    <label>ATLETA / CLIENTE</label>
                     <select name="student_id" class="input-control" required>
-                        <option value="">Selecione um aluno...</option>
+                        <option value="">Selecione um atleta...</option>
                         ${students?.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.full_name)} (${escapeHtml(s.email)})</option>`).join('')}
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>DESCRIÇÃO DA COBRANÇA</label>
-                    <input type="text" name="description" class="input-control" placeholder="Ex: Avaliação Física / Aula Avulsa" required>
+                    <label>PLANO</label>
+                    <select name="plan_id" class="input-control" required>
+                        <option value="">Selecione um plano...</option>
+                        ${plans?.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} — R$ ${parseFloat(p.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</option>`).join('')}
+                    </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+
+                <div class="input-group">
+                    <label>MODO DE COBRANÇA</label>
+                    <select name="mode" id="ac-mode" class="input-control">
+                        <option value="asaas">Gerar cobrança Asaas</option>
+                        <option value="manual">Marcar como pago manualmente</option>
+                    </select>
+                </div>
+
+                <div id="ac-asaas-options">
                     <div class="input-group">
-                        <label>VALOR (R$)</label>
-                        <input type="number" step="0.01" name="price" class="input-control" placeholder="0,00" required>
+                        <label>MÉTODO</label>
+                        <select name="payment_method" id="ac-method" class="input-control">
+                            <option value="PIX">PIX</option>
+                            <option value="CREDIT_CARD">Cartão de Crédito</option>
+                        </select>
                     </div>
-                    <div class="input-group">
-                        <label>FORMA INICIAL</label>
-                        <select name="payment_method" class="input-control">
-                            <option value="pix">PIX</option>
-                            <option value="boleto">Boleto</option>
-                            <option value="credit_card">Cartão</option>
+                    <div class="input-group" id="ac-installments-wrap" style="display:none;">
+                        <label>PARCELAS</label>
+                        <select name="installments" id="ac-installments" class="input-control">
+                            ${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${i + 1}x</option>`).join('')}
                         </select>
                     </div>
                 </div>
-                <p style="font-size: 11px; color: var(--dx-muted); margin-bottom: 16px;">
-                    * Esta ação gera uma intenção de cobrança vinculada ao aluno.
-                </p>
-                <button type="submit" class="btn btn-primary" style="margin-top: 8px;">GERAR COBRANÇA</button>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 8px;">CONFIRMAR</button>
             </form>
         `;
 
-        ui.bottomSheet.show('Nova Cobrança Manual', formHtml, async (data) => {
+        ui.bottomSheet.show('Nova Cobrança', formHtml, async (data) => {
             const adminId = (await supabase.auth.getUser()).data.user.id;
-            
-            // 1. Criar um "plano customizado" ou serviço avulso
-            // Na spec, serviços avulsos (fisio) são comuns.
-            // Para cobrança manual, vamos registrar como um plano de id fixo de "Serviço Avulso" ou nulo
-            const { error } = await supabase.from('student_plans').insert([{
-                student_id: data.student_id,
-                purchased_by: adminId,
-                status: 'pending_payment',
-                // Aqui usaríamos colunas customizadas se existissem. 
-                // Como não existem no banco padrão, vamos usar o plano 'Fisio Sessão Avulsa' (ID 6 na spec) como placeholder
-                // ou simplesmente criar o registro.
-            }]);
 
-            if (error) throw error;
-            toast.show('Cobrança manual registrada!');
-            this.loadCharges();
+            if (!data.student_id || !data.plan_id) throw new Error('Selecione atleta e plano.');
+
+            if (data.mode === 'manual') {
+                // Fluxo manual: insert + activate direto
+                const { data: spRow, error: insErr } = await supabase
+                    .from('student_plans')
+                    .insert([{
+                        student_id: data.student_id,
+                        plan_id: data.plan_id,
+                        purchased_by: adminId,
+                        status: 'pending_payment'
+                    }])
+                    .select('id')
+                    .single();
+                if (insErr) throw insErr;
+
+                const { error: rpcErr } = await supabase.rpc('activate_student_plan', {
+                    p_student_plan_id: spRow.id
+                });
+                if (rpcErr) throw rpcErr;
+
+                toast.show('Plano ativado manualmente!');
+                this.loadCharges();
+                return;
+            }
+
+            // Fluxo Asaas
+            const paymentMethod = data.payment_method;
+            const installments = paymentMethod === 'CREDIT_CARD' ? Number(data.installments || 1) : undefined;
+            const result = await createCheckout({
+                planId: data.plan_id,
+                studentId: data.student_id,
+                paymentMethod,
+                installments
+            });
+            checkoutPage.cachedPix = { sp: result.studentPlanId, data: result.pix || null };
+            toast.show('Cobrança Asaas criada!');
+            window.location.hash = `#checkout?sp=${encodeURIComponent(result.studentPlanId)}`;
         });
+
+        // Toggle de UI: modo asaas vs manual + parcelas
+        setTimeout(() => {
+            const mode = document.getElementById('ac-mode');
+            const asaasBlock = document.getElementById('ac-asaas-options');
+            const methodSel = document.getElementById('ac-method');
+            const wrap = document.getElementById('ac-installments-wrap');
+            const syncMode = () => { asaasBlock.style.display = mode.value === 'asaas' ? '' : 'none'; };
+            const syncMethod = () => { wrap.style.display = methodSel.value === 'CREDIT_CARD' ? '' : 'none'; };
+            mode?.addEventListener('change', syncMode);
+            methodSel?.addEventListener('change', syncMethod);
+            syncMode(); syncMethod();
+        }, 50);
     },
 
     async loadCharges(statusFilter = 'all') {
@@ -160,7 +208,7 @@ export const adminCharges = {
                 <div class="card charge-item-card" data-id="${escapeHtml(charge.id)}" style="cursor: pointer;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <p style="font-weight: 700; font-size: 15px;">${escapeHtml(charge.student?.full_name || 'Aluno Removido')}</p>
+                            <p style="font-weight: 700; font-size: 15px;">${escapeHtml(charge.student?.full_name || 'Atleta Removido')}</p>
                             <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(charge.plan?.name || 'Cobrança Avulsa')} • ${date}</p>
                         </div>
                         <span class="badge ${statusClass}">${statusLabel}</span>
@@ -201,7 +249,7 @@ export const adminCharges = {
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="card" style="margin-bottom: 12px; background: var(--dx-surface2);">
                     <p style="font-size: 12px; color: var(--dx-muted);">DETALHES DA COBRANÇA</p>
-                    <p style="font-weight: 700; margin-top: 4px;">${escapeHtml(charge.student?.full_name || 'Aluno')}</p>
+                    <p style="font-weight: 700; margin-top: 4px;">${escapeHtml(charge.student?.full_name || 'Atleta')}</p>
                     <p style="font-size: 14px;">${escapeHtml(charge.plan?.name || 'Cobrança Avulsa')} - R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     ${validityLine}
                     ${quotaLine}

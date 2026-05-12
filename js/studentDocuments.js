@@ -119,7 +119,7 @@ export async function listStudentDocuments(studentId, options = {}) {
     assertSupabaseClient();
 
     if (!studentId) {
-        throw new Error('Aluno não informado.');
+        throw new Error('Atleta não informado.');
     }
 
     let query = supabase
@@ -150,7 +150,7 @@ export async function uploadStudentDocument({
     assertSupabaseClient();
 
     if (!studentId) {
-        throw new Error('Aluno não informado.');
+        throw new Error('Atleta não informado.');
     }
 
     if (!uploadedBy) {
