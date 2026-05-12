@@ -1,11 +1,11 @@
-const CACHE_NAME = 'diamondx-v24';
+const CACHE_NAME = 'diamondx-v25';
 const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json?v=3',
-    '/css/reset.css?v=5',
+    '/css/reset.css?v=6',
     '/css/variables.css',
-    '/css/components.css?v=17',
+    '/css/components.css?v=18',
     '/css/pages.css?v=2',
     '/js/app.js?v=18',
     '/js/auth.js',
