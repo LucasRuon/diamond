@@ -20,6 +20,7 @@ import { responsibleStudents } from './pages/responsible/students.js';
 import { responsiblePlans } from './pages/responsible/plans.js';
 import { responsibleDashboard } from './pages/responsible/dashboard.js';
 import { responsiblePayments } from './pages/responsible/payments.js';
+import { studentPayments } from './pages/student/payments.js';
 import { responsibleTrainings } from './pages/responsible/trainings.js';
 import { checkoutPage } from './pages/checkout.js';
 import {
@@ -705,7 +706,9 @@ const app = {
     },
 
     async renderPayments() {
-        if (this.profile?.role === 'admin') await adminCharges.render();
+        const role = this.profile?.role;
+        if (role === 'admin') await adminCharges.render();
+        else if (role === 'student') await studentPayments.render();
         else await responsiblePayments.render();
     },
 
@@ -1180,7 +1183,7 @@ const app = {
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
             { h: '#plans', i: 'ph-receipt', t: 'Planos' },
             { h: '#attendance', i: 'ph-check-square', t: 'Presença' },
-            { h: '#profile', i: 'ph-user', t: 'Perfil' }
+            { a: 'more', i: 'ph-dots-three', t: 'Mais' }
         ]);
 
         const moreRoutes = ['#clubs', '#payments', '#profile'];
@@ -1209,9 +1212,13 @@ const app = {
             this.closeMoreMenu();
             return;
         }
-        const moreItems = [
+        const role = this.profile?.role || 'student';
+        const moreItems = role === 'admin' ? [
             { h: '#clubs', i: 'ph-shield', t: 'Clubes' },
             { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
+            { h: '#profile', i: 'ph-gear', t: 'Configurações' }
+        ] : [
+            { h: '#payments', i: 'ph-receipt', t: 'Faturas' },
             { h: '#profile', i: 'ph-gear', t: 'Configurações' }
         ];
         const overlay = document.createElement('div');
