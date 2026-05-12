@@ -10,8 +10,8 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
 
     <!-- PWA -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00C9A7">
+    <link rel="manifest" href="/manifest.json?v=2">
+    <meta name="theme-color" content="#141414">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
@@ -23,6 +23,15 @@
     <!-- PWA Optimization -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Diamond X">
+    <script>
+        (function() {
+            var standalone = window.navigator.standalone === true ||
+                window.matchMedia('(display-mode: standalone)').matches;
+            if (standalone) {
+                document.documentElement.classList.add('standalone-app');
+            }
+        })();
+    </script>
     
     <!-- Fonts loaded locally via @font-face in variables.css -->
     
@@ -30,9 +39,9 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/reset.css?v=2">
+    <link rel="stylesheet" href="/css/reset.css?v=3">
     <link rel="stylesheet" href="/css/variables.css">
-    <link rel="stylesheet" href="/css/components.css?v=16">
+    <link rel="stylesheet" href="/css/components.css?v=17">
     <link rel="stylesheet" href="/css/pages.css?v=2">
 </head>
 <body>
