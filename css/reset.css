@@ -10,6 +10,7 @@
     --nav-height: clamp(56px, 14vw, 68px);
     --nav-bottom-padding: var(--safe-bottom);
     --nav-bottom-offset: 0px;
+    --standalone-bottom-fill: 0px;
     --nav-clearance: calc(var(--nav-height) + 40px + var(--nav-bottom-padding));
 }
 
@@ -49,9 +50,28 @@ html, body {
 
 @media all and (display-mode: standalone) {
     :root {
-        --nav-bottom-padding: max(var(--safe-bottom), 16px);
+        --nav-bottom-padding: max(var(--safe-bottom), 40px);
         --nav-bottom-offset: calc(-1 * var(--nav-bottom-padding));
+        --standalone-bottom-fill: calc(var(--nav-bottom-padding) + 32px);
     }
+}
+
+html.standalone-app {
+    --nav-bottom-padding: max(var(--safe-bottom), 40px);
+    --nav-bottom-offset: calc(-1 * var(--nav-bottom-padding));
+    --standalone-bottom-fill: calc(var(--nav-bottom-padding) + 32px);
+}
+
+html.standalone-app body::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--standalone-bottom-fill);
+    background: var(--dx-surface);
+    pointer-events: none;
+    z-index: 999;
 }
 
 #main-content {
