@@ -1,5 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { escapeHtml } from '../../ui.js';
+import { getActivePlanUsage } from '../../planUsage.js';
 
 export const responsiblePayments = {
     async render() {
@@ -27,6 +28,7 @@ export const responsiblePayments = {
                 id,
                 created_at,
                 status,
+                expires_at,
                 plan:plans(name, price),
                 student:users!student_id(full_name)
             `)
@@ -48,10 +50,39 @@ export const responsiblePayments = {
             return;
         }
 
+        // Buscar quota de cada aluno distinto nos pagamentos ativos
+        const studentIds = [...new Set(payments.filter(p => p.status === 'active').map(p => p.student?.full_name ? p : null).filter(Boolean).map(p => p.id))];
+        const usageByStudent = {};
+
+        await Promise.all(
+            payments
+                .filter((p, i, arr) => p.status === 'active' && arr.findIndex(x => x.student?.full_name === p.student?.full_name) === i)
+                .map(async (p) => {
+                    // Encontrar student_id via student_plans: usar o campo id do payment como student_plan_id
+                    // Precisamos do student_id: buscar via supabase
+                    const { data: sp } = await supabase
+                        .from('student_plans')
+                        .select('student_id')
+                        .eq('id', p.id)
+                        .maybeSingle();
+                    if (sp?.student_id) {
+                        usageByStudent[p.id] = await getActivePlanUsage(sp.student_id);
+                    }
+                })
+        );
+
         listContainer.innerHTML = payments.map(p => {
             const date = new Date(p.created_at).toLocaleDateString('pt-BR');
             const statusLabel = this.getStatusLabel(p.status);
             const statusClass = this.getStatusClass(p.status);
+            const usage = usageByStudent[p.id];
+            const expiresAt = p.expires_at;
+            const validityLine = p.status === 'active' && expiresAt
+                ? `<p style="font-size: 12px; color: var(--dx-muted); margin-top: 4px;">Válido até: <strong>${new Date(expiresAt).toLocaleDateString('pt-BR')}</strong></p>`
+                : '';
+            const quotaLine = usage?.total
+                ? `<p style="font-size: 12px; color: var(--dx-muted);">Aulas: <strong>${usage.used}/${usage.total}</strong></p>`
+                : '';
 
             return `
                 <div class="card" style="padding: 16px;">
@@ -59,10 +90,12 @@ export const responsiblePayments = {
                         <div>
                             <p style="font-weight: 800; font-size: 16px;">${escapeHtml(p.plan.name)}</p>
                             <p style="font-size: 12px; color: var(--dx-muted);">Para: ${escapeHtml(p.student.full_name)} • ${date}</p>
+                            ${validityLine}
+                            ${quotaLine}
                         </div>
                         <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(p.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
-                    
+
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 0.5px solid var(--dx-border);">
                         <span class="badge ${statusClass}">${statusLabel}</span>
                         ${p.status === 'pending_payment' ? `

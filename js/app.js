@@ -8,6 +8,9 @@ import { adminDashboard } from './pages/admin/dashboard.js';
 import { adminCharges } from './pages/admin/charges.js';
 import { adminReports } from './pages/admin/reports.js';
 import { adminPreTrainingQuestionnaires } from './pages/admin/preTrainingQuestionnaires.js';
+import { adminStudentDocuments } from './pages/admin/studentDocuments.js';
+import { adminClubs } from './pages/admin/clubs.js';
+import { getClubLogoUrl } from './clubs.js';
 import { studentTrainings } from './pages/student/trainings.js';
 import { studentAttendance } from './pages/student/attendance.js';
 import { studentDashboard } from './pages/student/dashboard.js';
@@ -18,12 +21,20 @@ import { responsiblePlans } from './pages/responsible/plans.js';
 import { responsibleDashboard } from './pages/responsible/dashboard.js';
 import { responsiblePayments } from './pages/responsible/payments.js';
 import { responsibleTrainings } from './pages/responsible/trainings.js';
+import {
+    createStudentDocumentSignedUrl,
+    formatDocumentDate,
+    formatDocumentSize,
+    getDocumentTypeLabel,
+    listStudentDocuments
+} from './studentDocuments.js';
 
 const app = {
     mainContent: document.getElementById('main-content'),
     bottomNav: document.getElementById('bottom-nav'),
     user: null,
     profile: null,
+    studentProfileDocuments: [],
     loginParticlesCleanup: null,
     recoveryMode: false,
 
@@ -186,7 +197,11 @@ const app = {
 
     async loadProfile() {
         try {
-            const { data } = await supabase.from('users').select('*').eq('id', this.user.id).single();
+            const { data } = await supabase
+                .from('users')
+                .select('*, club:clubs(id, name, logo_bucket, logo_path)')
+                .eq('id', this.user.id)
+                .single();
             this.profile = data || {
                 role: this.user.user_metadata?.role || 'student',
                 full_name: this.user.user_metadata?.full_name || this.user.email
@@ -245,7 +260,7 @@ const app = {
 
         // Bloqueio de rotas por papel
         const role = this.profile?.role || 'student';
-        const adminRoutes = ['#users', '#reports', '#pre-training-questionnaires'];
+        const adminRoutes = ['#users', '#reports', '#pre-training-questionnaires', '#student-documents', '#clubs'];
         const responsibleRoutes = ['#students'];
 
         if (adminRoutes.includes(hash) && role !== 'admin') {
@@ -278,6 +293,8 @@ const app = {
             case '#users': await adminUsers.render(); break;
             case '#reports': await adminReports.render(); break;
             case '#pre-training-questionnaires': await adminPreTrainingQuestionnaires.render(); break;
+            case '#student-documents': await adminStudentDocuments.render(params.get('studentId')); break;
+            case '#clubs': await adminClubs.render(); break;
             case '#profile': this.renderProfile(); break;
             default: this.mainContent.innerHTML = '<h1>404</h1>';
         }
@@ -657,8 +674,18 @@ const app = {
                     </div>
                     <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">DATA DE NASCIMENTO</p>
                     <p style="font-weight: 600; margin-bottom: 12px;">${this.profile?.birth_date ? new Date(this.profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}</p>
-                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">CLUBE ATUAL</p>
-                    <p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.current_club || 'Não informado')}</p>
+                    <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">CLUBE VINCULADO</p>
+                    ${(() => {
+                        const club = this.profile?.club;
+                        if (club?.name) {
+                            const logoUrl = getClubLogoUrl(club);
+                            return `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                ${logoUrl ? `<img src="${safeUrl(logoUrl)}" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px; object-fit: cover; border: 1px solid var(--dx-border);">` : `<i class="ph ph-shield" style="font-size: 20px; color: var(--dx-teal);"></i>`}
+                                <p style="font-weight: 600;">${escapeHtml(club.name)}</p>
+                            </div>`;
+                        }
+                        return `<p style="font-weight: 600; margin-bottom: 12px;">${escapeHtml(this.profile?.current_club || 'Não informado')}</p>`;
+                    })()}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px;">PESO (KG)</p>
@@ -674,6 +701,16 @@ const app = {
                             <i class="ph ph-file-text"></i> VER FICHA COMPLETA
                         </a>
                     ` : ''}
+                </div>
+
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                        <i class="ph ph-folder-open" style="font-size: 20px; color: var(--dx-teal);"></i>
+                        <p style="font-family: var(--font-brand); color: var(--dx-muted); font-size: 12px; font-weight: 700;">DOCUMENTOS DA FICHA</p>
+                    </div>
+                    <div id="student-profile-documents">
+                        <p style="color: var(--dx-muted); font-size: 13px;">Carregando documentos...</p>
+                    </div>
                 </div>
                 ` : ''}
 
@@ -738,6 +775,88 @@ const app = {
         if (editAnamneseBtn) {
             editAnamneseBtn.addEventListener('click', () => this.showEditAnamneseForm());
         }
+
+        if (currentRole === 'student') {
+            this.renderStudentProfileDocuments();
+        }
+    },
+
+    async renderStudentProfileDocuments() {
+        const container = document.getElementById('student-profile-documents');
+        if (!container || !this.user?.id) return;
+
+        try {
+            const documents = await listStudentDocuments(this.user.id, { includeHidden: false });
+            this.studentProfileDocuments = documents;
+
+            if (documents.length === 0) {
+                container.innerHTML = '<p style="color: var(--dx-muted); font-size: 13px;">Nenhum documento disponível.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    ${documents.map((documentRecord) => `
+                        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--dx-border); border-radius: var(--radius-md); background: var(--dx-surface2);">
+                            <span style="width: 34px; height: 34px; border-radius: 8px; background: var(--dx-teal-dim); color: var(--dx-teal); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+                                <i class="ph ph-file-text"></i>
+                            </span>
+                            <div style="min-width: 0; flex: 1;">
+                                <p style="font-weight: 800; font-size: 14px; word-break: break-word;">${escapeHtml(documentRecord.title)}</p>
+                                <p style="font-size: 12px; color: var(--dx-muted); margin-top: 4px;">
+                                    ${escapeHtml(getDocumentTypeLabel(documentRecord.document_type))}
+                                    · ${escapeHtml(formatDocumentSize(documentRecord.file_size))}
+                                </p>
+                                <p style="font-size: 12px; color: var(--dx-muted); margin-top: 2px;">
+                                    ${escapeHtml(formatDocumentDate(documentRecord.uploaded_at))}
+                                </p>
+                            </div>
+                            <button type="button" class="btn student-profile-document-open" data-id="${escapeHtml(documentRecord.id)}" style="width: auto; min-width: 82px; padding: 9px 10px; font-size: 12px;">
+                                <i class="ph ph-arrow-square-out"></i>
+                                Abrir
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            container.querySelectorAll('.student-profile-document-open').forEach((button) => {
+                button.addEventListener('click', () => this.openStudentProfileDocument(button.dataset.id));
+            });
+        } catch (error) {
+            console.error(error);
+            this.studentProfileDocuments = [];
+            container.innerHTML = '<p style="color: var(--dx-danger); font-size: 13px;">Não foi possível carregar os documentos agora.</p>';
+        }
+    },
+
+    async openStudentProfileDocument(documentId) {
+        try {
+            let documentRecord = this.studentProfileDocuments.find((item) => item.id === documentId);
+
+            if (!documentRecord) {
+                const documents = await listStudentDocuments(this.user.id, { includeHidden: false });
+                this.studentProfileDocuments = documents;
+                documentRecord = documents.find((item) => item.id === documentId);
+            }
+
+            if (!documentRecord) {
+                throw new Error('Documento não encontrado.');
+            }
+
+            const signedUrl = await createStudentDocumentSignedUrl(documentRecord);
+            if (!signedUrl) {
+                throw new Error('URL temporária não gerada.');
+            }
+
+            const opened = window.open(signedUrl, '_blank', 'noopener,noreferrer');
+            if (!opened) {
+                toast.show('Permita pop-ups para abrir o documento.', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.show('Erro ao abrir documento.', 'error');
+        }
     },
 
     showEditAnamneseForm() {
@@ -747,10 +866,19 @@ const app = {
                     <label>DATA DE NASCIMENTO</label>
                     <input type="date" name="birth_date" class="input-control" value="${escapeHtml(this.profile?.birth_date || '')}">
                 </div>
-                <div class="input-group">
-                    <label>CLUBE ATUAL</label>
-                    <input type="text" name="current_club" class="input-control" value="${escapeHtml(this.profile?.current_club || '')}" placeholder="Ex: Flamengo Sub-17">
-                </div>
+                ${this.profile?.club_id
+                    ? `<div class="input-group">
+                        <p style="font-size: 12px; color: var(--dx-muted); font-weight: 700;">CLUBE VINCULADO</p>
+                        <p style="font-size: 13px; color: var(--dx-teal); font-weight: 600; margin-top: 4px;">
+                            <i class="ph ph-shield" style="margin-right: 4px;"></i>
+                            ${escapeHtml(this.profile?.club?.name || '')} — vinculado pelo administrador
+                        </p>
+                    </div>`
+                    : `<div class="input-group">
+                        <label>CLUBE ATUAL</label>
+                        <input type="text" name="current_club" class="input-control" value="${escapeHtml(this.profile?.current_club || '')}" placeholder="Ex: Flamengo Sub-17">
+                    </div>`
+                }
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
                         <label>PESO (KG)</label>
@@ -911,8 +1039,8 @@ const app = {
         const items = role === 'admin' ? [
             { h: '#dashboard', i: 'ph-chart-line-up', t: 'Dash' },
             { h: '#users', i: 'ph-users', t: 'Usuários' },
+            { h: '#clubs', i: 'ph-shield', t: 'Clubes' },
             { h: '#trainings', i: 'ph-calendar', t: 'Treinos' },
-            { h: '#pre-training-questionnaires', i: 'ph-clipboard-text', t: 'Pré' },
             { h: '#plans', i: 'ph-clipboard-text', t: 'Planos' },
             { h: '#payments', i: 'ph-receipt', t: 'Cobranças' },
             { h: '#profile', i: 'ph-gear', t: 'Config' }

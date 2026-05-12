@@ -79,10 +79,11 @@ serve(async (req) => {
       return jsonResponse({ error: 'Payload invalido.' }, 400)
     }
 
-    const { userId, full_name, role } = payload as {
+    const { userId, full_name, role, club_id: rawClubId } = payload as {
       userId?: unknown
       full_name?: unknown
       role?: unknown
+      club_id?: unknown
     }
 
     if (typeof userId !== 'string' || !uuidRegex.test(userId)) {
@@ -101,6 +102,29 @@ serve(async (req) => {
     const cpf = normalizeOptionalText((payload as { cpf?: unknown }).cpf)
     const phone = normalizeOptionalText((payload as { phone?: unknown }).phone)
 
+    // Validar e resolver club_id
+    let resolvedClubId: string | null = null
+    const clubIdStr = typeof rawClubId === 'string' ? rawClubId.trim() : null
+
+    if (role === 'student' && clubIdStr) {
+      if (!uuidRegex.test(clubIdStr)) {
+        return jsonResponse({ error: 'Clube invalido.' }, 400)
+      }
+      const { data: clubRow, error: clubError } = await adminClient
+        .from('clubs')
+        .select('id')
+        .eq('id', clubIdStr)
+        .is('deleted_at', null)
+        .single()
+      if (clubError || !clubRow) {
+        return jsonResponse({ error: 'Clube invalido.' }, 400)
+      }
+      resolvedClubId = clubRow.id
+    }
+
+    // Alunos recebem o club_id; outros papéis têm club_id limpo
+    const clubIdUpdate = role === 'student' ? resolvedClubId : null
+
     const { data: updatedUser, error: updateError } = await adminClient
       .from('users')
       .update({
@@ -108,10 +132,11 @@ serve(async (req) => {
         role,
         cpf,
         phone,
+        club_id: clubIdUpdate,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .select('id, email, full_name, role, cpf, phone, updated_at')
+      .select('id, email, full_name, role, cpf, phone, club_id, updated_at')
       .single()
 
     if (updateError || !updatedUser) {

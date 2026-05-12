@@ -1,3 +1,5 @@
+export { getActivePlanUsage } from './planUsage.js';
+
 export function isReservationsSchemaError(error) {
     if (!error) return false;
 

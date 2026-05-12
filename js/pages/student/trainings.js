@@ -3,7 +3,7 @@ import { escapeHtml } from '../../ui.js';
 import { toast } from '../../auth.js';
 import { ui } from '../../ui.js';
 import { dateKey, formatMonthLabel, getMonthMatrix, getWeekdayLabels, groupByDate } from '../../calendar.js';
-import { getReservationsLoadMessage, isReservationsSchemaError } from '../../trainingReservations.js';
+import { getReservationsLoadMessage, isReservationsSchemaError, getActivePlanUsage } from '../../trainingReservations.js';
 import { preTrainingQuestionnaire } from './preTrainingQuestionnaire.js';
 
 export const studentTrainings = {
@@ -90,8 +90,9 @@ export const studentTrainings = {
         const [
             { data: sessions, error: sessionsError },
             { data: reservations, error: reservationsError },
-            { data: activePlans }
-        ] = await Promise.all([sessionsQuery, reservationsQuery, activePlanQuery]);
+            { data: activePlans },
+            planUsage
+        ] = await Promise.all([sessionsQuery, reservationsQuery, activePlanQuery, getActivePlanUsage(user.id)]);
 
         if (sessionsError) {
             listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar treinos.</p>`;
@@ -124,8 +125,19 @@ export const studentTrainings = {
         const reservationsBySession = new Map(safeReservations.map(reservation => [reservation.session_id, reservation]));
         const hasActivePlan = Boolean(activePlans?.length);
 
+        const quotaExhausted = planUsage?.total > 0 && planUsage?.remaining <= 0;
+        const quotaBadge = planUsage?.total
+            ? `<div class="card" style="background: var(--dx-surface2); padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; border-color: ${planUsage.remaining <= 2 ? 'var(--dx-danger)' : 'var(--dx-border)'};">
+                <i class="ph ph-ticket" style="color: ${planUsage.remaining <= 2 ? 'var(--dx-danger)' : 'var(--dx-teal)'}; font-size: 18px;"></i>
+                <p style="font-size: 13px; color: ${planUsage.remaining <= 2 ? 'var(--dx-danger)' : 'var(--dx-text)'};">
+                    ${planUsage.remaining <= 0 ? 'Quota esgotada' : `Restam <strong>${planUsage.remaining}</strong> de ${planUsage.total} aulas`}
+                </p>
+               </div>`
+            : '';
+
         listContainer.innerHTML = `
             ${reservationsUnavailable ? `<div class="card" style="border-color: var(--dx-danger); color: var(--dx-danger); font-size: 13px;">${reservationsMessage}</div>` : ''}
+            ${quotaBadge}
             <h3 class="section-label" style="margin-bottom: 8px;">Agenda do Mês</h3>
             ${safeSessions.map(session => {
                 const date = new Date(session.scheduled_at);
@@ -217,6 +229,17 @@ export const studentTrainings = {
 
     async reserveTraining(sessionId) {
         const user = (await supabase.auth.getUser()).data.user;
+
+        // Verificar quota antes de inserir
+        const usage = await getActivePlanUsage(user.id);
+        if (usage?.total > 0 && usage?.remaining <= 0) {
+            toast.show(`Quota de aulas esgotada (${usage.used}/${usage.total}). Aguarde renovação.`, 'error');
+            return;
+        }
+        if (usage?.total > 0 && usage?.remaining <= 2) {
+            toast.show(`Atenção: restam ${usage.remaining} aulas neste plano.`);
+        }
+
         const { error } = await supabase
             .from('training_reservations')
             .insert([{ session_id: sessionId, student_id: user.id }]);

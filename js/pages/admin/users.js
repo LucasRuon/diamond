@@ -1,9 +1,11 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
+import { listActiveClubs } from '../../clubs.js';
 
 export const adminUsers = {
     currentRoleFilter: 'all',
+    clubs: [],
 
     async render() {
         const mainContent = document.getElementById('main-content');
@@ -32,6 +34,7 @@ export const adminUsers = {
             </div>
         `;
 
+        listActiveClubs().then(clubs => { this.clubs = clubs; }).catch(() => {});
         this.loadUsers();
         this.setupFilters();
         
@@ -44,7 +47,7 @@ export const adminUsers = {
         this.currentRoleFilter = roleFilter;
         const listContainer = document.getElementById('users-list');
         
-        let query = supabase.from('users').select('*').order('full_name');
+        let query = supabase.from('users').select('*, club:clubs(id, name)').order('full_name');
         
         if (roleFilter !== 'all') {
             query = query.eq('role', roleFilter);
@@ -71,9 +74,15 @@ export const adminUsers = {
                     <div>
                         <p style="font-weight: 600; font-size: 15px;">${escapeHtml(user.full_name)}</p>
                         <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(user.email)}</p>
+                        ${user.role === 'student' && user.club?.name ? `<p style="font-size: 11px; color: var(--dx-teal); margin-top: 2px;"><i class="ph ph-shield"></i> ${escapeHtml(user.club.name)}</p>` : ''}
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    ${user.role === 'student' ? `
+                        <button type="button" class="btn student-documents-shortcut" data-id="${escapeHtml(user.id)}" title="Abrir fichas do aluno" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-file-arrow-up" style="font-size: 18px;"></i>
+                        </button>
+                    ` : ''}
                     <span class="badge ${this.getRoleBadgeClass(user.role)}">${escapeHtml(user.role.toUpperCase())}</span>
                     <i class="ph ph-caret-right" style="color: var(--dx-muted);"></i>
                 </div>
@@ -111,6 +120,13 @@ export const adminUsers = {
                 if (user) this.showEditUserForm(user);
             });
         });
+
+        document.querySelectorAll('.student-documents-shortcut').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                window.location.hash = `#student-documents?studentId=${encodeURIComponent(button.dataset.id)}`;
+            });
+        });
     },
 
     showEditUserForm(user) {
@@ -143,6 +159,15 @@ export const adminUsers = {
                         <input type="text" id="edit-user-phone" name="phone" class="input-control" value="${escapeHtml(user.phone || '')}" placeholder="(00) 00000-0000">
                     </div>
                 </div>
+                ${user.role === 'student' ? `
+                <div class="input-group">
+                    <label>CLUBE VINCULADO</label>
+                    <select name="club_id" class="input-control">
+                        <option value="">Sem clube vinculado</option>
+                        ${this.clubs.map(c => `<option value="${escapeHtml(c.id)}" ${user.club_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+                    </select>
+                </div>
+                ` : ''}
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">SALVAR ALTERAÇÕES</button>
             </form>
             <button id="reset-pass-btn" class="btn" style="margin-top: 12px; color: var(--dx-muted); font-size: 12px;">ENVIAR REDEFINIÇÃO DE SENHA</button>
@@ -164,13 +189,16 @@ export const adminUsers = {
                 throw new Error('CPF Inválido.');
             }
 
+            const clubId = role === 'student' ? (data.club_id || null) : null;
+
             const { data: responseData, error } = await supabase.functions.invoke('admin-update-user', {
                 body: {
                     userId: user.id,
                     full_name: fullName,
                     role,
                     cpf,
-                    phone
+                    phone,
+                    club_id: clubId
                 }
             });
 

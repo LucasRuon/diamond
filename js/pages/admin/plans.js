@@ -55,6 +55,7 @@ export const adminPlans = {
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
                         </div>
                         <p style="font-family: var(--font-brand); font-weight: 400; font-size: 17px;">${escapeHtml(plan.name)}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted);">${plan.duration_days} dias${plan.total_sessions ? ` • ${plan.total_sessions} aulas` : ''}</p>
                     </div>
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
                 </div>
@@ -126,6 +127,10 @@ export const adminPlans = {
                     </div>
                 </div>
                 <div class="input-group">
+                    <label>TOTAL DE AULAS (0 = ilimitado)</label>
+                    <input type="number" name="total_sessions" min="0" class="input-control" value="${plan?.total_sessions || '0'}" placeholder="0">
+                </div>
+                <div class="input-group">
                     <label>DESCRIÇÃO</label>
                     <textarea name="description" class="input-control" rows="2">${escapeHtml(plan?.description || '')}</textarea>
                 </div>
@@ -137,7 +142,8 @@ export const adminPlans = {
             const planData = {
                 ...data,
                 price: parseFloat(data.price),
-                duration_days: parseInt(data.duration_days)
+                duration_days: parseInt(data.duration_days),
+                total_sessions: parseInt(data.total_sessions) || null
             };
 
             const { error } = plan 
