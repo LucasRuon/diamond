@@ -100,7 +100,7 @@ export const adminPlans = {
                     <label>NOME DO PLANO</label>
                     <input type="text" name="name" class="input-control" value="${escapeHtml(plan?.name || '')}" placeholder="Ex: Mensal Basic" required>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
                     <div class="input-group">
                         <label>CATEGORIA</label>
                         <select name="category" class="input-control" required>
@@ -116,7 +116,7 @@ export const adminPlans = {
                         </select>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
                     <div class="input-group">
                         <label>PREÇO (R$)</label>
                         <input type="number" step="0.01" name="price" class="input-control" value="${plan?.price || ''}" placeholder="0.00" required>
