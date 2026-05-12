@@ -40,7 +40,7 @@ export const responsibleDashboard = {
 
             console.log('Buscando resumo para o responsável:', userId);
 
-            // Fetch students linked to this responsible
+            // Busca atletas vinculados a este responsável
             const { data: links, error: linkError } = await supabase
                 .from('responsible_students')
                 .select(`
@@ -60,14 +60,14 @@ export const responsibleDashboard = {
             if (!links || links.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px;">
-                        <p style="color: var(--dx-muted);">Nenhum aluno vinculado.</p>
+                        <p style="color: var(--dx-muted);">Nenhum atleta vinculado.</p>
                         <a href="#students" class="btn btn-primary" style="margin-top: 16px; width: auto;">VINCULAR AGORA</a>
                     </div>
                 `;
                 return;
             }
 
-            // For each student, let's try to get their latest plan
+            // Para cada atleta, busca o plano mais recente
             let allPlans = [];
             try {
                 const studentIds = links.map(l => l.student_id);
@@ -82,7 +82,7 @@ export const responsibleDashboard = {
             }
 
             container.innerHTML = links.map(link => {
-                const student = link.student || { full_name: 'Aluno sem nome', email: '' };
+                const student = link.student || { full_name: 'Atleta sem nome', email: '' };
                 const latestPlan = allPlans.find(p => p.student_id === link.student_id);
                 
                 const statusLabel = latestPlan ? this.getPlanStatusLabel(latestPlan.status) : 'SEM PLANO';

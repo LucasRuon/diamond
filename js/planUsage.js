@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 
 /**
- * Retorna uso do plano ativo de um aluno.
+ * Retorna uso do plano ativo de um atleta.
  * @param {string} studentId
  * @returns {Promise<{plan: object, used: number, total: number|null, remaining: number|null, expiresAt: string|null, startAt: string|null}|null>}
  */

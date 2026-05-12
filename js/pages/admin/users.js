@@ -3,6 +3,27 @@ import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
 import { listActiveClubs } from '../../clubs.js';
 
+function isTimeoutOrAbort(error) {
+    const errorName = error?.name || '';
+    const errorMessage = error?.message || error || '';
+    const normalizedMessage = `${errorName} ${errorMessage}`.toLowerCase();
+
+    return errorName === 'TimeoutError'
+        || errorName === 'AbortError'
+        || normalizedMessage.includes('timeout')
+        || normalizedMessage.includes('tempo limite')
+        || normalizedMessage.includes('aborted')
+        || normalizedMessage.includes('abort');
+}
+
+function getAdminUpdateErrorMessage(error) {
+    if (isTimeoutOrAbort(error)) {
+        return 'Tempo limite excedido ao atualizar usuário. Tente novamente.';
+    }
+
+    return error?.message || error || 'Erro ao atualizar usuário.';
+}
+
 export const adminUsers = {
     currentRoleFilter: 'all',
     clubs: [],
@@ -25,7 +46,7 @@ export const adminUsers = {
                     <button class="filter-btn active" data-role="all">Todos</button>
                     <button class="filter-btn" data-role="admin">Admins</button>
                     <button class="filter-btn" data-role="responsible">Responsáveis</button>
-                    <button class="filter-btn" data-role="student">Alunos</button>
+                    <button class="filter-btn" data-role="student">Atletas</button>
                 </div>
 
                 <div id="users-list" style="display: flex; flex-direction: column; gap: 12px;">
@@ -43,7 +64,7 @@ export const adminUsers = {
         });
     },
 
-    async loadUsers(roleFilter = 'all') {
+    async loadUsers(roleFilter = 'all', options = {}) {
         this.currentRoleFilter = roleFilter;
         const listContainer = document.getElementById('users-list');
         
@@ -57,6 +78,7 @@ export const adminUsers = {
 
         if (error) {
             listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar usuários: ${error.message}</p>`;
+            if (options.throwOnError) throw error;
             return;
         }
 
@@ -79,7 +101,7 @@ export const adminUsers = {
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     ${user.role === 'student' ? `
-                        <button type="button" class="btn student-documents-shortcut" data-id="${escapeHtml(user.id)}" title="Abrir fichas do aluno" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                        <button type="button" class="btn student-documents-shortcut" data-id="${escapeHtml(user.id)}" title="Abrir fichas do atleta" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
                             <i class="ph ph-file-arrow-up" style="font-size: 18px;"></i>
                         </button>
                     ` : ''}
@@ -143,7 +165,7 @@ export const adminUsers = {
                 <div class="input-group">
                     <label>PAPEL NO SISTEMA</label>
                     <select name="role" class="input-control" required>
-                        <option value="student" ${user.role === 'student' ? 'selected' : ''}>Aluno</option>
+                        <option value="student" ${user.role === 'student' ? 'selected' : ''}>Atleta</option>
                         <option value="responsible" ${user.role === 'responsible' ? 'selected' : ''}>Responsável</option>
                         <option value="businessman" ${user.role === 'businessman' ? 'selected' : ''}>Empresário</option>
                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
@@ -203,20 +225,26 @@ export const adminUsers = {
             });
 
             if (error) {
-                toast.show(`Erro ao atualizar usuário: ${error.message}`, 'error');
+                const message = getAdminUpdateErrorMessage(error);
+                toast.show(`Erro ao atualizar usuário: ${message}`, 'error');
                 throw error;
             }
 
             if (responseData?.error) {
-                toast.show(`Erro ao atualizar usuário: ${responseData.error}`, 'error');
-                throw new Error(responseData.error);
+                const message = getAdminUpdateErrorMessage(responseData.error);
+                toast.show(`Erro ao atualizar usuário: ${message}`, 'error');
+                throw new Error(message);
             }
 
             toast.show('Usuário atualizado com sucesso!');
             if (responseData?.metadataWarning) {
                 console.warn(responseData.metadataWarning);
             }
-            this.loadUsers(this.currentRoleFilter || 'all');
+            try {
+                await this.loadUsers(this.currentRoleFilter || 'all', { throwOnError: true });
+            } catch (reloadError) {
+                console.warn('Usuário salvo, mas a lista não foi recarregada:', reloadError);
+            }
         });
 
         // Máscaras e Reset

@@ -1,6 +1,7 @@
 import { supabase } from '../../supabase.js';
-import { escapeHtml } from '../../ui.js';
+import { escapeHtml, safeUrl } from '../../ui.js';
 import { getActivePlanUsage } from '../../planUsage.js';
+import { translateAsaasStatus } from '../../asaas.js';
 
 export const responsiblePayments = {
     async render() {
@@ -29,6 +30,8 @@ export const responsiblePayments = {
                 created_at,
                 status,
                 expires_at,
+                asaas_status,
+                asaas_invoice_url,
                 plan:plans(name, price),
                 student:users!student_id(full_name)
             `)
@@ -50,7 +53,7 @@ export const responsiblePayments = {
             return;
         }
 
-        // Buscar quota de cada aluno distinto nos pagamentos ativos
+        // Buscar quota de cada atleta distinto nos pagamentos ativos
         const studentIds = [...new Set(payments.filter(p => p.status === 'active').map(p => p.student?.full_name ? p : null).filter(Boolean).map(p => p.id))];
         const usageByStudent = {};
 
@@ -96,15 +99,23 @@ export const responsiblePayments = {
                         <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(p.plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 0.5px solid var(--dx-border);">
+                    ${p.asaas_status ? `<p style="font-size: 12px; color: var(--dx-muted);">Asaas: <strong>${escapeHtml(translateAsaasStatus(p.asaas_status))}</strong></p>` : ''}
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 0.5px solid var(--dx-border); gap: 8px; flex-wrap: wrap;">
                         <span class="badge ${statusClass}">${statusLabel}</span>
-                        ${p.status === 'pending_payment' ? `
-                            <button class="btn pay-btn" data-id="${escapeHtml(p.id)}" style="width: auto; padding: 6px 14px; font-size: 11px; background: var(--dx-teal); color: #000;">
-                                PAGAR AGORA
-                            </button>
-                        ` : `
-                            <p style="font-size: 11px; color: var(--dx-muted);">Recibo gerado</p>
-                        `}
+                        <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                            ${p.status === 'pending_payment' ? `
+                                <a class="btn" href="#checkout?sp=${encodeURIComponent(p.id)}" style="width:auto; padding:6px 14px; font-size:11px; background: var(--dx-teal); color:#000; text-decoration:none;">
+                                    CONTINUAR PAGAMENTO
+                                </a>
+                            ` : ''}
+                            ${p.asaas_invoice_url ? `
+                                <a class="btn" href="${safeUrl(p.asaas_invoice_url)}" target="_blank" rel="noopener noreferrer" style="width:auto; padding:6px 14px; font-size:11px; border:1px solid var(--dx-border); text-decoration:none;">
+                                    VER FATURA
+                                </a>
+                            ` : ''}
+                            ${p.status === 'active' && !p.asaas_invoice_url ? `<p style="font-size: 11px; color: var(--dx-muted);">Recibo gerado</p>` : ''}
+                        </div>
                     </div>
                 </div>
             `;

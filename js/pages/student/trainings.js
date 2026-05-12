@@ -105,7 +105,7 @@ export const studentTrainings = {
         let reservationsMessage = '';
 
         if (reservationsError) {
-            console.error('Erro ao carregar reservas do aluno:', reservationsError);
+            console.error('Erro ao carregar reservas do atleta:', reservationsError);
             safeReservations = [];
             reservationsUnavailable = true;
             reservationsMessage = getReservationsLoadMessage(reservationsError);

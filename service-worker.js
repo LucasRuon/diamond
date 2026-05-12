@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diamondx-v14';
+const CACHE_NAME = 'diamondx-v17';
 const ASSETS = [
     '/',
     '/index.html',
@@ -7,16 +7,20 @@ const ASSETS = [
     '/css/variables.css',
     '/css/components.css?v=13',
     '/css/pages.css',
-    '/js/app.js?v=13',
+    '/js/app.js?v=16',
     '/js/auth.js',
     '/js/supabase.js',
+    '/js/supabase.js?v=16',
     '/js/ui.js',
     '/js/qrcode.js',
     '/js/clubs.js?v=14',
+    '/js/pages/admin/users.js',
+    '/js/pages/admin/users.js?v=16',
     '/js/pages/admin/clubs.js?v=14',
     '/js/pages/student/preTrainingQuestionnaire.js',
     '/js/pages/student/preTrainingQuestionnaireView.js',
-    '/js/pages/admin/preTrainingQuestionnaires.js',
+    '/js/studentDocuments.js?v=15',
+    '/js/pages/admin/preTrainingQuestionnaires.js?v=15',
     '/assets/pre-training/body-front.svg',
     '/assets/pre-training/body-back.svg',
     '/assets/icons/icon-192.png',

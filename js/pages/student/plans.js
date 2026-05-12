@@ -1,6 +1,8 @@
 import { supabase } from '../../supabase.js';
 import { toast } from '../../auth.js';
 import { ui, escapeHtml } from '../../ui.js';
+import { createCheckout } from '../../asaas.js';
+import { checkoutPage } from '../checkout.js';
 
 export const studentPlans = {
     currentCategory: 'training',
@@ -115,18 +117,34 @@ export const studentPlans = {
 
     async purchasePlan(planId, planName) {
         const userId = (await supabase.auth.getUser()).data.user.id;
-        
-        const confirmHtml = `
-            <div style="text-align: center;">
-                <p style="margin-bottom: 24px;">Deseja gerar a cobrança para <strong>${escapeHtml(planName)}</strong>?</p>
-                <button id="confirm-purchase" class="btn btn-primary" style="background: ${this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}; color: #000;">SIM, GERAR COBRANÇA</button>
-            </div>
+
+        const accent = this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)';
+        const installmentsOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+            .map(n => `<option value="${n}">${n}x</option>`).join('');
+
+        const formHtml = `
+            <form id="checkout-form">
+                <p style="margin-bottom: 16px;">Plano: <strong>${escapeHtml(planName)}</strong></p>
+
+                <div class="input-group">
+                    <label>FORMA DE PAGAMENTO</label>
+                    <select name="payment_method" id="cf-method" class="input-control" required>
+                        <option value="PIX">PIX</option>
+                        <option value="CREDIT_CARD">Cartão de Crédito</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="cf-installments-wrap" style="display:none;">
+                    <label>PARCELAS</label>
+                    <select name="installments" id="cf-installments" class="input-control">${installmentsOptions}</select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 16px; background:${accent}; color:#000;">GERAR COBRANÇA</button>
+            </form>
         `;
 
-        ui.bottomSheet.show('Confirmar', confirmHtml, () => {});
-
-        document.getElementById('confirm-purchase').addEventListener('click', async () => {
-            // Verificar plano ativo da mesma categoria para avisar sobre enfileiramento
+        ui.bottomSheet.show('Checkout', formHtml, async (data) => {
+            // Avisar enfileiramento
             const { data: activePlans } = await supabase
                 .from('student_plans')
                 .select('expires_at, plan:plans(name, category)')
@@ -136,28 +154,39 @@ export const studentPlans = {
                 .limit(5);
 
             const activeOfSameCategory = activePlans?.find(sp => sp.plan?.category === this.currentCategory);
-
             if (activeOfSameCategory?.expires_at) {
                 const expiresStr = new Date(activeOfSameCategory.expires_at).toLocaleDateString('pt-BR');
-                const planName = escapeHtml(activeOfSameCategory.plan.name);
-                const confirmed = confirm(`Você já tem '${planName}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
-                if (!confirmed) return;
+                const confirmed = confirm(`Você já tem '${activeOfSameCategory.plan.name}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
+                if (!confirmed) throw new Error('Compra cancelada.');
             }
 
-            const { error } = await supabase.from('student_plans').insert([{
-                student_id: userId,
-                plan_id: planId,
-                purchased_by: userId,
-                status: 'pending_payment'
-            }]);
+            const paymentMethod = data.payment_method;
+            const installments = paymentMethod === 'CREDIT_CARD' ? Number(data.installments || 1) : undefined;
 
-            if (error) toast.show(error.message, 'error');
-            else {
-                toast.show('Cobrança gerada com sucesso!');
-                window.location.hash = '#dashboard';
+            try {
+                const result = await createCheckout({
+                    planId,
+                    studentId: userId,
+                    paymentMethod,
+                    installments
+                });
+                if (result?.pix) checkoutPage.setPixForCurrent(result.pix);
+                checkoutPage.cachedPix = { sp: result.studentPlanId, data: result.pix || null };
+                toast.show('Cobrança criada!');
+                window.location.hash = `#checkout?sp=${encodeURIComponent(result.studentPlanId)}`;
+            } catch (err) {
+                console.error(err);
+                throw err;
             }
-            document.getElementById('sheet-overlay').remove();
         });
+
+        // Toggle parcelas quando método muda
+        setTimeout(() => {
+            const methodSel = document.getElementById('cf-method');
+            const wrap = document.getElementById('cf-installments-wrap');
+            const sync = () => { wrap.style.display = methodSel.value === 'CREDIT_CARD' ? '' : 'none'; };
+            if (methodSel) { methodSel.addEventListener('change', sync); sync(); }
+        }, 50);
     }
 };
 

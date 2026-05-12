@@ -34,9 +34,9 @@ function formatWeight(value) {
 
 function getRecoveryLabel(score) {
     const value = Number(score);
-    if (value >= 6 && value <= 10) return 'Recuperação pobre';
-    if (value >= 11 && value <= 15) return 'Recuperação razoável';
-    if (value >= 16 && value <= 20) return 'Recuperação boa';
+    if (value >= 1 && value <= 3) return 'Recuperação pobre';
+    if (value >= 4 && value <= 7) return 'Recuperação razoável';
+    if (value >= 8 && value <= 10) return 'Recuperação boa';
     return 'Não informado';
 }
 

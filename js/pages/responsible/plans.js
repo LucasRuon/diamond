@@ -2,6 +2,8 @@ import { supabase } from '../../supabase.js';
 import { escapeHtml } from '../../ui.js';
 import { toast } from '../../auth.js';
 import { ui } from '../../ui.js';
+import { createCheckout } from '../../asaas.js';
+import { checkoutPage } from '../checkout.js';
 
 export const responsiblePlans = {
     currentCategory: 'training',
@@ -119,34 +121,41 @@ export const responsiblePlans = {
             .select(`student_id, student:users!student_id (full_name)`)
             .eq('responsible_id', userId);
 
+        const accent = this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)';
+        const installmentsOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+            .map(n => `<option value="${n}">${n}x</option>`).join('');
+
         const formHtml = `
             <form id="purchase-form">
-                <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">Selecione o beneficiário e a forma de pagamento para <strong>${planName}</strong>.</p>
-                
+                <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">Selecione o beneficiário e a forma de pagamento para <strong>${escapeHtml(planName)}</strong>.</p>
+
                 <div class="input-group">
                     <label>PARA QUEM?</label>
                     <select name="student_id" class="input-control" required>
                         <option value="${userId}">Para mim mesmo</option>
-                        ${links?.map(l => `<option value="${l.student_id}">${l.student.full_name} (Dependente)</option>`).join('') || ''}
+                        ${links?.map(l => `<option value="${l.student_id}">${escapeHtml(l.student.full_name)} (Dependente)</option>`).join('') || ''}
                     </select>
                 </div>
 
                 <div class="input-group">
                     <label>FORMA DE PAGAMENTO</label>
-                    <select name="payment_method" class="input-control" required>
-                        <option value="pix">PIX</option>
-                        <option value="credit_card">Cartão de Crédito</option>
-                        <option value="boleto">Boleto Bancário</option>
+                    <select name="payment_method" id="rp-method" class="input-control" required>
+                        <option value="PIX">PIX</option>
+                        <option value="CREDIT_CARD">Cartão de Crédito</option>
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="background: ${this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}; color: #000;">GERAR COBRANÇA</button>
+                <div class="input-group" id="rp-installments-wrap" style="display:none;">
+                    <label>PARCELAS</label>
+                    <select name="installments" id="rp-installments" class="input-control">${installmentsOptions}</select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="background:${accent}; color:#000;">GERAR COBRANÇA</button>
             </form>
         `;
 
         ui.bottomSheet.show('Contratação', formHtml, async (data) => {
-            // 1. Verificar se o aluno já tem plano ativo da mesma categoria
-            const studentName = links?.find(l => l.student_id === data.student_id)?.student?.full_name || 'o aluno';
+            const studentName = links?.find(l => l.student_id === data.student_id)?.student?.full_name || 'o atleta';
 
             const { data: activePlans } = await supabase
                 .from('student_plans')
@@ -157,31 +166,32 @@ export const responsiblePlans = {
                 .limit(5);
 
             const activeOfSameCategory = activePlans?.find(sp => sp.plan?.category === this.currentCategory);
-
             if (activeOfSameCategory?.expires_at) {
                 const expiresStr = new Date(activeOfSameCategory.expires_at).toLocaleDateString('pt-BR');
-                const planName = activeOfSameCategory.plan.name;
-                const confirmed = confirm(`${studentName} já tem '${planName}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
-                if (!confirmed) throw new Error('Contratação cancelada pelo usuário.');
+                const confirmed = confirm(`${studentName} já tem '${activeOfSameCategory.plan.name}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
+                if (!confirmed) throw new Error('Contratação cancelada.');
             }
 
-            // 2. Criar o registro de intenção de compra
-            const { error } = await supabase.from('student_plans').insert([{
-                student_id: data.student_id,
-                plan_id: planId,
-                purchased_by: userId,
-                status: 'pending_payment',
-                // Aqui no futuro enviaremos o payment_method para a Edge Function do Asaas
-            }]);
+            const paymentMethod = data.payment_method;
+            const installments = paymentMethod === 'CREDIT_CARD' ? Number(data.installments || 1) : undefined;
 
-            if (error) throw error;
-            toast.show('Iniciando processamento do pagamento...');
-            
-            // Simular um delay para parecer que está gerando no Asaas
-            setTimeout(() => {
-                window.location.hash = '#payments';
-            }, 1000);
+            const result = await createCheckout({
+                planId,
+                studentId: data.student_id,
+                paymentMethod,
+                installments
+            });
+            checkoutPage.cachedPix = { sp: result.studentPlanId, data: result.pix || null };
+            toast.show('Cobrança criada!');
+            window.location.hash = `#checkout?sp=${encodeURIComponent(result.studentPlanId)}`;
         });
+
+        setTimeout(() => {
+            const methodSel = document.getElementById('rp-method');
+            const wrap = document.getElementById('rp-installments-wrap');
+            const sync = () => { wrap.style.display = methodSel.value === 'CREDIT_CARD' ? '' : 'none'; };
+            if (methodSel) { methodSel.addEventListener('change', sync); sync(); }
+        }, 50);
     }
 };
 

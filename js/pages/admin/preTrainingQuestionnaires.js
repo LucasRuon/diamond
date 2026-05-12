@@ -24,9 +24,9 @@ function getSourceLabel(source) {
 
 function getRecoveryLabel(score) {
     const value = Number(score);
-    if (value >= 6 && value <= 10) return 'Pobre';
-    if (value >= 11 && value <= 15) return 'Razoável';
-    if (value >= 16 && value <= 20) return 'Boa';
+    if (value >= 1 && value <= 3) return 'Pobre';
+    if (value >= 4 && value <= 7) return 'Razoável';
+    if (value >= 8 && value <= 10) return 'Boa';
     return 'Não informado';
 }
 
@@ -62,7 +62,7 @@ export const adminPreTrainingQuestionnaires = {
                 <div class="card admin-precheck-toolbar">
                     <div>
                         <p class="section-label">Visão geral</p>
-                        <h2 class="brand-title">QUESTIONÁRIOS DOS ALUNOS</h2>
+                        <h2 class="brand-title">QUESTIONÁRIOS DOS ATLETAS</h2>
                     </div>
                     <i class="ph ph-clipboard-text"></i>
                 </div>
@@ -119,7 +119,7 @@ export const adminPreTrainingQuestionnaires = {
                 : { data: [], error: null }
         ]);
 
-        if (studentsError) console.error('Erro ao carregar alunos dos questionários:', studentsError);
+        if (studentsError) console.error('Erro ao carregar atletas dos questionários:', studentsError);
         if (sessionsError) console.error('Erro ao carregar treinos dos questionários:', sessionsError);
 
         const studentsById = new Map((students || []).map(student => [student.id, student]));
@@ -128,7 +128,7 @@ export const adminPreTrainingQuestionnaires = {
         listContainer.innerHTML = safeQuestionnaires.map(questionnaire => {
             const student = studentsById.get(questionnaire.student_id);
             const session = sessionsById.get(questionnaire.session_id);
-            const studentName = student?.full_name || student?.email || 'Aluno não informado';
+            const studentName = student?.full_name || student?.email || 'Atleta não informado';
             const sessionTitle = session?.title || 'Treino não informado';
             const submittedAt = questionnaire.submitted_at || questionnaire.updated_at;
 

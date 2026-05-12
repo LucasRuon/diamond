@@ -37,7 +37,7 @@ export const adminStudentDocuments = {
                             <i class="ph ph-caret-left"></i>
                             Voltar
                         </a>
-                        <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">FICHAS DOS ALUNOS</h1>
+                        <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400;">FICHAS DOS ATLETAS</h1>
                     </div>
                     <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
                 </div>
@@ -45,18 +45,18 @@ export const adminStudentDocuments = {
                 <div class="student-documents-layout">
                     <section class="student-documents-search">
                         <div class="input-group">
-                            <label>BUSCAR ALUNO</label>
+                            <label>BUSCAR ATLETA</label>
                             <input type="search" id="student-documents-search-input" class="input-control" placeholder="Nome, e-mail, CPF ou telefone">
                         </div>
                         <div id="student-documents-student-list" class="student-documents-student-list">
-                            <p style="color: var(--dx-muted); text-align: center; padding: 20px;">Carregando alunos...</p>
+                            <p style="color: var(--dx-muted); text-align: center; padding: 20px;">Carregando atletas...</p>
                         </div>
                     </section>
 
                     <section id="student-documents-selected-panel" class="student-documents-selected">
                         <div class="card" style="text-align: center;">
                             <i class="ph ph-user-focus" style="font-size: 36px; color: var(--dx-teal);"></i>
-                            <p style="font-weight: 700; margin-top: 12px;">Selecione um aluno</p>
+                            <p style="font-weight: 700; margin-top: 12px;">Selecione um atleta</p>
                             <p style="font-size: 13px; color: var(--dx-muted); margin-top: 4px;">Depois envie ou consulte os documentos vinculados.</p>
                         </div>
                     </section>
@@ -87,7 +87,7 @@ export const adminStudentDocuments = {
 
         if (error) {
             document.getElementById('student-documents-student-list').innerHTML = `
-                <p style="color: var(--dx-danger); padding: 16px;">Erro ao carregar alunos: ${escapeHtml(error.message)}</p>
+                <p style="color: var(--dx-danger); padding: 16px;">Erro ao carregar atletas: ${escapeHtml(error.message)}</p>
             `;
             return;
         }
@@ -109,7 +109,7 @@ export const adminStudentDocuments = {
                 .maybeSingle();
 
             if (error) {
-                toast.show('Erro ao carregar aluno.', 'error');
+                toast.show('Erro ao carregar atleta.', 'error');
                 console.error(error);
             }
 
@@ -120,7 +120,7 @@ export const adminStudentDocuments = {
         }
 
         if (!this.selectedStudent) {
-            toast.show('Aluno não encontrado.', 'error');
+            toast.show('Atleta não encontrado.', 'error');
             this.selectedStudentId = null;
             this.renderStudentList();
             this.renderSelectedStudentPanel();
@@ -152,14 +152,14 @@ export const adminStudentDocuments = {
         });
 
         if (this.filteredStudents.length === 0) {
-            container.innerHTML = '<p style="color: var(--dx-muted); text-align: center; padding: 20px;">Nenhum aluno encontrado.</p>';
+            container.innerHTML = '<p style="color: var(--dx-muted); text-align: center; padding: 20px;">Nenhum atleta encontrado.</p>';
             return;
         }
 
         container.innerHTML = this.filteredStudents.map((student) => {
             const activeClass = student.id === this.selectedStudentId ? ' active' : '';
             const avatar = student.avatar_url
-                ? `<img src="${escapeHtml(safeUrl(student.avatar_url))}" alt="${escapeHtml(student.full_name || 'Aluno')}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;">`
+                ? `<img src="${escapeHtml(safeUrl(student.avatar_url))}" alt="${escapeHtml(student.full_name || 'Atleta')}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;">`
                 : '<i class="ph ph-user" style="color: var(--dx-teal); font-size: 20px;"></i>';
 
             return `
@@ -168,7 +168,7 @@ export const adminStudentDocuments = {
                         ${avatar}
                     </span>
                     <span style="min-width: 0; text-align: left;">
-                        <strong>${escapeHtml(student.full_name || 'Aluno sem nome')}</strong>
+                        <strong>${escapeHtml(student.full_name || 'Atleta sem nome')}</strong>
                         <small>${escapeHtml(student.email || 'Sem e-mail')}</small>
                     </span>
                 </button>
@@ -188,7 +188,7 @@ export const adminStudentDocuments = {
             panel.innerHTML = `
                 <div class="card" style="text-align: center;">
                     <i class="ph ph-user-focus" style="font-size: 36px; color: var(--dx-teal);"></i>
-                    <p style="font-weight: 700; margin-top: 12px;">Selecione um aluno</p>
+                    <p style="font-weight: 700; margin-top: 12px;">Selecione um atleta</p>
                     <p style="font-size: 13px; color: var(--dx-muted); margin-top: 4px;">Depois envie ou consulte os documentos vinculados.</p>
                 </div>
             `;
@@ -199,8 +199,8 @@ export const adminStudentDocuments = {
             <div class="card" style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
                     <div style="min-width: 0;">
-                        <p style="font-size: 12px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">Aluno selecionado</p>
-                        <h2 style="font-size: 20px; font-weight: 800; margin-top: 4px; word-break: break-word;">${escapeHtml(this.selectedStudent.full_name || 'Aluno sem nome')}</h2>
+                        <p style="font-size: 12px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">Atleta selecionado</p>
+                        <h2 style="font-size: 20px; font-weight: 800; margin-top: 4px; word-break: break-word;">${escapeHtml(this.selectedStudent.full_name || 'Atleta sem nome')}</h2>
                         <p style="font-size: 13px; color: var(--dx-muted); margin-top: 4px; word-break: break-word;">${escapeHtml(this.selectedStudent.email || 'Sem e-mail')}</p>
                         ${this.selectedStudent.phone ? `<p style="font-size: 13px; color: var(--dx-muted); margin-top: 2px;">${escapeHtml(this.selectedStudent.phone)}</p>` : ''}
                     </div>
@@ -239,7 +239,7 @@ export const adminStudentDocuments = {
                 <div class="card" style="text-align: center;">
                     <i class="ph ph-folder-open" style="font-size: 32px; color: var(--dx-muted);"></i>
                     <p style="font-weight: 700; margin-top: 12px;">Nenhum documento ativo</p>
-                    <p style="font-size: 13px; color: var(--dx-muted); margin-top: 4px;">Envie a ficha física ou outro documento do aluno.</p>
+                    <p style="font-size: 13px; color: var(--dx-muted); margin-top: 4px;">Envie a ficha física ou outro documento do atleta.</p>
                 </div>
             `;
             return;
@@ -260,7 +260,7 @@ export const adminStudentDocuments = {
                             · ${escapeHtml(formatDocumentDate(documentRecord.uploaded_at))}
                         </p>
                         <span class="badge ${documentRecord.visible_to_student ? 'badge-active' : 'badge-pending'}" style="margin-top: 8px;">
-                            ${documentRecord.visible_to_student ? 'VISÍVEL AO ALUNO' : 'OCULTO DO ALUNO'}
+                            ${documentRecord.visible_to_student ? 'VISÍVEL AO ATLETA' : 'OCULTO DO ATLETA'}
                         </span>
                     </div>
                 </div>
@@ -287,7 +287,7 @@ export const adminStudentDocuments = {
 
     showUploadForm() {
         if (!this.selectedStudent) {
-            toast.show('Selecione um aluno antes de enviar a ficha.', 'error');
+            toast.show('Selecione um atleta antes de enviar a ficha.', 'error');
             return;
         }
 
@@ -295,7 +295,7 @@ export const adminStudentDocuments = {
             <form id="student-document-upload-form">
                 <div class="input-group">
                     <label>TÍTULO</label>
-                    <input type="text" name="title" class="input-control" value="Ficha do aluno" required>
+                    <input type="text" name="title" class="input-control" value="Ficha do atleta" required>
                 </div>
                 <div class="input-group">
                     <label>TIPO</label>
@@ -313,7 +313,7 @@ export const adminStudentDocuments = {
                 </div>
                 <label style="display: flex; align-items: center; gap: 10px; color: var(--dx-text); font-size: 14px; margin-top: 8px;">
                     <input type="checkbox" name="visibleToStudent" checked>
-                    Visível para o aluno
+                    Visível para o atleta
                 </label>
                 <button type="submit" class="btn btn-primary" style="margin-top: 18px;">
                     <i class="ph ph-upload-simple"></i>

@@ -8,14 +8,14 @@ export const responsibleStudents = {
         mainContent.innerHTML = `
             <div class="page-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">MEUS ALUNOS</h1>
+                    <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800;">MEUS ATLETAS</h1>
                     <button id="add-student-link-btn" class="btn btn-primary" style="width: auto; padding: 10px 16px;">
                         <i class="ph ph-user-plus" style="font-size: 20px;"></i>
                     </button>
                 </div>
 
                 <div id="linked-students-list" style="display: flex; flex-direction: column; gap: 12px;">
-                    <p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Buscando alunos vinculados...</p>
+                    <p style="color: var(--dx-muted); text-align: center; margin-top: 40px;">Buscando atletas vinculados...</p>
                 </div>
             </div>
         `;
@@ -41,7 +41,7 @@ export const responsibleStudents = {
             .eq('responsible_id', userId);
 
         if (error) {
-            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar alunos.</p>`;
+            listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar atletas.</p>`;
             return;
         }
 
@@ -49,7 +49,7 @@ export const responsibleStudents = {
             listContainer.innerHTML = `
                 <div style="text-align: center; margin-top: 60px;">
                     <i class="ph ph-users-three" style="font-size: 48px; color: var(--dx-border); margin-bottom: 16px;"></i>
-                    <p style="color: var(--dx-muted);">Você ainda não tem alunos vinculados.</p>
+                    <p style="color: var(--dx-muted);">Você ainda não tem atletas vinculados.</p>
                 </div>
             `;
             return;
@@ -81,17 +81,17 @@ export const responsibleStudents = {
     showLinkStudentForm() {
         const formHtml = `
             <form id="link-student-form">
-                <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">Insira o e-mail do aluno (filho/dependente) para vinculá-lo à sua conta de responsável.</p>
+                <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">Insira o e-mail do atleta para vinculá-lo à sua conta de responsável.</p>
                 <div class="input-group">
-                    <label>E-MAIL DO ALUNO</label>
+                    <label>E-MAIL DO ATLETA</label>
                     <input type="email" name="email" class="input-control" placeholder="exemplo@email.com" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">VINCULAR ALUNO</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 16px;">VINCULAR ATLETA</button>
             </form>
         `;
 
-        ui.bottomSheet.show('Vincular Aluno', formHtml, async (data) => {
-            console.log('Tentando vincular aluno com email:', data.email);
+        ui.bottomSheet.show('Vincular Atleta', formHtml, async (data) => {
+            console.log('Tentando vincular atleta com email:', data.email);
             
             const { data: student, error: fError } = await supabase
                 .from('users')
@@ -100,18 +100,18 @@ export const responsibleStudents = {
                 .single();
 
             if (fError || !student) {
-                console.error('Erro ao buscar aluno:', fError);
-                throw new Error('Aluno não encontrado com este e-mail.');
+                console.error('Erro ao buscar atleta:', fError);
+                throw new Error('Atleta não encontrado com este e-mail.');
             }
             
             if (student.role !== 'student') {
-                throw new Error('O e-mail informado pertence a um ' + student.role + ', não a um aluno.');
+                throw new Error('O e-mail informado pertence a um ' + student.role + ', não a um atleta.');
             }
 
             const { data: { user } } = await supabase.auth.getUser();
             const userId = user.id;
             
-            console.log('Vinculando aluno', student.id, 'ao responsável', userId);
+            console.log('Vinculando atleta', student.id, 'ao responsável', userId);
 
             const { error: lError } = await supabase
                 .from('responsible_students')
@@ -122,11 +122,11 @@ export const responsibleStudents = {
 
             if (lError) {
                 console.error('Erro ao inserir vínculo:', lError);
-                if (lError.code === '23505') throw new Error('Este aluno já está vinculado a você.');
+                if (lError.code === '23505') throw new Error('Este atleta já está vinculado a você.');
                 throw lError;
             }
 
-            toast.show('Aluno ' + student.full_name + ' vinculado!');
+            toast.show('Atleta ' + student.full_name + ' vinculado!');
             this.loadLinkedStudents();
         });
     }
