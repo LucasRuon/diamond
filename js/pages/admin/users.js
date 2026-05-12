@@ -88,25 +88,25 @@ export const adminUsers = {
         }
 
         listContainer.innerHTML = users.map(user => `
-            <div class="card user-item-card" data-id="${escapeHtml(user.id)}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="background: var(--dx-surface2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-border);">
+            <div class="card user-item-card" data-id="${escapeHtml(user.id)}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                    <div style="flex-shrink: 0; background: var(--dx-surface2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--dx-border);">
                         <i class="ph ph-user" style="color: var(--dx-teal);"></i>
                     </div>
-                    <div>
-                        <p style="font-weight: 600; font-size: 15px;">${escapeHtml(user.full_name)}</p>
-                        <p style="font-size: 12px; color: var(--dx-muted);">${escapeHtml(user.email)}</p>
-                        ${user.role === 'student' && user.club?.name ? `<p style="font-size: 11px; color: var(--dx-teal); margin-top: 2px;"><i class="ph ph-shield"></i> ${escapeHtml(user.club.name)}</p>` : ''}
+                    <div style="min-width: 0; flex: 1;">
+                        <p style="font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.full_name)}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.email)}</p>
+                        ${user.role === 'student' && user.club?.name ? `<p style="font-size: 11px; color: var(--dx-teal); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="ph ph-shield"></i> ${escapeHtml(user.club.name)}</p>` : ''}
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                     ${user.role === 'student' ? `
-                        <button type="button" class="btn student-documents-shortcut" data-id="${escapeHtml(user.id)}" title="Abrir fichas do atleta" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                        <button type="button" class="btn student-documents-shortcut" data-id="${escapeHtml(user.id)}" title="Abrir fichas do atleta" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="ph ph-file-arrow-up" style="font-size: 18px;"></i>
                         </button>
                     ` : ''}
-                    <span class="badge ${this.getRoleBadgeClass(user.role)}">${escapeHtml(user.role.toUpperCase())}</span>
-                    <i class="ph ph-caret-right" style="color: var(--dx-muted);"></i>
+                    <span class="badge ${this.getRoleBadgeClass(user.role)}" style="flex-shrink: 0;">${escapeHtml(user.role.toUpperCase())}</span>
+                    <i class="ph ph-caret-right" style="color: var(--dx-muted); flex-shrink: 0;"></i>
                 </div>
             </div>
         `).join('');
