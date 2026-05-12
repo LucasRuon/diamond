@@ -1,5 +1,6 @@
 import { supabase } from '../../supabase.js';
 import { escapeHtml } from '../../ui.js';
+import { getActivePlanUsage } from '../../planUsage.js';
 
 export const studentDashboard = {
     async render() {
@@ -39,36 +40,39 @@ export const studentDashboard = {
         const container = document.getElementById('student-status-area');
         const userId = (await supabase.auth.getUser()).data.user.id;
 
-        // 1. Buscar plano atual
-        const { data: plans } = await supabase
-            .from('student_plans')
-            .select('status, created_at, plan:plans(name, duration_days)')
-            .eq('student_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-        // 2. Buscar frequência do mês
+        // 1. Buscar plano atual e frequência do mês em paralelo
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0,0,0,0);
 
-        const { count: presences } = await supabase
-            .from('attendance')
-            .select('*', { count: 'exact', head: true })
-            .eq('student_id', userId)
-            .gte('checked_in_at', startOfMonth.toISOString());
+        const [planUsage, { count: presences }, { data: plans }] = await Promise.all([
+            getActivePlanUsage(userId),
+            supabase.from('attendance').select('*', { count: 'exact', head: true })
+                .eq('student_id', userId)
+                .gte('checked_in_at', startOfMonth.toISOString()),
+            supabase.from('student_plans')
+                .select('status, expires_at, plan:plans(name)')
+                .eq('student_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+        ]);
 
         const currentPlan = plans?.[0];
+        const expiresAt = currentPlan?.expires_at;
         let validityStr = '--';
-        
-        if (currentPlan && currentPlan.status === 'active') {
-            const date = new Date(currentPlan.created_at);
-            date.setDate(date.getDate() + currentPlan.plan.duration_days);
-            validityStr = date.toLocaleDateString('pt-BR');
+        let expiringWarning = false;
+
+        if (currentPlan && currentPlan.status === 'active' && expiresAt) {
+            validityStr = new Date(expiresAt).toLocaleDateString('pt-BR');
+            expiringWarning = (new Date(expiresAt).getTime() - Date.now()) < 7 * 86400000;
         }
 
+        const quotaLine = planUsage?.total
+            ? `<p style="font-size: 12px; color: var(--dx-muted); margin-top: 4px;">Aulas: <span style="color: var(--dx-text); font-weight: 600;">${planUsage.used}/${planUsage.total} usadas</span></p>`
+            : '';
+
         container.innerHTML = `
-            <div class="card card-highlight">
+            <div class="card card-highlight" style="${expiringWarning ? 'border-color: var(--dx-danger);' : ''}">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                     <div>
                         <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">Plano Ativo</p>
@@ -77,7 +81,10 @@ export const studentDashboard = {
                     ${currentPlan ? `<span class="badge ${currentPlan.status === 'active' ? 'badge-active' : 'badge-pending'}">${this.getPlanStatusLabel(currentPlan.status)}</span>` : ''}
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                    <p style="font-size: 12px; color: var(--dx-muted);">Válido até: <span style="color: var(--dx-text); font-weight: 600;">${validityStr}</span></p>
+                    <div>
+                        <p style="font-size: 12px; color: ${expiringWarning ? 'var(--dx-danger)' : 'var(--dx-muted)'};">Válido até: <span style="color: ${expiringWarning ? 'var(--dx-danger)' : 'var(--dx-text)'}; font-weight: 600;">${validityStr}</span>${expiringWarning ? ' ⚠️' : ''}</p>
+                        ${quotaLine}
+                    </div>
                     <a href="#plans" style="font-size: 12px; color: var(--dx-teal); font-weight: 700; text-decoration: none;">VER OUTROS</a>
                 </div>
             </div>

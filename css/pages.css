@@ -521,6 +521,162 @@
     }
 }
 
+/* === Student Documents Admin === */
+.student-documents-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.student-documents-search,
+.student-documents-selected {
+    min-width: 0;
+}
+
+.student-documents-student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.student-documents-student-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: var(--border-width) solid var(--dx-border);
+    border-radius: var(--radius-md);
+    background: var(--dx-surface);
+    color: var(--dx-text);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.student-documents-student-card.active {
+    border-color: var(--dx-teal);
+    background: var(--dx-teal-dim);
+}
+
+.student-documents-student-card strong,
+.student-documents-student-card small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.student-documents-student-card strong {
+    color: var(--dx-text);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.student-documents-student-card small {
+    margin-top: 3px;
+    color: var(--dx-muted);
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.student-document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.student-document-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+    border: var(--border-width) solid var(--dx-border);
+    border-radius: var(--radius-md);
+    background: var(--dx-surface);
+}
+
+.student-document-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.student-document-actions .btn {
+    min-height: 40px;
+    padding: 9px 10px;
+    border: var(--border-width) solid var(--dx-border);
+    background: var(--dx-surface2);
+    color: var(--dx-text);
+    font-size: 11px;
+    letter-spacing: 0;
+    white-space: nowrap;
+    gap: 6px;
+}
+
+.student-document-actions .btn i {
+    color: currentColor;
+    font-size: 16px;
+}
+
+.student-document-actions .student-document-open-btn {
+    border-color: var(--dx-teal-border);
+    color: var(--dx-teal);
+}
+
+.student-document-actions .student-document-archive-btn {
+    color: var(--dx-muted);
+}
+
+.student-document-actions .btn:active {
+    transform: scale(0.98);
+}
+
+.student-document-actions .student-document-archive-btn:active {
+    border-color: rgba(248, 113, 113, 0.4);
+    color: var(--dx-danger);
+}
+
+.student-profile-document-open {
+    border: var(--border-width) solid var(--dx-teal-border);
+    background: var(--dx-surface2);
+    color: var(--dx-teal);
+    gap: 6px;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.student-profile-document-open i {
+    color: currentColor;
+    font-size: 16px;
+}
+
+.student-profile-document-open:active {
+    background: var(--dx-teal-dim);
+    transform: scale(0.98);
+}
+
+.student-document-upload-hint {
+    color: var(--dx-muted);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+@media (min-width: 760px) {
+    .student-documents-layout {
+        grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
+        align-items: start;
+    }
+
+    .student-document-item {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .student-document-actions {
+        grid-template-columns: 96px;
+        min-width: 96px;
+    }
+}
+
 .admin-precheck-page {
     display: flex;
     flex-direction: column;
@@ -676,4 +832,19 @@
     .admin-precheck-stats strong {
         font-size: 21px;
     }
+}
+
+/* === Clubes === */
+.club-card {
+    transition: border-color 0.2s ease;
+}
+
+.club-logo-preview {
+    background: var(--dx-surface2);
+    border: 1px solid var(--dx-border);
+}
+
+.club-actions {
+    border-top: 1px solid var(--dx-border);
+    padding-top: 12px;
 }

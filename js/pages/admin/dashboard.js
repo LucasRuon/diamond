@@ -47,6 +47,28 @@ export const adminDashboard = {
                     <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
                 </a>
 
+                <a href="#student-documents" class="card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; text-decoration: none; border-color: var(--dx-teal-border);">
+                    <div style="width: 42px; height: 42px; border-radius: 10px; background: var(--dx-teal-dim); display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+                        <i class="ph ph-folder-open" style="font-size: 24px; color: var(--dx-teal);"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                        <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Fichas dos alunos</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Enviar e consultar documentos vinculados</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
+                </a>
+
+                <a href="#clubs" class="card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; text-decoration: none; border-color: var(--dx-teal-border);">
+                    <div style="width: 42px; height: 42px; border-radius: 10px; background: var(--dx-teal-dim); display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+                        <i class="ph ph-shield" style="font-size: 24px; color: var(--dx-teal);"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                        <p style="font-weight: 800; color: var(--dx-text); font-size: 14px;">Clubes</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 3px;">Cadastrar logos e vincular alunos</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="margin-left: auto; color: var(--dx-muted);"></i>
+                </a>
+
                 <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; color: var(--dx-muted);">Cobranças Recentes</h3>
                 <div id="recent-charges" style="display: flex; flex-direction: column; gap: 12px;">
                     <p style="color: var(--dx-muted); font-size: 14px; text-align: center; padding: 20px;">Nenhuma cobrança encontrada.</p>

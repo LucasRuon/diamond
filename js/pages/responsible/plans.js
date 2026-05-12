@@ -146,15 +146,23 @@ export const responsiblePlans = {
 
         ui.bottomSheet.show('Contratação', formHtml, async (data) => {
             // 1. Verificar se o aluno já tem plano ativo da mesma categoria
-            const { data: existing } = await supabase
+            const studentName = links?.find(l => l.student_id === data.student_id)?.student?.full_name || 'o aluno';
+
+            const { data: activePlans } = await supabase
                 .from('student_plans')
-                .select('id')
+                .select('expires_at, plan:plans(name, category)')
                 .eq('student_id', data.student_id)
                 .eq('status', 'active')
-                .maybeSingle();
+                .order('expires_at', { ascending: false })
+                .limit(5);
 
-            if (existing && this.currentCategory === 'training') {
-                throw new Error('Este aluno já possui um plano de treinamento ativo.');
+            const activeOfSameCategory = activePlans?.find(sp => sp.plan?.category === this.currentCategory);
+
+            if (activeOfSameCategory?.expires_at) {
+                const expiresStr = new Date(activeOfSameCategory.expires_at).toLocaleDateString('pt-BR');
+                const planName = activeOfSameCategory.plan.name;
+                const confirmed = confirm(`${studentName} já tem '${planName}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
+                if (!confirmed) throw new Error('Contratação cancelada pelo usuário.');
             }
 
             // 2. Criar o registro de intenção de compra

@@ -128,8 +128,10 @@ export const adminCharges = {
                 id,
                 status,
                 created_at,
+                expires_at,
+                start_at,
                 student:users!student_id (full_name),
-                plan:plans (name, price)
+                plan:plans (name, price, duration_days, total_sessions)
             `)
             .order('created_at', { ascending: false });
 
@@ -165,7 +167,10 @@ export const adminCharges = {
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
                         <p style="font-weight: 800; color: var(--dx-teal);">R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                        <i class="ph ph-dots-three-vertical" style="color: var(--dx-muted);"></i>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                            ${charge.status === 'active' && charge.expires_at ? `<p style="font-size: 11px; color: var(--dx-muted);">Válido até ${new Date(charge.expires_at).toLocaleDateString('pt-BR')}</p>` : ''}
+                            <i class="ph ph-dots-three-vertical" style="color: var(--dx-muted);"></i>
+                        </div>
                     </div>
                 </div>
             `;
@@ -185,12 +190,21 @@ export const adminCharges = {
     },
 
     showChargeActions(charge) {
+        const validityLine = charge.status === 'active' && charge.expires_at
+            ? `<p style="font-size: 13px; margin-top: 4px;">Válido até: <strong>${new Date(charge.expires_at).toLocaleDateString('pt-BR')}</strong></p>`
+            : '';
+        const quotaLine = charge.plan?.total_sessions
+            ? `<p style="font-size: 13px;">${charge.plan.total_sessions} aulas no plano</p>`
+            : '';
+
         const content = `
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="card" style="margin-bottom: 12px; background: var(--dx-surface2);">
                     <p style="font-size: 12px; color: var(--dx-muted);">DETALHES DA COBRANÇA</p>
                     <p style="font-weight: 700; margin-top: 4px;">${escapeHtml(charge.student?.full_name || 'Aluno')}</p>
                     <p style="font-size: 14px;">${escapeHtml(charge.plan?.name || 'Cobrança Avulsa')} - R$ ${parseFloat(charge.plan?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    ${validityLine}
+                    ${quotaLine}
                 </div>
                 
                 ${charge.status === 'pending_payment' ? `
@@ -210,7 +224,7 @@ export const adminCharges = {
         const sheet = document.getElementById('sheet-overlay');
         
         sheet.querySelector('#mark-paid-btn')?.addEventListener('click', async () => {
-            const { error } = await supabase.from('student_plans').update({ status: 'active' }).eq('id', charge.id);
+            const { error } = await supabase.rpc('activate_student_plan', { p_student_plan_id: charge.id });
             if (error) toast.show(error.message, 'error');
             else {
                 toast.show('Pagamento confirmado!');

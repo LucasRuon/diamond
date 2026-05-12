@@ -62,6 +62,7 @@ serve(async (req) => {
     const paymentData = await paymentResp.json()
 
     // 4. Salvar registro no student_plans
+    // TODO: integrar webhook Asaas para ativar via rpc('activate_student_plan') ao receber confirmação de pagamento
     await supabase.from('student_plans').insert([{
       student_id: studentId,
       plan_id: planId,

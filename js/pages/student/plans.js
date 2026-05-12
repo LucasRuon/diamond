@@ -126,6 +126,24 @@ export const studentPlans = {
         ui.bottomSheet.show('Confirmar', confirmHtml, () => {});
 
         document.getElementById('confirm-purchase').addEventListener('click', async () => {
+            // Verificar plano ativo da mesma categoria para avisar sobre enfileiramento
+            const { data: activePlans } = await supabase
+                .from('student_plans')
+                .select('expires_at, plan:plans(name, category)')
+                .eq('student_id', userId)
+                .eq('status', 'active')
+                .order('expires_at', { ascending: false })
+                .limit(5);
+
+            const activeOfSameCategory = activePlans?.find(sp => sp.plan?.category === this.currentCategory);
+
+            if (activeOfSameCategory?.expires_at) {
+                const expiresStr = new Date(activeOfSameCategory.expires_at).toLocaleDateString('pt-BR');
+                const planName = escapeHtml(activeOfSameCategory.plan.name);
+                const confirmed = confirm(`Você já tem '${planName}' ativo até ${expiresStr}. O novo plano começará após essa data. Confirmar?`);
+                if (!confirmed) return;
+            }
+
             const { error } = await supabase.from('student_plans').insert([{
                 student_id: userId,
                 plan_id: planId,
