@@ -196,21 +196,55 @@ const app = {
     },
 
     async loadProfile() {
+        const fallbackProfile = () => ({
+            role: this.user?.user_metadata?.role || 'student',
+            full_name: this.user?.user_metadata?.full_name || this.user?.email
+        });
+
         try {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('users')
-                .select('*, club:clubs(id, name, logo_bucket, logo_path)')
+                .select('*, club:clubs!users_club_id_fkey(id, name, logo_bucket, logo_path)')
                 .eq('id', this.user.id)
                 .single();
-            this.profile = data || {
-                role: this.user.user_metadata?.role || 'student',
-                full_name: this.user.user_metadata?.full_name || this.user.email
-            };
-        } catch (e) {
-            this.profile = {
-                role: this.user?.user_metadata?.role || 'student',
-                full_name: this.user?.user_metadata?.full_name || this.user?.email
-            };
+            if (error) throw error;
+            this.profile = data || fallbackProfile();
+        } catch (error) {
+            console.warn('Erro ao carregar perfil com clube vinculado:', error);
+            try {
+                const { data, error: profileError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', this.user.id)
+                    .single();
+                if (profileError) throw profileError;
+                this.profile = data || fallbackProfile();
+            } catch (fallbackError) {
+                console.warn('Erro ao carregar perfil sem relação de clube:', fallbackError);
+                this.profile = fallbackProfile();
+            }
+        }
+
+        if (Array.isArray(this.profile?.club)) {
+            this.profile.club = this.profile.club[0] || null;
+        }
+        await this.loadProfileClub();
+    },
+
+    async loadProfileClub() {
+        if (!this.profile?.club_id || this.profile?.club) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('clubs')
+                .select('id, name, logo_bucket, logo_path')
+                .eq('id', this.profile.club_id)
+                .is('deleted_at', null)
+                .maybeSingle();
+            if (error) throw error;
+            if (data) this.profile.club = data;
+        } catch (error) {
+            console.warn('Erro ao carregar clube vinculado ao perfil:', error);
         }
     },
 
@@ -295,7 +329,7 @@ const app = {
             case '#pre-training-questionnaires': await adminPreTrainingQuestionnaires.render(); break;
             case '#student-documents': await adminStudentDocuments.render(params.get('studentId')); break;
             case '#clubs': await adminClubs.render(); break;
-            case '#profile': this.renderProfile(); break;
+            case '#profile': await this.loadProfile(); this.renderProfile(); break;
             default: this.mainContent.innerHTML = '<h1>404</h1>';
         }
 
@@ -634,6 +668,8 @@ const app = {
     renderProfile() {
         const avatarUrl = this.profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.profile?.full_name)}&background=00C9A7&color=0a0a0a`;
         const currentRole = this.profile?.role || 'student';
+        const profileClub = this.profile?.club;
+        const profileClubLogoUrl = currentRole === 'student' ? getClubLogoUrl(profileClub) : null;
 
         this.mainContent.innerHTML = `
             <div class="page-container">
@@ -649,7 +685,10 @@ const app = {
                         <h1 style="font-family: var(--font-brand); font-size: 24px; font-weight: 400; margin: 0;">PERFIL</h1>
                         <p style="font-size: 13px; color: var(--dx-muted);">${escapeHtml(this.user?.email)}</p>
                     </div>
-                    <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                    <div class="profile-header-logos">
+                        <img src="/base_icon_transparent_background.png" alt="Diamond X" class="page-header-logo">
+                        ${profileClubLogoUrl ? `<img src="${safeUrl(profileClubLogoUrl)}" alt="Logo do clube ${escapeHtml(profileClub?.name || 'vinculado')}" class="profile-club-header-logo">` : ''}
+                    </div>
                 </div>
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -866,19 +905,16 @@ const app = {
                     <label>DATA DE NASCIMENTO</label>
                     <input type="date" name="birth_date" class="input-control" value="${escapeHtml(this.profile?.birth_date || '')}">
                 </div>
-                ${this.profile?.club_id
-                    ? `<div class="input-group">
-                        <p style="font-size: 12px; color: var(--dx-muted); font-weight: 700;">CLUBE VINCULADO</p>
-                        <p style="font-size: 13px; color: var(--dx-teal); font-weight: 600; margin-top: 4px;">
-                            <i class="ph ph-shield" style="margin-right: 4px;"></i>
-                            ${escapeHtml(this.profile?.club?.name || '')} — vinculado pelo administrador
-                        </p>
-                    </div>`
-                    : `<div class="input-group">
-                        <label>CLUBE ATUAL</label>
-                        <input type="text" name="current_club" class="input-control" value="${escapeHtml(this.profile?.current_club || '')}" placeholder="Ex: Flamengo Sub-17">
-                    </div>`
-                }
+                <div class="input-group">
+                    <p style="font-size: 12px; color: var(--dx-muted); font-weight: 700;">CLUBE VINCULADO</p>
+                    <p style="font-size: 13px; color: var(--dx-teal); font-weight: 600; margin-top: 4px;">
+                        <i class="ph ph-shield" style="margin-right: 4px;"></i>
+                        ${escapeHtml(this.profile?.club?.name || this.profile?.current_club || 'Nenhum clube vinculado')}
+                    </p>
+                    <p style="font-size: 12px; color: var(--dx-muted); line-height: 1.4; margin-top: 6px;">
+                        Apenas um administrador pode vincular ou alterar o clube do atleta.
+                    </p>
+                </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="input-group">
                         <label>PESO (KG)</label>
@@ -900,7 +936,6 @@ const app = {
         ui.bottomSheet.show('Ficha do Atleta', formHtml, async (data) => {
             const updateData = {
                 birth_date: data.birth_date || null,
-                current_club: data.current_club || null,
                 weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
                 height_cm: data.height_cm ? parseInt(data.height_cm) : null,
                 athlete_record_url: data.athlete_record_url || null,

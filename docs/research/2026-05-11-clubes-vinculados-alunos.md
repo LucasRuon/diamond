@@ -9,6 +9,7 @@ tags: [research, codebase]
 status: complete
 last_updated: 2026-05-11
 last_updated_by: Codex
+last_updated_note: "Added follow-up research for profile display after club assignment and club logo in profile header"
 ---
 
 # Research: Clube vinculado ao aluno
@@ -137,6 +138,80 @@ Current admin student-file path:
 - `docs/research/2026-05-11-documentos-fisicos-perfil-aluno.md` - Older baseline for student document/profile attachment research.
 - `docs/specs/2026-05-11-documentos-fisicos-perfil-aluno-spec.md` - Implementation spec for the current student document admin screen and private Storage pattern.
 
+## Follow-up Research 2026-05-11T22:34:47-03:00
+
+### Research Question
+$research-codebase fiz a atribuição do clube ao atleta, mas não aparceu nas informações do perfil dele. [Image #1] também gostaria de que a logo do clube aparesse ao topo do perfil, ao lado do logo da Diamond.
+
+### Scope
+This follow-up covers the current live code for the admin club assignment flow, the logged-in athlete profile load/render flow, and the profile header logo area. It does not inspect the remote Supabase database, deployed Edge Function version, or browser runtime state.
+
+### Summary
+The current local code already has first-class club support in progress: `clubs`, `users.club_id`, the `#clubs` admin page, admin user linking, and profile display have been added since the original research baseline. The athlete profile displays `CLUBE VINCULADO` from `this.profile.club` when that relation exists, otherwise it falls back to `this.profile.current_club` or `Não informado` (`js/app.js:677`, `js/app.js:679`, `js/app.js:680`, `js/app.js:687`).
+
+The current profile route does not reload the profile from Supabase before rendering. `loadProfile()` runs during app initialization, auth state changes, registration success, avatar upload, personal profile save, and athlete ficha save, but the `#profile` route switch calls `this.renderProfile()` directly (`js/app.js:47`, `js/app.js:61`, `js/app.js:223`, `js/app.js:298`, `js/app.js:917`, `js/app.js:953`, `js/app.js:1015`). Because `renderProfile()` uses the cached `this.profile`, an admin-side club assignment made while the athlete session is already open is not reflected by simply navigating to `#profile`.
+
+The top profile header currently renders only the athlete avatar/title/email and the Diamond X logo. It does not render the linked club logo beside the Diamond logo (`js/app.js:640`, `js/app.js:648`, `js/app.js:652`). The linked club logo is only rendered inside the "FICHA DO ATLETA" card when `this.profile.club.logo_path` exists (`js/app.js:681`, `js/app.js:682`, `js/app.js:683`).
+
+### Detailed Findings
+
+#### Profile Data Loading
+- `app.loadProfile()` selects the logged-in row from `users` with the explicit foreign key relation `club:clubs!users_club_id_fkey(id, name, logo_bucket, logo_path)` (`js/app.js:198`, `js/app.js:200`, `js/app.js:202`, `js/app.js:203`, `js/app.js:204`).
+- `render()` dispatches `#profile` directly to `this.renderProfile()` and does not call `loadProfile()` before rendering that route (`js/app.js:281`, `js/app.js:298`).
+- `loadProfile()` is called on startup when a session exists and after Supabase auth state changes (`js/app.js:44`, `js/app.js:47`, `js/app.js:50`, `js/app.js:61`).
+- `loadProfile()` is also called after current-user operations: registration success, athlete ficha save, avatar upload, and personal profile save (`js/app.js:223`, `js/app.js:917`, `js/app.js:953`, `js/app.js:1015`).
+- There is no current code path that refreshes the athlete's cached profile immediately after another user/admin updates that athlete's `users.club_id`.
+
+#### Profile Club Display
+- The student-only "FICHA DO ATLETA" block renders a `CLUBE VINCULADO` label (`js/app.js:669`, `js/app.js:677`).
+- The block reads `const club = this.profile?.club`; when `club?.name` exists, it computes `getClubLogoUrl(club)` and renders the logo plus club name (`js/app.js:678`, `js/app.js:679`, `js/app.js:680`, `js/app.js:681`, `js/app.js:682`, `js/app.js:683`, `js/app.js:684`).
+- When no related club name is available, it falls back to `this.profile?.current_club || 'Não informado'` (`js/app.js:687`).
+- The athlete ficha edit form prevents student-side editing of the club name when `this.profile?.club_id` exists and displays a text note that it was linked by the administrator (`js/app.js:869`, `js/app.js:870`, `js/app.js:874`).
+
+#### Admin Assignment Flow
+- The admin users screen imports `listActiveClubs`, stores clubs in `adminUsers.clubs`, and starts loading clubs in `render()` (`js/pages/admin/users.js:4`, `js/pages/admin/users.js:8`, `js/pages/admin/users.js:37`).
+- User list loading selects each user with `club:clubs!users_club_id_fkey(id, name)` and displays the club name under student cards when present (`js/pages/admin/users.js:50`, `js/pages/admin/users.js:77`).
+- The edit form renders `CLUBE VINCULADO` only when the user being edited is currently a student, with options from `this.clubs` and the selected value based on `user.club_id` (`js/pages/admin/users.js:162`, `js/pages/admin/users.js:164`, `js/pages/admin/users.js:165`, `js/pages/admin/users.js:167`).
+- Saving sends `club_id` to the `admin-update-user` Edge Function for students and sends `null` for non-student roles (`js/pages/admin/users.js:192`, `js/pages/admin/users.js:194`, `js/pages/admin/users.js:201`).
+- The Edge Function reads `club_id`, validates UUID format, confirms the club exists and is not soft-deleted, and updates `users.club_id` through the service-role client (`supabase/functions/admin-update-user/index.ts:82`, `supabase/functions/admin-update-user/index.ts:105`, `supabase/functions/admin-update-user/index.ts:109`, `supabase/functions/admin-update-user/index.ts:113`, `supabase/functions/admin-update-user/index.ts:117`, `supabase/functions/admin-update-user/index.ts:128`, `supabase/functions/admin-update-user/index.ts:135`).
+
+#### Club Logo Data Path
+- `migrations/008_clubs_linked_to_students.sql` creates the public `club-logos` bucket and the `public.clubs` table with `logo_bucket` and `logo_path` fields (`migrations/008_clubs_linked_to_students.sql:4`, `migrations/008_clubs_linked_to_students.sql:5`, `migrations/008_clubs_linked_to_students.sql:19`, `migrations/008_clubs_linked_to_students.sql:22`, `migrations/008_clubs_linked_to_students.sql:23`).
+- `getClubLogoUrl(club)` returns a public Storage URL from `club.logo_bucket || 'club-logos'` plus `club.logo_path` (`js/clubs.js:18`, `js/clubs.js:20`, `js/clubs.js:21`, `js/clubs.js:22`).
+- The admin clubs page creates and edits club logos by uploading files to `club-logos` and then updating `clubs.logo_bucket` / `clubs.logo_path` (`js/pages/admin/clubs.js:167`, `js/pages/admin/clubs.js:168`, `js/pages/admin/clubs.js:169`, `js/pages/admin/clubs.js:187`, `js/pages/admin/clubs.js:188`, `js/pages/admin/clubs.js:189`).
+
+#### Profile Header Logo Area
+- The profile header is a custom inline flex layout, not the shared `.page-header` wrapper (`js/app.js:640`).
+- It renders the current user's avatar on the left, profile title/email in the middle, and the Diamond X image at the right (`js/app.js:641`, `js/app.js:648`, `js/app.js:652`).
+- `.page-header-logo` defines the Diamond logo sizing as `72px` by `52px`, `object-fit: contain`, and `flex-shrink: 0` (`css/components.css:156`, `css/components.css:157`, `css/components.css:158`, `css/components.css:160`, `css/components.css:163`).
+- There is no current conditional header element for `this.profile.club` or `getClubLogoUrl(this.profile.club)`.
+
+### Code References
+- `js/app.js:198` - Current user profile loader.
+- `js/app.js:202` - Profile query includes linked club name and logo fields.
+- `js/app.js:298` - `#profile` renders from cached state without profile reload.
+- `js/app.js:640` - Profile header layout starts.
+- `js/app.js:652` - Header currently shows only the Diamond X logo on the right.
+- `js/app.js:677` - Student profile card label is `CLUBE VINCULADO`.
+- `js/app.js:681` - Card-level club logo URL is computed.
+- `js/app.js:683` - Card-level linked club logo is rendered when available.
+- `js/pages/admin/users.js:50` - Admin user list selects linked club relation.
+- `js/pages/admin/users.js:165` - Admin edit form includes the club select for students.
+- `js/pages/admin/users.js:201` - Admin edit submit sends `club_id`.
+- `supabase/functions/admin-update-user/index.ts:135` - Edge Function updates `users.club_id`.
+- `js/clubs.js:18` - Club logo public URL helper.
+- `css/components.css:156` - Shared Diamond header logo dimensions.
+
+### Architecture Documentation
+Current data path for a linked club:
+
+`admin #users` -> `showEditUserForm(student)` -> `club_id` in `admin-update-user` payload -> Edge Function validates admin and club -> service-role update to `public.users.club_id` -> athlete app must run `loadProfile()` -> `renderProfile()` reads `this.profile.club` -> `getClubLogoUrl()` renders club logo/name in "FICHA DO ATLETA".
+
+Current profile header path:
+
+`#profile` -> `renderProfile()` -> inline header -> avatar/title/email -> static `/base_icon_transparent_background.png`. The linked club relation is not referenced in this header.
+
 ## Open Questions
-- The remote Supabase project was not inspected, so this research cannot confirm whether unmanaged remote tables, buckets, or policies for clubs already exist outside local code and migrations.
+- The remote Supabase project was not inspected, so this research cannot confirm whether `migrations/008_clubs_linked_to_students.sql` has been applied, whether `users.club_id` contains the expected value for the athlete in the screenshot, or whether the deployed `admin-update-user` function includes the current `club_id` logic.
+- The browser runtime was not inspected, so this research cannot confirm whether the athlete profile shown in the screenshot was rendered from a cached `this.profile` object before a page refresh.
 - The local migrations do not contain the original full schema for `public.users`, `plans`, or `student_plans`; some base schema details are inferred from code and `spec (1).md`.

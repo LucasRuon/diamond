@@ -171,9 +171,15 @@ export const adminClubs = {
 
                 toast.show('Clube atualizado!');
             } else {
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id;
+                if (!userId) {
+                    toast.show('Sessão expirada. Faça login novamente.', 'error');
+                    throw new Error('Sessão ausente.');
+                }
                 const { data: newClub, error: insertError } = await supabase
                     .from('clubs')
-                    .insert({ name, created_by: (await supabase.auth.getUser()).data.user?.id })
+                    .insert({ name, created_by: userId })
                     .select('id')
                     .single();
                 if (insertError) throw insertError;
