@@ -57,34 +57,12 @@ export const responsiblePlans = {
             return;
         }
 
-        const preDiamond = plans.filter(p => p.tier !== 'diamond_x');
         const diamondX = plans.filter(p => p.tier === 'diamond_x');
 
         let html = '';
 
-        if (preDiamond.length > 0) {
-            html += `<p style="font-size: 12px; font-weight: 700; color: var(--dx-muted); text-transform: uppercase; margin-bottom: 8px;">PRÉ DIAMOND</p>`;
-            html += preDiamond.map(plan => `
-                <div class="card" style="border-top: 4px solid ${color};">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <div>
-                            <h3 style="font-weight: 800; font-size: 20px; color: ${color};">${escapeHtml(plan.name)}</h3>
-                            <p style="font-size: 13px; color: var(--dx-muted);">
-                                ${plan.category === 'training' ? `${plan.duration_days} dias • ${plan.total_sessions} aulas` : 'Sessão Individual / Pacote'}
-                            </p>
-                        </div>
-                        <p style="font-weight: 800; font-size: 18px;">R$ ${parseFloat(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    </div>
-                    <p style="font-size: 14px; color: var(--dx-muted); margin-bottom: 20px;">${escapeHtml(plan.description || 'Acesso completo ao serviço selecionado.')}</p>
-                    <button class="btn btn-primary buy-plan-btn" data-id="${escapeHtml(plan.id)}" data-name="${escapeHtml(plan.name)}" style="background: ${color}; color: #000;">
-                        CONTRATAR AGORA
-                    </button>
-                </div>
-            `).join('');
-        }
-
         if (diamondX.length > 0) {
-            html += `<p style="font-size: 12px; font-weight: 700; color: var(--dx-muted); text-transform: uppercase; margin-top: 24px; margin-bottom: 8px;">DIAMOND X</p>`;
+            html += `<p style="font-size: 12px; font-weight: 700; color: var(--dx-muted); text-transform: uppercase; margin-bottom: 8px;">DIAMOND X</p>`;
             html += diamondX.map(plan => `
                 <div class="card" style="border-top: 4px solid var(--dx-border); opacity: 0.5;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
