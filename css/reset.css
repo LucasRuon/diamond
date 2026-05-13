@@ -7,15 +7,14 @@
 
 :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --nav-height: clamp(56px, 14vw, 68px);
+    --nav-height: clamp(48px, 13vw, 58px);
     --nav-bottom-padding: var(--safe-bottom);
     --nav-bottom-offset: 0px;
-    --standalone-bottom-fill: 0px;
-    --nav-clearance: calc(var(--nav-height) + 40px + var(--nav-bottom-padding));
+    --nav-clearance: calc(var(--nav-height) + 12px + var(--nav-bottom-padding));
 }
 
 html, body {
-    background-color: var(--dx-surface);
+    background-color: var(--dx-bg);
     color: var(--dx-text);
     font-family: var(--font-body);
     font-size: 16px;
@@ -50,28 +49,19 @@ html, body {
 
 @media all and (display-mode: standalone) {
     :root {
-        --nav-bottom-padding: max(var(--safe-bottom), 40px);
-        --nav-bottom-offset: calc(-1 * var(--nav-bottom-padding));
-        --standalone-bottom-fill: calc(var(--nav-bottom-padding) + 32px);
+        --nav-bottom-padding: 0px;
+        --nav-bottom-offset: 0px;
     }
 }
 
 html.standalone-app {
-    --nav-bottom-padding: max(var(--safe-bottom), 40px);
-    --nav-bottom-offset: calc(-1 * var(--nav-bottom-padding));
-    --standalone-bottom-fill: calc(var(--nav-bottom-padding) + 32px);
+    --nav-bottom-padding: var(--safe-bottom);
+    --nav-bottom-offset: 0px;
 }
 
-html.standalone-app body::after {
-    content: '';
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: var(--standalone-bottom-fill);
-    background: var(--dx-surface);
-    pointer-events: none;
-    z-index: 999;
+html.bottom-nav-visible,
+html.bottom-nav-visible body {
+    background-color: var(--dx-surface);
 }
 
 #main-content {

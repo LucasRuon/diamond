@@ -1,13 +1,13 @@
-const CACHE_NAME = 'diamondx-v21';
+const CACHE_NAME = 'diamondx-v26';
 const ASSETS = [
     '/',
     '/index.html',
-    '/manifest.json?v=2',
-    '/css/reset.css?v=3',
+    '/manifest.json?v=3',
+    '/css/reset.css?v=6',
     '/css/variables.css',
-    '/css/components.css?v=17',
+    '/css/components.css?v=18',
     '/css/pages.css?v=2',
-    '/js/app.js?v=17',
+    '/js/app.js?v=18',
     '/js/auth.js',
     '/js/supabase.js',
     '/js/supabase.js?v=16',
@@ -102,4 +102,40 @@ self.addEventListener('fetch', event => {
             });
         })
     );
+});
+
+// ============ Push notifications (waitlist offers) ============
+self.addEventListener('push', event => {
+    let data = {};
+    try { data = event.data ? event.data.json() : {}; } catch (_) { data = {}; }
+    const title = data.title || 'Diamond X';
+    const body = data.body || 'Você tem uma nova notificação.';
+    const url = data.url || '/#trainings';
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body,
+            icon: '/assets/icons/icon-192.png',
+            badge: '/assets/icons/icon-192.png',
+            data: { url },
+            tag: data.tag || 'diamondx-notification'
+        })
+    );
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    const target = event.notification.data?.url || '/#trainings';
+    event.waitUntil((async () => {
+        const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of all) {
+            if ('focus' in client) {
+                client.focus();
+                if ('navigate' in client) {
+                    try { await client.navigate(target); } catch (_) {}
+                }
+                return;
+            }
+        }
+        if (self.clients.openWindow) await self.clients.openWindow(target);
+    })());
 });

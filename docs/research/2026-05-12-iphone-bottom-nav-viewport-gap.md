@@ -9,6 +9,7 @@ tags: [research, codebase, layout, mobile, pwa]
 status: complete
 last_updated: 2026-05-12
 last_updated_by: Codex
+last_updated_note: "Added follow-up research for lower bottom navigation height"
 ---
 
 # Research: iPhone bottom nav viewport gap
@@ -139,3 +140,51 @@ The code paths to adjust are:
 - Whether the screenshot was taken in Safari tab mode, installed PWA standalone mode, or another webview.
 - Whether the black area below the nav is part of the browser viewport or outside the viewport provided to the web app.
 - Exact computed values on the device for `window.innerHeight`, `visualViewport.height`, `env(safe-area-inset-bottom)`, and the `#bottom-nav` bounding rectangle.
+
+## Follow-up Research 2026-05-12T19:41:37-03:00
+
+### Research Question
+
+$research-codebase [Image #1] está muito alto o menu inferior. Precisamos ajustar ele para ficar mais baixo. Esse espaço não deve ter
+
+### Scope
+
+Included the current bottom navigation CSS tokens, the fixed nav component styles, asset versioning in `index.html`, and service worker cache entries. The screenshot was treated as the visual reference for the lower menu adjustment.
+
+### Summary
+
+The bottom navigation height is controlled by shared variables in `css/reset.css` and the fixed `#bottom-nav` rule in `css/components.css`. The current implementation now sets `--nav-height` to `clamp(52px, 12vw, 58px)`, sets `--nav-bottom-padding` to `0px`, and computes content clearance from that smaller nav height. The fixed nav now uses explicit `height: calc(var(--nav-height) + var(--nav-bottom-padding))` with `box-sizing: border-box`, while each `.nav-item` uses `height: var(--nav-height)`.
+
+### Detailed Findings
+
+- `css/reset.css:10` defines the bottom navigation height token as `clamp(52px, 12vw, 58px)`.
+- `css/reset.css:11` defines `--nav-bottom-padding` as `0px`, so the nav no longer expands with an extra bottom safe-area band.
+- `css/reset.css:13` defines `--nav-clearance` as `calc(var(--nav-height) + 18px + var(--nav-bottom-padding))`, which keeps route content above the fixed nav using the smaller menu height.
+- `css/components.css:196` starts the fixed `#bottom-nav` rule.
+- `css/components.css:207` still reads `var(--nav-bottom-padding)`, now resolved to `0px`.
+- `css/components.css:209` and `css/components.css:210` make the nav border-box sized with an explicit height instead of a content-box minimum height.
+- `css/components.css:219`, `css/components.css:221`, and `css/components.css:236` reduce the item gap, label size ceiling, and icon size ceiling for the shorter nav.
+- `index.html:42` and `index.html:44` load `/css/reset.css?v=6` and `/css/components.css?v=18`.
+- `service-worker.js:1`, `service-worker.js:6`, and `service-worker.js:8` update the cache name and precached CSS URLs to the new asset versions.
+
+### Code References
+
+- `css/reset.css:10` - Shared nav height token.
+- `css/reset.css:11` - Bottom padding token now resolves to no extra bottom band.
+- `css/reset.css:13` - Scroll clearance derived from the shorter nav height.
+- `css/components.css:196` - Fixed bottom nav component rule.
+- `css/components.css:210` - Explicit nav height calculation.
+- `css/components.css:223` - Nav item height tracks the shared nav token.
+- `index.html:42` - Reset CSS version loaded by the page.
+- `index.html:44` - Components CSS version loaded by the page.
+- `service-worker.js:1` - Cache name updated for refreshed assets.
+
+### Validation Notes
+
+- `node --check js/app.js` completed successfully.
+- `node --check service-worker.js` completed successfully.
+- Local fetch against `http://127.0.0.1:8081/` returned `200` and confirmed the HTML includes `/css/reset.css?v=6` and `/css/components.css?v=18`.
+
+### Open Questions
+
+- Exact rendered measurement on the real iPhone 15 remains device-dependent until checked on the target device or simulator.

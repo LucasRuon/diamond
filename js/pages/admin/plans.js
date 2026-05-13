@@ -55,6 +55,10 @@ export const adminPlans = {
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
                         </div>
                         <p style="font-family: var(--font-brand); font-weight: 400; font-size: 17px;">${escapeHtml(plan.name)}</p>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                            <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: var(--dx-surface2); color: var(--dx-teal); border: 1px solid var(--dx-teal-border); text-transform: uppercase;">${escapeHtml(plan.kind || 'custom')}</span>
+                            <span style="font-size: 11px; color: var(--dx-muted);">${plan.max_installments || 1}x máx</span>
+                        </div>
                         <p style="font-size: 12px; color: var(--dx-muted);">${plan.duration_days} dias${plan.total_sessions ? ` • ${plan.total_sessions} aulas` : ''}</p>
                     </div>
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
@@ -126,9 +130,26 @@ export const adminPlans = {
                         <input type="number" name="duration_days" class="input-control" value="${plan?.duration_days || '30'}" required>
                     </div>
                 </div>
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
+                    <div class="input-group">
+                        <label>TOTAL DE AULAS (0 = ilimitado)</label>
+                        <input type="number" name="total_sessions" min="0" class="input-control" value="${plan?.total_sessions || '0'}" placeholder="0">
+                    </div>
+                    <div class="input-group">
+                        <label>MÁX. PARCELAS</label>
+                        <input type="number" name="max_installments" min="1" max="12" class="input-control" value="${plan?.max_installments || '1'}" required>
+                    </div>
+                </div>
                 <div class="input-group">
-                    <label>TOTAL DE AULAS (0 = ilimitado)</label>
-                    <input type="number" name="total_sessions" min="0" class="input-control" value="${plan?.total_sessions || '0'}" placeholder="0">
+                    <label>NÍVEL DO PLANO (KIND)</label>
+                    <select name="kind" class="input-control" required>
+                        <option value="custom" ${(plan?.kind || 'custom') === 'custom' ? 'selected' : ''}>Custom</option>
+                        <option value="avulsa" ${plan?.kind === 'avulsa' ? 'selected' : ''}>Avulsa (10d / 1 aula / 1x)</option>
+                        <option value="basic" ${plan?.kind === 'basic' ? 'selected' : ''}>Basic (30d / 4 aulas / 2x)</option>
+                        <option value="plus" ${plan?.kind === 'plus' ? 'selected' : ''}>Plus (45d / 6 aulas / 2x)</option>
+                        <option value="pro" ${plan?.kind === 'pro' ? 'selected' : ''}>Pro (60d / 8 aulas / 3x)</option>
+                        <option value="elite" ${plan?.kind === 'elite' ? 'selected' : ''}>Elite (75d / 12 aulas / 4x)</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>DESCRIÇÃO</label>
@@ -143,10 +164,12 @@ export const adminPlans = {
                 ...data,
                 price: parseFloat(data.price),
                 duration_days: parseInt(data.duration_days),
-                total_sessions: parseInt(data.total_sessions) || null
+                total_sessions: parseInt(data.total_sessions) || null,
+                max_installments: Math.min(12, Math.max(1, parseInt(data.max_installments) || 1)),
+                kind: data.kind || 'custom'
             };
 
-            const { error } = plan 
+            const { error } = plan
                 ? await supabase.from('plans').update(planData).eq('id', plan.id)
                 : await supabase.from('plans').insert([planData]);
 
@@ -154,5 +177,29 @@ export const adminPlans = {
             toast.show(plan ? 'Plano atualizado!' : 'Plano criado!');
             this.loadPlans();
         });
+
+        // Sugestões por kind (não trava — admin pode sobrescrever)
+        setTimeout(() => {
+            const form = document.getElementById('plan-form');
+            if (!form) return;
+            const kindSel = form.querySelector('[name="kind"]');
+            const dur = form.querySelector('[name="duration_days"]');
+            const sess = form.querySelector('[name="total_sessions"]');
+            const inst = form.querySelector('[name="max_installments"]');
+            const SUGGESTIONS = {
+                avulsa: { duration_days: 10, total_sessions: 1, max_installments: 1 },
+                basic:  { duration_days: 30, total_sessions: 4, max_installments: 2 },
+                plus:   { duration_days: 45, total_sessions: 6, max_installments: 2 },
+                pro:    { duration_days: 60, total_sessions: 8, max_installments: 3 },
+                elite:  { duration_days: 75, total_sessions: 12, max_installments: 4 }
+            };
+            kindSel?.addEventListener('change', (e) => {
+                const s = SUGGESTIONS[e.target.value];
+                if (!s) return;
+                if (dur) dur.value = s.duration_days;
+                if (sess) sess.value = s.total_sessions;
+                if (inst) inst.value = s.max_installments;
+            });
+        }, 0);
     }
 };

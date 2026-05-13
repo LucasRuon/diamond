@@ -23,6 +23,7 @@ import { responsiblePayments } from './pages/responsible/payments.js';
 import { studentPayments } from './pages/student/payments.js';
 import { responsibleTrainings } from './pages/responsible/trainings.js';
 import { checkoutPage } from './pages/checkout.js';
+import { registerPush } from './push.js';
 import {
     createStudentDocumentSignedUrl,
     formatDocumentDate,
@@ -39,6 +40,11 @@ const app = {
     studentProfileDocuments: [],
     loginParticlesCleanup: null,
     recoveryMode: false,
+
+    setBottomNavVisible(visible) {
+        this.bottomNav.classList.toggle('hidden', !visible);
+        document.documentElement.classList.toggle('bottom-nav-visible', visible);
+    },
 
     async init() {
         this.recoveryMode = this.isRecoveryRedirect();
@@ -278,6 +284,9 @@ const app = {
             this.profile.club = this.profile.club[0] || null;
         }
         await this.loadProfileClub();
+
+        // Tenta registrar push subscription (silencioso se não houver permissão / VAPID).
+        registerPush().catch(() => {});
     },
 
     async loadProfileClub() {
@@ -396,7 +405,7 @@ const app = {
     },
 
     renderLogin() {
-        this.bottomNav.classList.add('hidden');
+        this.setBottomNavVisible(false);
         this.stopLoginParticles();
         this.mainContent.innerHTML = `
             <div class="login-bg-wrapper">
@@ -514,7 +523,7 @@ const app = {
     },
 
     renderForgotPassword() {
-        this.bottomNav.classList.add('hidden');
+        this.setBottomNavVisible(false);
         this.mainContent.innerHTML = `
             <div class="login-bg-wrapper forgot-access-page">
                 <div class="login-bg-image"></div>
@@ -573,7 +582,7 @@ const app = {
     },
 
     async renderUpdatePassword() {
-        this.bottomNav.classList.add('hidden');
+        this.setBottomNavVisible(false);
         const { data: { session } } = await supabase.auth.getSession();
         const canResetPassword = Boolean(session) || this.hasRecoveryCredentials();
 
@@ -618,7 +627,7 @@ const app = {
     },
 
     renderRegister() {
-        this.bottomNav.classList.add('hidden');
+        this.setBottomNavVisible(false);
         this.mainContent.innerHTML = `
             <div class="page-container">
                 <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 24px;">CRIAR CONTA</h1>
@@ -683,7 +692,7 @@ const app = {
     },
 
     async renderDashboard() {
-        this.bottomNav.classList.remove('hidden');
+        this.setBottomNavVisible(true);
         if (this.profile?.role === 'admin') {
             await adminDashboard.render();
         } else if (this.profile?.role === 'responsible' || this.profile?.role === 'businessman') {
@@ -1155,11 +1164,11 @@ const app = {
     updateNav(activeHash) {
         if (!this.user) return;
         if (['#login', '#register', '#forgot-password', '#update-password'].includes(activeHash)) {
-            this.bottomNav.classList.add('hidden');
+            this.setBottomNavVisible(false);
             return;
         }
 
-        this.bottomNav.classList.remove('hidden');
+        this.setBottomNavVisible(true);
         const role = this.profile?.role || 'student';
         const hash = activeHash || '#dashboard';
         

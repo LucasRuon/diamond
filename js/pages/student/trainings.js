@@ -87,12 +87,27 @@ export const studentTrainings = {
             .eq('status', 'active')
             .limit(1);
 
+        const interestsQuery = supabase
+            .from('session_interests')
+            .select('*')
+            .eq('student_id', user.id)
+            .in('status', ['waiting', 'offered']);
+
         const [
             { data: sessions, error: sessionsError },
             { data: reservations, error: reservationsError },
             { data: activePlans },
-            planUsage
-        ] = await Promise.all([sessionsQuery, reservationsQuery, activePlanQuery, getActivePlanUsage(user.id)]);
+            planUsage,
+            { data: interests }
+        ] = await Promise.all([sessionsQuery, reservationsQuery, activePlanQuery, getActivePlanUsage(user.id), interestsQuery]);
+
+        // Buscar contagem de reservas por sessão (RPC pública)
+        const sessionIds = (sessions || []).map(s => s.id);
+        let bookedBySession = new Map();
+        if (sessionIds.length) {
+            const { data: counts } = await supabase.rpc('session_booked_counts', { p_session_ids: sessionIds });
+            (counts || []).forEach(row => bookedBySession.set(row.session_id, row.booked));
+        }
 
         if (sessionsError) {
             listContainer.innerHTML = `<p style="color: var(--dx-danger);">Erro ao carregar treinos.</p>`;
@@ -123,7 +138,37 @@ export const studentTrainings = {
         }
 
         const reservationsBySession = new Map(safeReservations.map(reservation => [reservation.session_id, reservation]));
+        const interestsBySession = new Map((interests || []).map(i => [i.session_id, i]));
         const hasActivePlan = Boolean(activePlans?.length);
+
+        // Banner de oferta ativa (T15)
+        const sessionsById = new Map((sessions || []).map(s => [s.id, s]));
+        const activeOffer = (interests || []).find(i =>
+            i.status === 'offered' && i.expires_at && new Date(i.expires_at) > new Date()
+        );
+        let offerBanner = '';
+        if (activeOffer) {
+            const offSession = sessionsById.get(activeOffer.session_id);
+            const expiresIn = Math.max(0, Math.round((new Date(activeOffer.expires_at) - Date.now()) / 60000));
+            const sessionLabel = offSession
+                ? `${escapeHtml(offSession.title)} — ${new Date(offSession.scheduled_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                : 'Treino';
+            offerBanner = `
+                <div class="card" style="border: 2px solid var(--dx-teal); background: var(--dx-teal-dim); display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <p style="font-weight: 800; color: var(--dx-teal); font-size: 14px;">VOCÊ FOI CONVOCADO</p>
+                        <p style="font-size: 14px; margin-top: 4px;">${sessionLabel}</p>
+                        <p style="font-size: 12px; color: var(--dx-muted); margin-top: 4px;">
+                            <i class="ph ph-clock"></i> Aceitar em até ${expiresIn} min
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary offer-accept-btn" data-interest-id="${escapeHtml(activeOffer.id)}" data-session-id="${escapeHtml(activeOffer.session_id)}" style="flex: 1; padding: 10px; font-size: 12px;">ACEITAR</button>
+                        <button class="btn offer-decline-btn" data-interest-id="${escapeHtml(activeOffer.id)}" style="flex: 1; padding: 10px; font-size: 12px; border: 1px solid var(--dx-border); color: var(--dx-danger);">RECUSAR</button>
+                    </div>
+                </div>
+            `;
+        }
 
         const quotaExhausted = planUsage?.total > 0 && planUsage?.remaining <= 0;
         const quotaBadge = planUsage?.total
@@ -137,6 +182,7 @@ export const studentTrainings = {
 
         listContainer.innerHTML = `
             ${reservationsUnavailable ? `<div class="card" style="border-color: var(--dx-danger); color: var(--dx-danger); font-size: 13px;">${reservationsMessage}</div>` : ''}
+            ${offerBanner}
             ${quotaBadge}
             <h3 class="section-label" style="margin-bottom: 8px;">Agenda do Mês</h3>
             ${safeSessions.map(session => {
@@ -144,35 +190,73 @@ export const studentTrainings = {
                 const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
                 const reservation = reservationsUnavailable ? null : reservationsBySession.get(session.id);
-                const hoursUntilSession = (date.getTime() - Date.now()) / 36e5;
-                const canReserve = hoursUntilSession >= 24;
+                const minutesUntil = (date.getTime() - Date.now()) / 60000;
+                const canBook = minutesUntil >= 60;
+                const canCancel = minutesUntil >= 120;
+                const capacity = Number(session.capacity || 0);
+                const booked = bookedBySession.get(session.id) || 0;
+                const isFull = capacity > 0 && booked >= capacity;
                 const canUseReservations = !reservationsUnavailable;
-                const stateLabel = reservationsUnavailable ? 'Reservas indisponiveis' : (reservation ? 'Treino marcado' : (canReserve ? 'Disponível para marcar' : 'Encerrado para marcação'));
+                const interest = interestsBySession.get(session.id) || null;
+                const isWaiting = interest && interest.status === 'waiting';
+
+                let stateLabel;
+                if (reservationsUnavailable) stateLabel = 'Reservas indisponíveis';
+                else if (reservation) stateLabel = 'Treino marcado';
+                else if (isFull) stateLabel = 'Turma cheia';
+                else if (canBook) stateLabel = 'Disponível para marcar';
+                else stateLabel = 'Encerrado para marcação';
+
+                const cancelDisabled = !canCancel;
+                const cancelTitle = cancelDisabled ? 'Cancelamento bloqueado (faltam menos de 2h)' : '';
+
+                const reserveDisabled = !canUseReservations || !canBook || !hasActivePlan || isFull;
+                let reserveLabel;
+                if (reservationsUnavailable) reserveLabel = 'RESERVAS INDISPONÍVEIS';
+                else if (!hasActivePlan) reserveLabel = 'PLANO ATIVO NECESSÁRIO';
+                else if (isFull) reserveLabel = 'TURMA CHEIA';
+                else if (canBook) reserveLabel = 'MARCAR TREINO';
+                else reserveLabel = 'MARCAÇÃO ENCERRADA';
+                const reserveTitle = !canBook && !isFull && hasActivePlan ? 'Marcação bloqueada (faltam menos de 1h)' : '';
+
+                // Mostrar "tenho interesse" quando: sem reserva, com plano ativo, e (turma cheia OU dentro de 1h e sem vaga ainda).
+                // Conforme spec REQ-WAIT-004: sempre disponível para alunos sem reserva (sessões futuras).
+                const showInterest = !reservation && hasActivePlan && canUseReservations && minutesUntil > 0;
 
                 return `
                     <div class="card" data-session-id="${escapeHtml(session.id)}" style="display: flex; flex-direction: column; gap: 14px;">
                         <div style="display: flex; justify-content: space-between; gap: 12px;">
                             <div>
-                            <p style="font-weight: 600;">${escapeHtml(session.title)}</p>
-                            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                                <p style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px;">
-                                    <i class="ph ph-calendar"></i> ${dateStr} às ${timeStr}
-                                </p>
-                                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location || '')}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--dx-teal); display: flex; align-items: center; gap: 4px; text-decoration: none;">
-                                    <i class="ph ph-map-pin"></i> ${escapeHtml(session.location || 'Local a definir')}
-                                </a>
+                                <p style="font-weight: 600;">${escapeHtml(session.title)}</p>
+                                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                                    <p style="font-size: 12px; color: var(--dx-muted); display: flex; align-items: center; gap: 4px;">
+                                        <i class="ph ph-calendar"></i> ${dateStr} às ${timeStr}
+                                    </p>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(session.location || '')}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--dx-teal); display: flex; align-items: center; gap: 4px; text-decoration: none;">
+                                        <i class="ph ph-map-pin"></i> ${escapeHtml(session.location || 'Local a definir')}
+                                    </a>
+                                    ${capacity > 0 ? `<p style="font-size: 11px; color: var(--dx-muted);"><i class="ph ph-users"></i> ${booked}/${capacity} vagas</p>` : ''}
+                                </div>
                             </div>
-                        </div>
-                            <span class="badge ${reservation ? 'badge-active' : (canReserve ? 'badge-pending' : 'badge-overdue')}" style="height: fit-content;">${stateLabel}</span>
+                            <span class="badge ${reservation ? 'badge-active' : (isFull ? 'badge-overdue' : (canBook ? 'badge-pending' : 'badge-overdue'))}" style="height: fit-content;">${stateLabel}</span>
                         </div>
                         ${reservation ? `
-                            <button class="btn cancel-reservation-btn" data-reservation-id="${escapeHtml(reservation.id)}" style="padding: 10px; font-size: 12px; border: 1px solid var(--dx-border); color: var(--dx-danger);">
+                            <button class="btn cancel-reservation-btn" data-reservation-id="${escapeHtml(reservation.id)}" ${cancelDisabled ? 'disabled' : ''} title="${escapeHtml(cancelTitle)}" style="padding: 10px; font-size: 12px; border: 1px solid var(--dx-border); color: ${cancelDisabled ? 'var(--dx-muted)' : 'var(--dx-danger)'}; opacity: ${cancelDisabled ? '0.55' : '1'};">
                                 CANCELAR RESERVA
                             </button>
                         ` : `
-                            <button class="btn reserve-training-btn" data-session-id="${escapeHtml(session.id)}" ${!canUseReservations || !canReserve || !hasActivePlan ? 'disabled' : ''} style="padding: 10px; font-size: 12px; border: 1px solid ${canUseReservations && canReserve && hasActivePlan ? 'var(--dx-teal)' : 'var(--dx-border)'}; color: ${canUseReservations && canReserve && hasActivePlan ? 'var(--dx-teal)' : 'var(--dx-muted)'}; opacity: ${canUseReservations && canReserve && hasActivePlan ? '1' : '0.55'};">
-                                ${reservationsUnavailable ? 'RESERVAS INDISPONÍVEIS' : (!hasActivePlan ? 'PLANO ATIVO NECESSÁRIO' : (canReserve ? 'MARCAR TREINO' : 'RESERVAS ENCERRADAS'))}
-                            </button>
+                            ${isFull || !canBook ? '' : `
+                                <button class="btn reserve-training-btn" data-session-id="${escapeHtml(session.id)}" ${reserveDisabled ? 'disabled' : ''} title="${escapeHtml(reserveTitle)}" style="padding: 10px; font-size: 12px; border: 1px solid ${!reserveDisabled ? 'var(--dx-teal)' : 'var(--dx-border)'}; color: ${!reserveDisabled ? 'var(--dx-teal)' : 'var(--dx-muted)'}; opacity: ${!reserveDisabled ? '1' : '0.55'};">
+                                    ${reserveLabel}
+                                </button>
+                            `}
+                            ${isFull && hasActivePlan ? `<p style="font-size: 12px; color: var(--dx-muted); text-align: center;">${reserveLabel}</p>` : ''}
+                            ${showInterest ? `
+                                <button class="btn toggle-interest-btn" data-session-id="${escapeHtml(session.id)}" data-interest-id="${interest ? escapeHtml(interest.id) : ''}" data-state="${isWaiting ? 'on' : 'off'}" style="padding: 10px; font-size: 12px; border: 1px solid ${isWaiting ? 'var(--dx-teal)' : 'var(--dx-border)'}; color: ${isWaiting ? 'var(--dx-teal)' : 'var(--dx-muted)'}; background: ${isWaiting ? 'var(--dx-teal-dim)' : 'transparent'};">
+                                    <i class="ph ${isWaiting ? 'ph-bell-ringing' : 'ph-bell'}" style="margin-right: 6px;"></i>
+                                    ${isWaiting ? 'SAIR DA LISTA DE INTERESSE' : 'TENHO INTERESSE'}
+                                </button>
+                            ` : ''}
                         `}
                     </div>
                 `;
@@ -220,6 +304,18 @@ export const studentTrainings = {
         document.querySelectorAll('.cancel-reservation-btn').forEach(btn => {
             btn.addEventListener('click', () => this.cancelReservation(btn.dataset.reservationId));
         });
+
+        document.querySelectorAll('.toggle-interest-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.toggleInterest(btn.dataset.sessionId, btn.dataset.interestId, btn.dataset.state));
+        });
+
+        document.querySelectorAll('.offer-accept-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.acceptOffer(btn.dataset.interestId, btn.dataset.sessionId));
+        });
+
+        document.querySelectorAll('.offer-decline-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.declineOffer(btn.dataset.interestId));
+        });
     },
 
     changeMonth(direction) {
@@ -249,7 +345,7 @@ export const studentTrainings = {
                 ? 'Você já marcou este treino.'
                 : (isReservationsSchemaError(error)
                     ? getReservationsLoadMessage(error)
-                    : 'Não foi possível marcar o treino. Verifique seu plano e o prazo de 24h.');
+                    : 'Não foi possível marcar o treino. Verifique seu plano e os prazos (1h para marcar / 2h para cancelar) e se a turma não está cheia.');
             toast.show(message, 'error');
             return;
         }
@@ -265,11 +361,75 @@ export const studentTrainings = {
             .eq('id', reservationId);
 
         if (error) {
-            toast.show(isReservationsSchemaError(error) ? getReservationsLoadMessage(error) : 'Não foi possível cancelar a reserva.', 'error');
+            const msg = isReservationsSchemaError(error)
+                ? getReservationsLoadMessage(error)
+                : 'Cancelamento bloqueado: faltam menos de 2h para o treino.';
+            toast.show(msg, 'error');
             return;
         }
 
         toast.show('Reserva cancelada.');
+        this.loadAvailableTrainings();
+    },
+
+    async toggleInterest(sessionId, interestId, state) {
+        const user = (await supabase.auth.getUser()).data.user;
+        if (state === 'on' && interestId) {
+            // SAIR
+            const { error } = await supabase
+                .from('session_interests')
+                .update({ status: 'cancelled' })
+                .eq('id', interestId);
+            if (error) {
+                toast.show('Não foi possível sair da lista. Tente novamente.', 'error');
+                return;
+            }
+            toast.show('Você saiu da lista de interesse.');
+        } else {
+            // ENTRAR
+            const { error } = await supabase
+                .from('session_interests')
+                .insert([{ session_id: sessionId, student_id: user.id, status: 'waiting' }]);
+            if (error) {
+                const msg = error.code === '23505'
+                    ? 'Você já está na lista desta sessão.'
+                    : 'Não foi possível entrar na lista. Verifique seu plano ativo.';
+                toast.show(msg, 'error');
+                return;
+            }
+            toast.show('Você entrou na lista de interesse. Avisaremos se uma vaga abrir.');
+        }
+        this.loadAvailableTrainings();
+    },
+
+    async acceptOffer(interestId, sessionId) {
+        const user = (await supabase.auth.getUser()).data.user;
+        // Cria reserva booked; trigger/RLS valida janela e capacity
+        const { error: resErr } = await supabase
+            .from('training_reservations')
+            .insert([{ session_id: sessionId, student_id: user.id }]);
+        if (resErr) {
+            // Falha (oferta expirada / sem vaga). Marca como cancelled para que o ciclo siga e re-promote.
+            await supabase.from('session_interests').update({ status: 'cancelled' }).eq('id', interestId);
+            toast.show('Não foi possível aceitar (oferta pode ter expirado). A vaga será oferecida ao próximo.', 'error');
+            this.loadAvailableTrainings();
+            return;
+        }
+        await supabase.from('session_interests').update({ status: 'accepted' }).eq('id', interestId);
+        toast.show('Vaga aceita! Treino marcado.');
+        this.loadAvailableTrainings();
+    },
+
+    async declineOffer(interestId) {
+        const { error } = await supabase
+            .from('session_interests')
+            .update({ status: 'cancelled' })
+            .eq('id', interestId);
+        if (error) {
+            toast.show('Não foi possível recusar.', 'error');
+            return;
+        }
+        toast.show('Oferta recusada. Vamos oferecer ao próximo da fila.');
         this.loadAvailableTrainings();
     },
 

@@ -341,6 +341,10 @@ export const adminTrainings = {
                     <label>DATA E HORA</label>
                     <input type="datetime-local" name="scheduled_at" class="input-control" required>
                 </div>
+                <div class="input-group">
+                    <label>CAPACIDADE (VAGAS)</label>
+                    <input type="number" name="capacity" min="1" max="200" value="20" class="input-control" required>
+                </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">AGENDAR TREINO</button>
             </form>
         `;
@@ -349,6 +353,7 @@ export const adminTrainings = {
             const { error } = await supabase.from('training_sessions').insert([{
                 ...data,
                 scheduled_at: new Date(data.scheduled_at).toISOString(),
+                capacity: Math.max(1, parseInt(data.capacity) || 20),
                 qr_code_token: crypto.randomUUID(),
                 created_by: (await supabase.auth.getUser()).data.user?.id
             }]);

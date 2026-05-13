@@ -122,7 +122,9 @@ export const responsiblePlans = {
             .eq('responsible_id', userId);
 
         const accent = this.currentCategory === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)';
-        const installmentsOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+        const { data: planRow } = await supabase.from('plans').select('max_installments').eq('id', planId).single();
+        const maxInst = Math.min(12, Math.max(1, planRow?.max_installments || 1));
+        const installmentsOptions = Array.from({ length: maxInst }, (_, i) => i + 1)
             .map(n => `<option value="${n}">${n}x</option>`).join('');
 
         const formHtml = `

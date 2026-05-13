@@ -195,7 +195,7 @@ select.input-control {
 /* Bottom Navigation */
 #bottom-nav {
     position: fixed;
-    bottom: var(--nav-bottom-offset);
+    bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -206,8 +206,8 @@ select.input-control {
     align-items: stretch;
     padding-bottom: var(--nav-bottom-padding);
     z-index: 1000;
-    box-sizing: content-box;
-    min-height: var(--nav-height);
+    box-sizing: border-box;
+    height: calc(var(--nav-height) + var(--nav-bottom-padding));
 }
 
 .nav-item {
@@ -216,11 +216,11 @@ select.input-control {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(2px, 0.8vw, 5px);
+    gap: clamp(1px, 0.6vw, 3px);
     color: var(--dx-muted);
-    font-size: clamp(9px, 2.6vw, 11px);
+    font-size: clamp(9px, 2.45vw, 10.5px);
     font-weight: 500;
-    min-height: var(--nav-height);
+    height: var(--nav-height);
     transition: all 0.2s ease;
     background: transparent;
     border: 0;
@@ -233,7 +233,7 @@ select.input-control {
 }
 
 .nav-item i {
-    font-size: clamp(18px, 5.2vw, 22px);
+    font-size: clamp(18px, 4.8vw, 21px);
 }
 
 .nav-item span {
@@ -247,6 +247,13 @@ select.input-control {
     }
     .nav-item span {
         letter-spacing: -0.2px;
+    }
+}
+
+@media (max-height: 670px) {
+    :root {
+        --nav-height: clamp(46px, 11vw, 54px);
+        --nav-clearance: calc(var(--nav-height) + 8px + var(--nav-bottom-padding));
     }
 }
 
