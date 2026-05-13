@@ -87,7 +87,14 @@ serve(async (req) => {
       callerRole === "businessman";
     if (!allowedForCaller) return json({ error: "forbidden" }, 403);
 
-    // 4. Customer Asaas (idempotente)
+    // 4. Customer Asaas (idempotente, com sincronização de dados)
+    const customerPayload = {
+      name: student.full_name,
+      cpfCnpj: (student.cpf ?? "").replace(/\D/g, ""),
+      email: student.email,
+      phone: (student.phone ?? "").replace(/\D/g, ""),
+    };
+
     let customerId: string | null = student.asaas_customer_id ?? null;
     if (!customerId) {
       const customerResp = await fetch(`${ASAAS_URL}/customers`, {
@@ -96,12 +103,7 @@ serve(async (req) => {
           access_token: ASAAS_API_KEY,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: student.full_name,
-          cpfCnpj: (student.cpf ?? "").replace(/\D/g, ""),
-          email: student.email,
-          phone: (student.phone ?? "").replace(/\D/g, ""),
-        }),
+        body: JSON.stringify(customerPayload),
       });
       const customerData = await customerResp.json();
       if (!customerResp.ok || !customerData?.id) {
@@ -112,6 +114,22 @@ serve(async (req) => {
         .from("users")
         .update({ asaas_customer_id: customerId })
         .eq("id", student.id);
+    } else {
+      const updateResp = await fetch(`${ASAAS_URL}/customers/${customerId}`, {
+        method: "POST",
+        headers: {
+          access_token: ASAAS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(customerPayload),
+      });
+      const updateData = await updateResp.json();
+      if (!updateResp.ok || !updateData?.id) {
+        return json(
+          { error: asaasError(updateData), code: "asaas_customer_update" },
+          502,
+        );
+      }
     }
 
     // 5. Criar payment
