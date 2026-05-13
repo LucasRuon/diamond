@@ -23,6 +23,7 @@ import { responsiblePayments } from './pages/responsible/payments.js';
 import { studentPayments } from './pages/student/payments.js';
 import { responsibleTrainings } from './pages/responsible/trainings.js';
 import { checkoutPage } from './pages/checkout.js';
+import { registerPush } from './push.js';
 import {
     createStudentDocumentSignedUrl,
     formatDocumentDate,
@@ -283,6 +284,9 @@ const app = {
             this.profile.club = this.profile.club[0] || null;
         }
         await this.loadProfileClub();
+
+        // Tenta registrar push subscription (silencioso se não houver permissão / VAPID).
+        registerPush().catch(() => {});
     },
 
     async loadProfileClub() {

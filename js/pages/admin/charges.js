@@ -62,7 +62,7 @@ export const adminCharges = {
         toast.show('Carregando atletas...');
         const [{ data: students }, { data: plans }] = await Promise.all([
             supabase.from('users').select('id, full_name, email').eq('role', 'student').order('full_name'),
-            supabase.from('plans').select('id, name, price, category').eq('active', true).order('name')
+            supabase.from('plans').select('id, name, price, category, max_installments').eq('active', true).order('name')
         ]);
 
         const formHtml = `
@@ -101,7 +101,7 @@ export const adminCharges = {
                     <div class="input-group" id="ac-installments-wrap" style="display:none;">
                         <label>PARCELAS</label>
                         <select name="installments" id="ac-installments" class="input-control">
-                            ${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${i + 1}x</option>`).join('')}
+                            <option value="1">1x</option>
                         </select>
                     </div>
                 </div>
@@ -153,17 +153,25 @@ export const adminCharges = {
             window.location.hash = `#checkout?sp=${encodeURIComponent(result.studentPlanId)}`;
         });
 
-        // Toggle de UI: modo asaas vs manual + parcelas
+        // Toggle de UI: modo asaas vs manual + parcelas (limite vem do plano)
         setTimeout(() => {
             const mode = document.getElementById('ac-mode');
             const asaasBlock = document.getElementById('ac-asaas-options');
             const methodSel = document.getElementById('ac-method');
             const wrap = document.getElementById('ac-installments-wrap');
+            const planSel = document.querySelector('select[name="plan_id"]');
+            const instSel = document.getElementById('ac-installments');
             const syncMode = () => { asaasBlock.style.display = mode.value === 'asaas' ? '' : 'none'; };
             const syncMethod = () => { wrap.style.display = methodSel.value === 'CREDIT_CARD' ? '' : 'none'; };
+            const syncInstallments = () => {
+                const plan = plans?.find(p => p.id === planSel?.value);
+                const max = Math.min(12, Math.max(1, plan?.max_installments || 1));
+                instSel.innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}">${i + 1}x</option>`).join('');
+            };
             mode?.addEventListener('change', syncMode);
             methodSel?.addEventListener('change', syncMethod);
-            syncMode(); syncMethod();
+            planSel?.addEventListener('change', syncInstallments);
+            syncMode(); syncMethod(); syncInstallments();
         }, 50);
     },
 

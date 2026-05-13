@@ -2,6 +2,11 @@
 const SUPABASE_URL = 'https://ggolcbrrenmnvtphmcbr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdnb2xjYnJyZW5tbnZ0cGhtY2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTMxMTMsImV4cCI6MjA5MTU4OTExM30.zyfqFx2unTLcoTwcIqc3NH14243IpNpLHgZ7XrBXXKs';
 
+// VAPID public key (Web Push). Substitua pelo valor gerado via `npx web-push generate-vapid-keys`.
+// O par privado fica como secret na Edge Function (VAPID_PRIVATE).
+export const VAPID_PUBLIC = '__REPLACE_WITH_VAPID_PUBLIC_KEY__';
+export { SUPABASE_URL };
+
 console.log('Iniciando Supabase...');
 
 if (!window.supabase) {

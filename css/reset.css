@@ -7,10 +7,10 @@
 
 :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --nav-height: clamp(52px, 12vw, 58px);
-    --nav-bottom-padding: 0px;
+    --nav-height: clamp(48px, 13vw, 58px);
+    --nav-bottom-padding: var(--safe-bottom);
     --nav-bottom-offset: 0px;
-    --nav-clearance: calc(var(--nav-height) + 18px + var(--nav-bottom-padding));
+    --nav-clearance: calc(var(--nav-height) + 12px + var(--nav-bottom-padding));
 }
 
 html, body {
@@ -55,7 +55,7 @@ html, body {
 }
 
 html.standalone-app {
-    --nav-bottom-padding: 0px;
+    --nav-bottom-padding: var(--safe-bottom);
     --nav-bottom-offset: 0px;
 }
 

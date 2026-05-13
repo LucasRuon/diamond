@@ -19,7 +19,8 @@ export const studentDashboard = {
                 </div>
 
                 <div id="pending-payment-banner-area"></div>
-                
+                <div id="waitlist-offer-banner-area"></div>
+
                 <div id="student-status-area" style="display: flex; flex-direction: column; gap: 16px;">
                     <p style="color: var(--dx-muted); text-align: center; padding: 20px;">Carregando informações...</p>
                 </div>
@@ -35,9 +36,55 @@ export const studentDashboard = {
         `;
 
         this.loadPendingPaymentBanner();
+        this.loadWaitlistOfferBanner();
         this.loadStatus();
         this.loadNextTraining();
         this.loadResponsible();
+    },
+
+    async loadWaitlistOfferBanner() {
+        const container = document.getElementById('waitlist-offer-banner-area');
+        if (!container) return;
+
+        const userId = (await supabase.auth.getUser()).data.user.id;
+        const nowIso = new Date().toISOString();
+        const { data, error } = await supabase
+            .from('session_interests')
+            .select(`
+                id, session_id, expires_at,
+                session:training_sessions!session_interests_session_id_fkey(id, title, scheduled_at, location)
+            `)
+            .eq('student_id', userId)
+            .eq('status', 'offered')
+            .gt('expires_at', nowIso)
+            .order('offered_at', { ascending: false })
+            .limit(1);
+
+        if (error || !data?.length) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const offer = data[0];
+        const session = Array.isArray(offer.session) ? offer.session[0] : offer.session;
+        const when = session?.scheduled_at
+            ? new Date(session.scheduled_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+            : '';
+        const expiresIn = Math.max(0, Math.round((new Date(offer.expires_at) - Date.now()) / 60000));
+
+        container.innerHTML = `
+            <a href="#trainings" style="text-decoration: none; color: inherit;">
+                <div class="card" style="border: 2px solid var(--dx-teal); background: var(--dx-teal-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+                    <i class="ph-bold ph-bell-ringing" style="font-size: 24px; color: var(--dx-teal);"></i>
+                    <div style="flex: 1;">
+                        <p style="font-weight: 800; color: var(--dx-teal); font-size: 12px; text-transform: uppercase;">Vaga disponível</p>
+                        <p style="font-size: 14px; margin-top: 2px;">${escapeHtml(session?.title || 'Treino')}${when ? ` · ${when}` : ''}</p>
+                        <p style="font-size: 11px; color: var(--dx-muted); margin-top: 2px;">Aceitar em até ${expiresIn} min</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="font-size: 20px; color: var(--dx-teal);"></i>
+                </div>
+            </a>
+        `;
     },
 
     async loadPendingPaymentBanner() {

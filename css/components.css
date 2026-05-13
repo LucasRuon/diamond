@@ -195,7 +195,7 @@ select.input-control {
 /* Bottom Navigation */
 #bottom-nav {
     position: fixed;
-    bottom: var(--nav-bottom-offset);
+    bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -247,6 +247,13 @@ select.input-control {
     }
     .nav-item span {
         letter-spacing: -0.2px;
+    }
+}
+
+@media (max-height: 670px) {
+    :root {
+        --nav-height: clamp(46px, 11vw, 54px);
+        --nav-clearance: calc(var(--nav-height) + 8px + var(--nav-bottom-padding));
     }
 }
 

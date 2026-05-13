@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diamondx-v25';
+const CACHE_NAME = 'diamondx-v26';
 const ASSETS = [
     '/',
     '/index.html',
@@ -102,4 +102,40 @@ self.addEventListener('fetch', event => {
             });
         })
     );
+});
+
+// ============ Push notifications (waitlist offers) ============
+self.addEventListener('push', event => {
+    let data = {};
+    try { data = event.data ? event.data.json() : {}; } catch (_) { data = {}; }
+    const title = data.title || 'Diamond X';
+    const body = data.body || 'Você tem uma nova notificação.';
+    const url = data.url || '/#trainings';
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body,
+            icon: '/assets/icons/icon-192.png',
+            badge: '/assets/icons/icon-192.png',
+            data: { url },
+            tag: data.tag || 'diamondx-notification'
+        })
+    );
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    const target = event.notification.data?.url || '/#trainings';
+    event.waitUntil((async () => {
+        const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of all) {
+            if ('focus' in client) {
+                client.focus();
+                if ('navigate' in client) {
+                    try { await client.navigate(target); } catch (_) {}
+                }
+                return;
+            }
+        }
+        if (self.clients.openWindow) await self.clients.openWindow(target);
+    })());
 });
