@@ -13,7 +13,8 @@
     --nav-clearance: calc(var(--nav-height) + 12px + var(--nav-bottom-padding));
 }
 
-html, body {
+html,
+body {
     background-color: var(--dx-bg);
     color: var(--dx-text);
     font-family: var(--font-body);
@@ -23,7 +24,8 @@ html, body {
     min-height: 100vh;
     min-height: 100dvh;
     width: 100%;
-    overflow: hidden; /* Impede o scroll do body inteiro */
+    overflow: hidden;
+    /* Impede o scroll do body inteiro */
 }
 
 #app {
@@ -31,13 +33,16 @@ html, body {
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
-    height: 100dvh; /* Altura dinâmica da tela (respeita barras do navegador) */
+    height: 100dvh;
+    /* Altura dinâmica da tela (respeita barras do navegador) */
     width: 100%;
     background: var(--dx-bg);
 }
 
 @supports (-webkit-touch-callout: none) {
-    html, body {
+
+    html,
+    body {
         min-height: -webkit-fill-available;
     }
 
@@ -55,7 +60,7 @@ html, body {
 }
 
 html.standalone-app {
-    --nav-bottom-padding: var(--safe-bottom);
+    --nav-bottom-padding: max(8px, calc(var(--safe-bottom) * 0.3));
     --nav-bottom-offset: 0px;
 }
 
@@ -68,12 +73,12 @@ html.bottom-nav-visible body {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    
+
     /* ZONA DE SEGURANÇA SUPERIOR (Dynamic Island / Notch) */
     /* Usamos padding aqui para o conteúdo rolar por baixo do padding se necessário, 
        ou podemos usar um spacer. Vamos de padding generoso + env */
     padding-top: calc(45px + env(safe-area-inset-top));
-    
+
     /* ZONA DE SEGURANÇA INFERIOR (Menu + Barra de Gestos) */
     padding-bottom: var(--nav-clearance);
 }
@@ -88,7 +93,10 @@ h1 {
     padding-top: 10px;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
     font-family: inherit;
     font-size: inherit;
     outline: none;
