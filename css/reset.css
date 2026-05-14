@@ -16,7 +16,9 @@
 
     --nav-bottom-offset: 0px;
 
-    --nav-clearance: calc(var(--nav-height) + 2px + var(--nav-bottom-padding));
+    --nav-clearance: calc(var(--nav-height) + var(--nav-bottom-padding));
+    --page-end-gap: max(clamp(20px, 4vh, 32px), var(--safe-bottom));
+    --page-bottom-padding: calc(var(--nav-clearance) + var(--page-end-gap));
 }
 
 html,
@@ -73,8 +75,9 @@ html.bottom-nav-visible body {
        ou podemos usar um spacer. Vamos de padding generoso + env */
     padding-top: calc(45px + env(safe-area-inset-top));
 
-    /* ZONA DE SEGURANÇA INFERIOR (Menu + Barra de Gestos) */
-    padding-bottom: var(--nav-clearance);
+    /* O respiro inferior das rotas fica no wrapper da página. */
+    padding-bottom: 0;
+    scroll-padding-bottom: var(--page-bottom-padding);
 }
 
 .page-container {

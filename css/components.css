@@ -253,7 +253,9 @@ select.input-control {
 @media (max-height: 670px) {
     :root {
         --nav-height: clamp(46px, 11vw, 54px);
-        --nav-clearance: calc(var(--nav-height) + 8px + var(--nav-bottom-padding));
+        --nav-clearance: calc(var(--nav-height) + var(--nav-bottom-padding));
+        --page-end-gap: max(clamp(18px, 4vh, 28px), var(--safe-bottom));
+        --page-bottom-padding: calc(var(--nav-clearance) + var(--page-end-gap));
     }
 }
 

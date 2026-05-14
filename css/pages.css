@@ -7,12 +7,17 @@
 #main-content.auth-screen {
     padding-top: 0;
     padding-bottom: 0;
+    scroll-padding-bottom: 0;
     min-height: 100dvh;
     background: var(--dx-bg);
 }
 
 #main-content > .page-container {
-    padding-bottom: var(--nav-clearance);
+    padding-bottom: var(--page-end-gap);
+}
+
+html.bottom-nav-visible #main-content > .page-container {
+    padding-bottom: var(--page-bottom-padding);
 }
 
 #main-content.page-exit {
