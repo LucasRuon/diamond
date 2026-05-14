@@ -60,7 +60,7 @@ body {
 }
 
 html.standalone-app {
-    --nav-bottom-padding: max(8px, calc(var(--safe-bottom) * 0.3));
+    --nav-bottom-padding: 6px;
     --nav-bottom-offset: 0px;
 }
 
