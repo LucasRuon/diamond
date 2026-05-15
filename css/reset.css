@@ -10,9 +10,7 @@
 
     --nav-height: clamp(48px, 13vw, 58px);
 
-    /* limita a safe area a no máximo 2px */
-    --nav-safe-area-cap: 2px;
-    --nav-bottom-padding: min(var(--safe-bottom), var(--nav-safe-area-cap));
+    --nav-bottom-padding: var(--safe-bottom);
 
     --nav-bottom-offset: 0px;
 
