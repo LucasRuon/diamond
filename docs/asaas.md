@@ -66,7 +66,7 @@ supabase functions serve asaas-webhook
 2. No app, comprar um plano:
    - PIX → exibe QR Code e copia-e-cola.
    - Cartão de Crédito → abre `invoiceUrl` em nova aba e mantém parcelas quando configuradas (usar cartão de teste `5162306219378829`).
-   - Cartão de Débito → redireciona para o checkout, abre `invoiceUrl` e permite selecionar débito na fatura Asaas.
+   - Cartão de Débito → rótulo exibido no app para cobrança `BOLETO`; redireciona para o checkout e abre `invoiceUrl`.
 3. No painel sandbox Asaas → cobrança → **Simular pagamento confirmado**.
 4. Webhook deve chegar → `student_plans` muda para `status='active'`, `asaas_status='CONFIRMED'` ou `RECEIVED`.
 5. Repetir para `OVERDUE` (deixar vencer ou simular) e `REFUNDED` (reembolso pelo painel).
@@ -95,4 +95,4 @@ supabase functions logs asaas-webhook --since 1h
 - **`activate_student_plan`** é `SECURITY DEFINER` e só aceita `admin` ou `service_role`. O webhook usa service_role.
 - **Idempotência**: o webhook ignora eventos cujo `asaas_status` já está no estado-alvo (replay seguro).
 - **Erros** nas chamadas Asaas retornam HTTP `502` com `code: 'asaas_customer'` ou `'asaas_payment'` e a mensagem traduzida.
-- **Débito**: o app envia `DEBIT_CARD` internamente, mas a Edge Function envia `billingType: "CREDIT_CARD"` ao Asaas. A escolha final por débito acontece na fatura Asaas (`invoiceUrl`) e nenhum dado de cartão passa pelo frontend Diamond X.
+- **Débito no app**: o texto "Cartão de Débito" é apenas o rótulo comercial mostrado ao usuário. A SPA envia `BOLETO` e a Edge Function envia `billingType: "BOLETO"` ao Asaas; nenhum dado de cartão passa pelo frontend Diamond X.

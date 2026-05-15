@@ -8,7 +8,7 @@ import { toast } from './auth.js';
  * @param {object} params
  * @param {string} params.planId
  * @param {string} params.studentId
- * @param {'PIX'|'CREDIT_CARD'|'DEBIT_CARD'} params.paymentMethod
+ * @param {'PIX'|'CREDIT_CARD'|'BOLETO'} params.paymentMethod
  * @param {number} [params.installments]
  */
 export async function createCheckout({ planId, studentId, paymentMethod, installments }) {

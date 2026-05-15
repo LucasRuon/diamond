@@ -96,7 +96,7 @@ export const adminCharges = {
                         <select name="payment_method" id="ac-method" class="input-control">
                             <option value="PIX">PIX</option>
                             <option value="CREDIT_CARD">Cartão de Crédito</option>
-                            <option value="DEBIT_CARD">Cartão de Débito</option>
+                            <option value="BOLETO">Cartão de Débito</option>
                         </select>
                     </div>
                     <div class="input-group" id="ac-installments-wrap" style="display:none;">

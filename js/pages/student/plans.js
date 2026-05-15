@@ -113,7 +113,7 @@ export const studentPlans = {
                     <select name="payment_method" id="cf-method" class="input-control" required>
                         <option value="PIX">PIX</option>
                         <option value="CREDIT_CARD">Cartão de Crédito</option>
-                        <option value="DEBIT_CARD">Cartão de Débito</option>
+                        <option value="BOLETO">Cartão de Débito</option>
                     </select>
                 </div>
 

@@ -20,7 +20,7 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-const ALLOWED_METHODS = new Set(["PIX", "CREDIT_CARD", "DEBIT_CARD"]);
+const ALLOWED_METHODS = new Set(["PIX", "CREDIT_CARD", "BOLETO"]);
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -67,7 +67,7 @@ serve(async (req) => {
     if (!ALLOWED_METHODS.has(method)) {
       return json({ error: "invalid_payment_method" }, 400);
     }
-    const asaasBillingType = method === "DEBIT_CARD" ? "CREDIT_CARD" : method;
+    const asaasBillingType = method;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -140,7 +140,7 @@ serve(async (req) => {
 
     const paymentPayload: Record<string, unknown> = {
       customer: customerId,
-      billingType: asaasBillingType, // DEBIT_CARD usa a fatura de cartao do Asaas.
+      billingType: asaasBillingType, // PIX | CREDIT_CARD | BOLETO
       value: plan.price,
       dueDate,
       description: `Plano ${plan.name} - Diamond X`,
