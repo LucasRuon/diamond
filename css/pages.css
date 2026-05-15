@@ -12,11 +12,15 @@
     background: var(--dx-bg);
 }
 
-#main-content > .page-container {
+/* Respiro inferior aplicado no scroll container (não no filho .page-container).
+   No iOS PWA standalone, padding-bottom em um filho do scroll container nem sempre
+   é totalmente roláveis até o fim — aplicar no próprio scroll container é a forma
+   confiável de garantir clearance acima da bottom-nav fixa. */
+#main-content {
     padding-bottom: var(--page-end-gap);
 }
 
-html.bottom-nav-visible #main-content > .page-container {
+html.bottom-nav-visible #main-content {
     padding-bottom: var(--page-bottom-padding);
 }
 
