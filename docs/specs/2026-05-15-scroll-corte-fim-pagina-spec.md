@@ -112,7 +112,7 @@ A pesquisa atual indica que o CSS vivo já removeu a causa antiga (`--nav-safe-a
    - Atualizar os links de CSS alterados:
 
      ```html
-     <link rel="stylesheet" href="/css/reset.css?v=11">
+     <link rel="stylesheet" href="/css/reset.css?v=12">
      <link rel="stylesheet" href="/css/pages.css?v=5">
      ```
 
@@ -122,11 +122,11 @@ A pesquisa atual indica que o CSS vivo já removeu a causa antiga (`--nav-safe-a
    - Atualizar:
 
      ```js
-     const CACHE_NAME = 'diamondx-v30';
+     const CACHE_NAME = 'diamondx-v31';
      ```
 
    - Atualizar os mesmos assets no array `ASSETS`:
-     - `/css/reset.css?v=11`
+     - `/css/reset.css?v=12`
      - `/css/pages.css?v=5`
    - Manter `/css/components.css?v=20` se `components.css` não tiver sido alterado.
    - No listener `activate`, após remover caches antigos, chamar `self.clients.claim()`:
@@ -148,19 +148,19 @@ A pesquisa atual indica que o CSS vivo já removeu a causa antiga (`--nav-safe-a
 #### Critérios de Sucesso
 
 **Verificação Automatizada:**
-- [x] `rg -n "reset.css\\?v=11|pages.css\\?v=5" index.html service-worker.js` retorna as referências esperadas nos dois arquivos.
-- [x] `rg -n "diamondx-v30|clients\\.claim" service-worker.js` retorna o novo cache e a chamada de claim.
+- [x] `rg -n "reset.css\\?v=12|pages.css\\?v=5" index.html service-worker.js` retorna as referências esperadas nos dois arquivos.
+- [x] `rg -n "diamondx-v31|clients\\.claim" service-worker.js` retorna o novo cache e a chamada de claim.
 - [x] Com servidor local ativo, executar:
 
   ```bash
-  node -e "fetch('http://127.0.0.1:3000/').then(async r => { const t = await r.text(); console.log(r.status, t.includes('/css/reset.css?v=11'), t.includes('/css/pages.css?v=5')); })"
+  node -e "fetch('http://127.0.0.1:3000/').then(async r => { const t = await r.text(); console.log(r.status, t.includes('/css/reset.css?v=12'), t.includes('/css/pages.css?v=5')); })"
   ```
 
   Resultado esperado: `200 true true`.
 
 **Verificação Manual:**
 - [ ] Em DevTools > Application > Service Workers, a nova versão do worker ativa sem manter `diamondx-v29`.
-- [ ] Após um reload online, Network mostra `reset.css?v=11` e `pages.css?v=5`.
+- [ ] Após um reload online, Network mostra `reset.css?v=12` e `pages.css?v=5`.
 - [ ] No aparelho afetado, abrir a PWA online uma vez e confirmar que os CSS versionados atuais foram carregados.
 
 ### Fase 3: Adicionar Regressão de Clearance
@@ -232,9 +232,9 @@ A pesquisa atual indica que o CSS vivo já removeu a causa antiga (`--nav-safe-a
 2. Validação manual no device afetado
    - Abrir a PWA ou navegador online após o deploy.
    - Confirmar no device, quando possível, os valores:
-     - URL carregada de `/css/reset.css?v=11`
+     - URL carregada de `/css/reset.css?v=12`
      - URL carregada de `/css/pages.css?v=5`
-     - cache ativo `diamondx-v30`
+     - cache ativo `diamondx-v31`
      - `#main-content` com `padding-bottom` maior ou igual à altura da `#bottom-nav`
    - Verificar rotas:
      - `#mais`: botão `SAIR DA CONTA` totalmente visível.
@@ -257,7 +257,7 @@ A pesquisa atual indica que o CSS vivo já removeu a causa antiga (`--nav-safe-a
 
 | Cenário | Comportamento Esperado |
 |---------|------------------------|
-| iPhone/PWA com `safe-area-inset-bottom` alto | A nav cresce com `--safe-bottom` e o `#main-content` recebe clearance suficiente. |
+| iPhone/PWA standalone com `safe-area-inset-bottom` superestimado | A nav limita a faixa visual inferior via `html.standalone-app` e o `#main-content` recebe clearance suficiente sem faixa gigante. |
 | Desktop ou Android sem safe-area | `--safe-bottom` fica `0px`; visual não deve ganhar espaço extra relevante. |
 | Tela baixa coberta por `@media (max-height: 670px)` | `--nav-height`, `--page-end-gap` e `--page-bottom-padding` recalculam sem cortar o último elemento. |
 | Rota pública `#login` ou `#forgot-password` | `auth-screen` mantém padding inferior zerado e não exibe bottom nav. |
