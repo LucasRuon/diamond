@@ -7,7 +7,7 @@
 
 :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --standalone-nav-safe-area-cap: 2px;
+    --standalone-nav-safe-area-cap: 0px;
 
     --nav-height: clamp(48px, 13vw, 58px);
 
@@ -22,6 +22,7 @@
 
 html.standalone-app {
     /* No PWA instalado, o WebKit pode reportar uma safe-area inferior maior que a home indicator. */
+    --nav-height: clamp(46px, 12vw, 52px);
     --nav-bottom-padding: min(var(--safe-bottom), var(--standalone-nav-safe-area-cap));
     --page-end-gap: clamp(20px, 4vh, 32px);
     --page-bottom-padding: calc(var(--nav-clearance) + var(--page-end-gap));
@@ -29,6 +30,7 @@ html.standalone-app {
 
 @media (max-height: 670px) {
     html.standalone-app {
+        --nav-height: clamp(44px, 11vw, 50px);
         --page-end-gap: clamp(18px, 4vh, 28px);
         --page-bottom-padding: calc(var(--nav-clearance) + var(--page-end-gap));
     }

@@ -7,7 +7,8 @@ from playwright import async_api
 BASE_URL = "http://localhost:3000"
 SCREENSHOT_PATH = Path(__file__).parent / "tmp" / "TC037_bottom_nav_clearance.png"
 MIN_CLEARANCE_PX = 20
-MAX_STANDALONE_NAV_EXTRA_PX = 6
+MAX_STANDALONE_NAV_EXTRA_PX = 1
+MAX_STANDALONE_NAV_HEIGHT_PX = 50
 MAX_STANDALONE_PADDING_BOTTOM_PX = 110
 
 
@@ -147,6 +148,10 @@ async def assert_clearance(page, viewport, standalone=False, safe_bottom_px=34):
                 f"{label}: expected standalone nav bottom band to stay compact, "
                 f"got {metrics['navBottomExtra']:.2f}px. Metrics: {metrics}"
             )
+            assert metrics["bottomNavHeight"] <= MAX_STANDALONE_NAV_HEIGHT_PX, (
+                f"{label}: expected standalone nav to be shorter than {MAX_STANDALONE_NAV_HEIGHT_PX}px, "
+                f"got {metrics['bottomNavHeight']:.2f}px. Metrics: {metrics}"
+            )
             assert metrics["paddingBottom"] <= MAX_STANDALONE_PADDING_BOTTOM_PX, (
                 f"{label}: expected standalone content padding not to use the overreported safe area, "
                 f"got {metrics['paddingBottom']:.2f}px. Metrics: {metrics}"
@@ -190,6 +195,12 @@ async def run_test():
         await assert_clearance(
             page,
             {"width": 393, "height": 852},
+            standalone=True,
+            safe_bottom_px=160,
+        )
+        await assert_clearance(
+            page,
+            {"width": 360, "height": 640},
             standalone=True,
             safe_bottom_px=160,
         )
