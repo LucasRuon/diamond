@@ -1,8 +1,10 @@
 # Configuração das Edge Functions do Diamond X.
-# Ambas as funções abaixo desativam a verificação automática de JWT do gateway
+# As funções abaixo desativam a verificação automática de JWT do gateway
 # porque autenticam o chamador por conta própria:
 #  - asaas-checkout: valida o Bearer do usuário via supabase.auth.getUser(token).
 #  - asaas-webhook:  valida o header asaas-access-token contra ASAAS_WEBHOOK_TOKEN.
+#  - waitlist-tick/push-notify: validam service_role no Authorization/apikey.
+#  - push-subscribe: valida o Bearer do usuário via supabase.auth.getUser().
 
 [functions.asaas-checkout]
 verify_jwt = false
@@ -13,3 +15,12 @@ verify_jwt = false
 [functions.admin-update-user]
 # Mantém o comportamento padrão (verifica JWT do Supabase) — admin route.
 verify_jwt = true
+
+[functions.waitlist-tick]
+verify_jwt = false
+
+[functions.push-notify]
+verify_jwt = false
+
+[functions.push-subscribe]
+verify_jwt = false
