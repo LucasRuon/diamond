@@ -2,9 +2,12 @@
 date: 2026-05-15
 planner: claude
 plan_title: "Corrigir corte de conteúdo no fim do scroll (bottom-nav sobreposta)"
-status: approved
+status: superseded
 related_research: docs/research/2026-05-15-scroll-corte-fim-pagina.md
 ---
+
+> Superseded por `docs/specs/2026-05-15-scroll-corte-fim-pagina-spec.md`.
+> O estado descrito aqui sobre `--nav-safe-area-cap: 2px` não corresponde mais ao CSS atual.
 
 # Implementation Plan: Corrigir corte de conteúdo no fim do scroll
 

@@ -65,6 +65,7 @@ html.bottom-nav-visible body {
 
 #main-content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
@@ -73,7 +74,7 @@ html.bottom-nav-visible body {
        ou podemos usar um spacer. Vamos de padding generoso + env */
     padding-top: calc(45px + env(safe-area-inset-top));
 
-    /* O respiro inferior das rotas fica no wrapper da página. */
+    /* O respiro inferior das rotas autenticadas fica no proprio scroll container em pages.css. */
     padding-bottom: 0;
     scroll-padding-bottom: var(--page-bottom-padding);
 }

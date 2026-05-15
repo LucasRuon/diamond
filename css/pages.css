@@ -1,7 +1,7 @@
 /* === Page Transitions === */
 #main-content {
     transition: opacity 0.25s ease, transform 0.25s ease;
-    min-height: 100vh;
+    min-height: 0;
 }
 
 #main-content.auth-screen {

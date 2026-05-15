@@ -1,12 +1,12 @@
-const CACHE_NAME = 'diamondx-v29';
+const CACHE_NAME = 'diamondx-v30';
 const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json?v=3',
-    '/css/reset.css?v=10',
+    '/css/reset.css?v=11',
     '/css/variables.css',
     '/css/components.css?v=20',
-    '/css/pages.css?v=4',
+    '/css/pages.css?v=5',
     '/js/app.js?v=18',
     '/js/auth.js',
     '/js/supabase.js',
@@ -41,12 +41,13 @@ self.addEventListener('install', event => {
 // Activate: Cleanup old caches
 self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then(keys => {
-            return Promise.all(keys
-                .filter(key => key !== CACHE_NAME)
-                .map(key => caches.delete(key))
-            );
-        })
+        caches.keys()
+            .then(keys => Promise.all(
+                keys
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            ))
+            .then(() => self.clients.claim())
     );
 });
 
