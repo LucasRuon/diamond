@@ -20,7 +20,7 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-const ALLOWED_METHODS = new Set(["PIX", "CREDIT_CARD"]);
+const ALLOWED_METHODS = new Set(["PIX", "CREDIT_CARD", "DEBIT_CARD"]);
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -67,6 +67,7 @@ serve(async (req) => {
     if (!ALLOWED_METHODS.has(method)) {
       return json({ error: "invalid_payment_method" }, 400);
     }
+    const asaasBillingType = method === "DEBIT_CARD" ? "CREDIT_CARD" : method;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -139,7 +140,7 @@ serve(async (req) => {
 
     const paymentPayload: Record<string, unknown> = {
       customer: customerId,
-      billingType: method, // PIX | CREDIT_CARD
+      billingType: asaasBillingType, // DEBIT_CARD usa a fatura de cartao do Asaas.
       value: plan.price,
       dueDate,
       description: `Plano ${plan.name} - Diamond X`,
@@ -213,6 +214,8 @@ serve(async (req) => {
       paymentId: paymentData.id,
       invoiceUrl,
       pix,
+      paymentMethod: method,
+      asaasBillingType,
     });
   } catch (error) {
     console.error("[asaas-checkout] error", error);

@@ -46,13 +46,16 @@ export const adminPlans = {
             return;
         }
 
-        listContainer.innerHTML = plans.map(plan => `
-            <div class="card" style="border-left: 4px solid ${plan.category === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}">
+        listContainer.innerHTML = plans.map(plan => {
+            const isActive = plan.active !== false;
+            return `
+            <div class="card" style="border-left: 4px solid ${plan.category === 'training' ? 'var(--dx-teal)' : 'var(--dx-warn)'}; opacity: ${isActive ? '1' : '0.55'};">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                             <p style="font-size: 11px; color: var(--dx-muted); font-weight: 700; text-transform: uppercase;">${plan.category === 'training' ? 'TREINAMENTO' : 'FISIOTERAPIA'}</p>
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: ${plan.tier === 'diamond_x' ? 'var(--dx-teal-dim)' : 'var(--dx-surface2)'}; color: ${plan.tier === 'diamond_x' ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${plan.tier === 'diamond_x' ? 'var(--dx-teal-border)' : 'var(--dx-border)'};">${plan.tier === 'diamond_x' ? 'DIAMOND X' : 'PRÉ DIAMOND'}</span>
+                            ${isActive ? '' : '<span style="font-size: 9px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; background: rgba(248,113,113,0.12); color: var(--dx-danger); border: 1px solid rgba(248,113,113,0.35);">INATIVO</span>'}
                         </div>
                         <p style="font-family: var(--font-brand); font-weight: 400; font-size: 17px;">${escapeHtml(plan.name)}</p>
                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
@@ -64,7 +67,11 @@ export const adminPlans = {
                     <p style="font-weight: 800; color: var(--dx-teal);">R$ ${plan.price}</p>
                 </div>
                 <p style="font-size: 13px; color: var(--dx-muted); margin-bottom: 16px;">${escapeHtml(plan.description || 'Sem descrição')}</p>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; align-items: stretch;">
+                    <button class="btn toggle-plan-active" data-id="${escapeHtml(plan.id)}" data-active="${isActive ? '1' : '0'}" title="${isActive ? 'Desativar plano' : 'Ativar plano'}" style="padding: 10px 12px; font-size: 12px; background: ${isActive ? 'rgba(67,206,162,0.12)' : 'var(--dx-surface2)'}; color: ${isActive ? 'var(--dx-teal)' : 'var(--dx-muted)'}; border: 1px solid ${isActive ? 'var(--dx-teal-border)' : 'var(--dx-border)'}; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ${isActive ? 'ph-toggle-right' : 'ph-toggle-left'}" style="font-size: 18px;"></i>
+                        <span style="font-weight: 700;">${isActive ? 'ATIVO' : 'INATIVO'}</span>
+                    </button>
                     <button class="btn btn-diamond edit-plan" data-id="${escapeHtml(plan.id)}" style="flex: 1; padding: 10px; font-size: 12px;">
                         <i class="ph ph-pencil-simple" style="margin-right: 6px;"></i> EDITAR
                     </button>
@@ -73,7 +80,7 @@ export const adminPlans = {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;}).join('');
 
         this.setupEvents(plans);
     },
@@ -83,6 +90,22 @@ export const adminPlans = {
             btn.addEventListener('click', () => {
                 const plan = plans.find(p => p.id === btn.dataset.id);
                 this.showPlanForm(plan);
+            });
+        });
+
+        document.querySelectorAll('.toggle-plan-active').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const nextActive = btn.dataset.active !== '1';
+                btn.disabled = true;
+                const { error } = await supabase.from('plans').update({ active: nextActive }).eq('id', id);
+                btn.disabled = false;
+                if (error) {
+                    toast.show('Erro ao atualizar status: ' + error.message, 'error');
+                    return;
+                }
+                toast.show(nextActive ? 'Plano ativado' : 'Plano desativado');
+                this.loadPlans();
             });
         });
 
@@ -155,6 +178,13 @@ export const adminPlans = {
                     <label>DESCRIÇÃO</label>
                     <textarea name="description" class="input-control" rows="2">${escapeHtml(plan?.description || '')}</textarea>
                 </div>
+                <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--dx-surface2); border: 1px solid var(--dx-border); border-radius: 8px; cursor: pointer; margin-top: 4px;">
+                    <input type="checkbox" name="active" value="1" ${(plan?.active !== false) ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--dx-teal);">
+                    <span>
+                        <span style="font-weight: 700; font-size: 13px;">PLANO ATIVO</span>
+                        <span style="display: block; font-size: 11px; color: var(--dx-muted); margin-top: 2px;">Quando desativado, não aparece nos catálogos de contratação.</span>
+                    </span>
+                </label>
                 <button type="submit" class="btn btn-primary" style="margin-top: 16px;">${plan ? 'ATUALIZAR' : 'CRIAR'} PLANO</button>
             </form>
         `;
@@ -166,7 +196,8 @@ export const adminPlans = {
                 duration_days: parseInt(data.duration_days),
                 total_sessions: parseInt(data.total_sessions) || null,
                 max_installments: Math.min(12, Math.max(1, parseInt(data.max_installments) || 1)),
-                kind: data.kind || 'custom'
+                kind: data.kind || 'custom',
+                active: data.active === '1'
             };
 
             const { error } = plan
